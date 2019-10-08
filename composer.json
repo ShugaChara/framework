@@ -1,0 +1,35 @@
+{
+  "name": "shugachara/framework",
+  "type": "library",
+  "description": "this is linshan czPHP framework",
+  "keywords" : [
+    "swoole",
+    "framework",
+    "async",
+    "czPHP",
+    "api",
+    "shugachara"
+  ],
+  "license" : "Apache-2.0",
+  "authors": [
+    {
+      "name": "shugachara",
+      "email": "1099013371@qq.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1.0",
+    "ext-swoole": ">=4.3.0",
+    "shugachara/core": "^1.0"
+  },
+  "require-dev": {},
+  "autoload": {
+    "psr-4": {
+      "ShugaChara\\Framework\\": "src/"
+    },
+    "files": [
+      "helper/function.php"
+    ]
+  },
+  "bin": []
+}
