@@ -19,7 +19,7 @@
   ],
   "require": {
     "php": ">=7.1.0",
-    "ext-swoole": ">=4.3.0",
+    "ext-swoole": ">=4.4.1",
     "shugachara/core": "^1.0"
   },
   "require-dev": {},
@@ -28,7 +28,7 @@
       "ShugaChara\\Framework\\": "src/"
     },
     "files": [
-      "helper/function.php"
+      "helpers/functions.php"
     ]
   },
   "bin": []
