@@ -28,7 +28,6 @@
       "ShugaChara\\Framework\\": "src/"
     },
     "files": [
-      "helpers/functions.php"
     ]
   },
   "bin": []
