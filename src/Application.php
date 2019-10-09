@@ -26,10 +26,40 @@ class Application implements ApplicationInterface
     use ApplicationTrait;
 
     /**
-     * 项目目录
+     * 项目根目录
      * @var string
      */
     protected $basePath = '';
+
+    /**
+     * 系统核心配置文件
+     * @var string
+     */
+    protected $envFile = '.env';
+
+    /**
+     * app目录
+     * @var string
+     */
+    protected $appPath = 'app';
+
+    /**
+     * 配置文件
+     * @var string
+     */
+    protected $configPath = 'config';
+
+    /**
+     * 缓存文件
+     * @var string
+     */
+    protected $runtimePath = 'runtime';
+
+    /**
+     * 项目根目录层级
+     * @var int
+     */
+    protected $basePathLevel = 2;
 
     /**
      * 默认时区
@@ -87,7 +117,9 @@ class Application implements ApplicationInterface
      */
     protected function init()
     {
+        $this->basePath = $this->getBasePath();
 
+        $processors = $this->processors();
     }
 
     /**
@@ -96,6 +128,30 @@ class Application implements ApplicationInterface
     protected function afterInit()
     {
 
+    }
+
+    /**
+     * 获取根目录
+     *
+     * @return string|void
+     * @throws \ReflectionException
+     */
+    private function getBasePath()
+    {
+        if ($this->basePath) {
+            return ;
+        }
+
+        $ReflectionClass = new \ReflectionClass(static::class);
+
+        return dirname($ReflectionClass->getFileName(), $this->basePathLevel);
+    }
+
+    protected function processors(): array
+    {
+        return [
+            new EnvProcessor($this),
+        ];
     }
 }
 
