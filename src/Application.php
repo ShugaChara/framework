@@ -19,11 +19,26 @@ namespace ShugaChara\Framework;
 
 use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Helpers\czHelper;
+use ShugaChara\Framework\Processor\ApplicationProcessor;
+use ShugaChara\Framework\Processor\EnvProcessor;
 use ShugaChara\Framework\Traits\ApplicationTrait;
 
 class Application implements ApplicationInterface
 {
     use ApplicationTrait;
+
+    /**
+     * @var ApplicationProcessor
+     */
+    private $processor;
+
+    /**
+     * 初始 Processor 类
+     * @var array
+     */
+    private $processorsClassName = [
+        EnvProcessor::class
+    ];
 
     /**
      * 项目根目录
@@ -89,6 +104,8 @@ class Application implements ApplicationInterface
         if (! $this->beforeRun()) {
             return;
         }
+
+        $this->processor->handle();
     }
 
     /**
@@ -118,8 +135,11 @@ class Application implements ApplicationInterface
     protected function init()
     {
         $this->basePath = $this->getBasePath();
+        $this->setPathCompletion();
 
         $processors = $this->processors();
+        $this->processor = new ApplicationProcessor($this);
+        $this->processor->addFirstProcessor(...$processors);
     }
 
     /**
@@ -136,11 +156,13 @@ class Application implements ApplicationInterface
      * @return string|void
      * @throws \ReflectionException
      */
-    private function getBasePath()
+    public function getBasePath()
     {
         if ($this->basePath) {
-            return ;
+            return $this->basePath;
         }
+
+        // 获取当前类所在的位置
 
         $ReflectionClass = new \ReflectionClass(static::class);
 
@@ -149,9 +171,27 @@ class Application implements ApplicationInterface
 
     protected function processors(): array
     {
-        return [
-            new EnvProcessor($this),
-        ];
+        $processors = [];
+
+        if ($this->processorsClassName) {
+            foreach ($this->processorsClassName as $processor) {
+                $processors[] = new $processor($this);
+            }
+        }
+
+        return $processors;
+    }
+
+    /**
+     * 目录路径补全
+     * @throws \ReflectionException
+     */
+    private function setPathCompletion()
+    {
+        $this->envFile = sprintf('%s/%s', $this->getBasePath(), $this->envFile);
+        $this->appPath = sprintf('%s/%s', $this->getBasePath(), $this->appPath);
+        $this->configPath = sprintf('%s/%s', $this->getBasePath(), $this->configPath);
+        $this->runtimePath = sprintf('%s/%s', $this->getBasePath(), $this->runtimePath);
     }
 }
 

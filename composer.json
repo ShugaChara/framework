@@ -20,7 +20,8 @@
   "require": {
     "php": ">=7.1.0",
     "ext-swoole": ">=4.4.1",
-    "shugachara/core": "^1.0"
+    "shugachara/core": "dev-master",
+    "shugachara/config": "dev-master"
   },
   "require-dev": {},
   "autoload": {
