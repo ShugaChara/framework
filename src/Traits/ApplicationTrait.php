@@ -39,4 +39,36 @@ trait ApplicationTrait
     {
         date_default_timezone_set($timezone);
     }
+
+    /**
+     * @return mixed
+     */
+    public function getEnvFile()
+    {
+        return $this->envFile;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAppPath()
+    {
+        return $this->appPath;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getConfigPath()
+    {
+        return $this->configPath;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRuntimePath()
+    {
+        return $this->runtimePath;
+    }
 }

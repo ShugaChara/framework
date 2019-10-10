@@ -106,6 +106,7 @@ class Application implements ApplicationInterface
         }
 
         $this->processor->handle();
+        dd(environment());
     }
 
     /**
