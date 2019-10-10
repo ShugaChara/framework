@@ -51,6 +51,14 @@ trait ApplicationTrait
     /**
      * @return mixed
      */
+    public function getEnvPath()
+    {
+        return $this->envPath;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getAppPath()
     {
         return $this->appPath;

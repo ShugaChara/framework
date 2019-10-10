@@ -53,19 +53,25 @@ class Application implements ApplicationInterface
     protected $envFile = '.env';
 
     /**
+     * 系统核心配置目录
+     * @var string
+     */
+    protected $envPath = 'env';
+
+    /**
      * app目录
      * @var string
      */
     protected $appPath = 'app';
 
     /**
-     * 配置文件
+     * 配置目录
      * @var string
      */
     protected $configPath = 'config';
 
     /**
-     * 缓存文件
+     * 缓存目录
      * @var string
      */
     protected $runtimePath = 'runtime';
@@ -106,7 +112,6 @@ class Application implements ApplicationInterface
         }
 
         $this->processor->handle();
-        dd(environment());
     }
 
     /**
@@ -190,6 +195,7 @@ class Application implements ApplicationInterface
     private function setPathCompletion()
     {
         $this->envFile = sprintf('%s/%s', $this->getBasePath(), $this->envFile);
+        $this->envPath = sprintf('%s/%s', $this->getBasePath(), $this->envPath);
         $this->appPath = sprintf('%s/%s', $this->getBasePath(), $this->appPath);
         $this->configPath = sprintf('%s/%s', $this->getBasePath(), $this->configPath);
         $this->runtimePath = sprintf('%s/%s', $this->getBasePath(), $this->runtimePath);

@@ -28,11 +28,8 @@ class EnvProcessor extends Processor
     {
         // TODO: Implement handle() method.
 
-        $envFile = $this->application->getEnvFile();
-        $envPath = dirname($envFile);
-        $envFileName = basename($envFile);
-
-        if (! file_exists($envFile)) {
+        $fileInfo = $this->getFileInfo($this->application->getEnvFile());
+        if (! $fileInfo) {
             return true;
         }
 
@@ -42,10 +39,30 @@ class EnvProcessor extends Processor
             new ServerConstAdapter
         ]);
 
-        // 加载env配置,读取配置方式可以有: $_ENV \ $_SERVER \ getenv() 获取
-        Dotenv::create($envPath, $envFileName, $envFactory)->load();
+        // 加载.env配置,读取配置方式可以有: $_ENV \ $_SERVER \ getenv() 获取
+        Dotenv::create($fileInfo['path'], $fileInfo['name'], $envFactory)->load();
+
+        $fileInfo = $this->getFileInfo(sprintf('%s/%s.%s', $this->application->getEnvPath(), $fileInfo['name'], environment()));
+        if (! $fileInfo) {
+            return true;
+        }
+
+        // 加载具体的.env.n 环境配置
+        Dotenv::create($fileInfo['path'], $fileInfo['name'], $envFactory)->load();
 
         return true;
+    }
+
+    protected function getFileInfo($file_name)
+    {
+        if (! file_exists($file_name)) {
+            return null;
+        }
+
+        return [
+            'path'      =>      dirname($file_name),
+            'name'      =>      basename($file_name),
+        ];
     }
 }
 
