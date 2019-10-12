@@ -21,7 +21,9 @@
     "php": ">=7.1.0",
     "ext-swoole": ">=4.4.1",
     "shugachara/core": "dev-master",
-    "shugachara/config": "dev-master"
+    "shugachara/config": "dev-master",
+    "shugachara/logs": "dev-master",
+    "shugachara/container": "dev-master"
   },
   "require-dev": {},
   "autoload": {
