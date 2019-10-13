@@ -79,4 +79,29 @@ trait ApplicationTrait
     {
         return $this->runtimePath;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getAppName()
+    {
+        return $this->appName;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAppVersion()
+    {
+        return $this->appVersion;
+    }
+
+    /**
+     * 获取IOC容器
+     * @return Container
+     */
+    public function container()
+    {
+        return $this->container;
+    }
 }

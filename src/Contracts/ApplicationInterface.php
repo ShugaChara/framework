@@ -19,10 +19,4 @@ interface ApplicationInterface
      * 运行框架
      */
     public function run(): void;
-
-    /**
-     * 启动框架前置操作
-     * @return bool
-     */
-    public function beforeRun(): bool;
 }

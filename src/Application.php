@@ -17,15 +17,36 @@
 
 namespace ShugaChara\Framework;
 
+use ShugaChara\Container\Container;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Helpers\czHelper;
 use ShugaChara\Framework\Processor\ApplicationProcessor;
 use ShugaChara\Framework\Processor\EnvProcessor;
+use ShugaChara\Framework\ServiceProvider\LogsProvider;
 use ShugaChara\Framework\Traits\ApplicationTrait;
 
 class Application implements ApplicationInterface
 {
     use ApplicationTrait;
+
+    /**
+     * @var
+     */
+    public static $app;
+
+    /**
+     * 容器
+     * @var Container
+     */
+    protected $container;
+
+    /**
+     * 容器服务
+     * @var
+     */
+    protected $services = [
+        LogsProvider::class
+    ];
 
     /**
      * @var ApplicationProcessor
@@ -39,6 +60,18 @@ class Application implements ApplicationInterface
     private $processorsClassName = [
         EnvProcessor::class
     ];
+
+    /**
+     * 应用名称
+     * @var string
+     */
+    protected $appName = 'czphp';
+
+    /**
+     * 应用版本号
+     * @var string
+     */
+    protected $appVersion = '1.0.0';
 
     /**
      * 项目根目录
@@ -93,9 +126,16 @@ class Application implements ApplicationInterface
         // check runtime env
         czHelper::checkRuntime();
 
+        $this->container = new Container();
+
         $this->beforeInit();
 
         $this->init();
+
+        static::$app = $this;
+
+        // Ioc容器服务注册
+        $this->servicesRegister();
 
         $this->afterInit();
     }
@@ -118,7 +158,7 @@ class Application implements ApplicationInterface
      * 获取框架版本号
      * @return string
      */
-    public static function getVersion(): string
+    public static function getFrameworkVersion(): string
     {
         return self::VERSION;
     }
@@ -186,6 +226,16 @@ class Application implements ApplicationInterface
         }
 
         return $processors;
+    }
+
+    /**
+     * 服务容器注册
+     */
+    protected function servicesRegister()
+    {
+        foreach ($this->services as $service) {
+            (new $service)->register($this->container);
+        }
     }
 
     /**
