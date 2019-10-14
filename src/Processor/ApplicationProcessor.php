@@ -24,6 +24,11 @@ class ApplicationProcessor extends Processor
      */
     private $processors = [];
 
+    /**
+     * @var array
+     */
+    private $disabledProcessors = [];
+
     public function handle(): bool
     {
         // TODO: Implement handle() method.
@@ -32,7 +37,7 @@ class ApplicationProcessor extends Processor
             $class = get_class($processor);
 
             // If is disabled, skip handle.
-            if (isset($disabled[$class])) {
+            if (isset($this->disabledProcessors[$class])) {
                 continue;
             }
 
@@ -43,7 +48,25 @@ class ApplicationProcessor extends Processor
     }
 
     /**
-     * Add first processor
+     * 添加 禁止/过滤 Processor
+     *
+     * @param Processor ...$processor
+     * @return bool
+     */
+    public function addDisabledProcessors($processor): bool
+    {
+        foreach ($processor as $item) {
+            $class = get_class($item);
+            if (! isset($this->disabledProcessors[$class])) {
+                $this->disabledProcessors[$class] = $item;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * 将 processor 添加到第一个
      *
      * @param Processor[] $processor
      * @return bool
@@ -56,7 +79,7 @@ class ApplicationProcessor extends Processor
     }
 
     /**
-     * Add last processor
+     * 将 processor 添加到最后
      *
      * @param Processor[] $processor
      *

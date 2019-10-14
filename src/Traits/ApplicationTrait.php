@@ -104,4 +104,13 @@ trait ApplicationTrait
     {
         return $this->container;
     }
+
+    /**
+     * 获取IOC容器所有服务
+     * @return mixed
+     */
+    public function getServices()
+    {
+        return $this->container()->getServices();
+    }
 }
