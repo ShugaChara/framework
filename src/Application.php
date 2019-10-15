@@ -47,7 +47,7 @@ class Application implements ApplicationInterface
      */
     protected $defaultServices = [
         LogsProvider::class,
-        ConfigProvider::class
+        ConfigProvider::class,
     ];
 
     /**
@@ -160,7 +160,7 @@ class Application implements ApplicationInterface
 
         $this->processor->handle();
 
-        if ($appTimeZone = getenv('APP_TIME_ZONE')) {
+        if ($appTimeZone = config()->get('APP_TIME_ZONE')) {
             $this->setDateTimezone($appTimeZone);
         }
     }

@@ -49,6 +49,17 @@ if (! function_exists('logs')) {
     }
 }
 
+if (! function_exists('config')) {
+    /**
+     * 配置服务
+     * @return mixed
+     */
+    function config($server_name = 'config')
+    {
+        return container()->get($server_name);
+    }
+}
+
 /**********************************   应用环境    *******************************/
 
 if (! function_exists('environment')) {
