@@ -22,8 +22,8 @@ use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Helpers\czHelper;
 use ShugaChara\Framework\Processor\ApplicationProcessor;
 use ShugaChara\Framework\Processor\EnvProcessor;
-use ShugaChara\Framework\ServiceProvider\ConfigProvider;
-use ShugaChara\Framework\ServiceProvider\LogsProvider;
+use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
+use ShugaChara\Framework\ServiceProvider\LogsServiceProvider;
 use ShugaChara\Framework\Traits\ApplicationTrait;
 
 class Application implements ApplicationInterface
@@ -46,8 +46,8 @@ class Application implements ApplicationInterface
      * @var
      */
     protected $defaultServices = [
-        LogsProvider::class,
-        ConfigProvider::class,
+        LogsServiceProvider::class,
+        ConfigServiceProvider::class,
     ];
 
     /**

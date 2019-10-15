@@ -19,10 +19,10 @@ use ShugaChara\Logs\Logger;
 /**
  * 日志服务
  *
- * Class LogsProvider
+ * Class LogsServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
-class LogsProvider implements ServiceProviderInterface
+class LogsServiceProvider implements ServiceProviderInterface
 {
     private $logs = [];
 

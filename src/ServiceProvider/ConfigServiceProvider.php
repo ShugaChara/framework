@@ -18,10 +18,10 @@ use ShugaChara\Container\ServiceProviderInterface;
 /**
  * 配置服务
  *
- * Class ConfigProvider
+ * Class ConfigServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
-class ConfigProvider implements ServiceProviderInterface
+class ConfigServiceProvider implements ServiceProviderInterface
 {
     public function register(Container $container)
     {
