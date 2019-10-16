@@ -21,6 +21,7 @@ use ShugaChara\Container\Container;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Helpers\czHelper;
 use ShugaChara\Framework\Processor\ApplicationProcessor;
+use ShugaChara\Framework\Processor\ConsoleProcessor;
 use ShugaChara\Framework\Processor\EnvProcessor;
 use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
 use ShugaChara\Framework\ServiceProvider\LogsServiceProvider;
@@ -42,13 +43,25 @@ class Application implements ApplicationInterface
     protected $container;
 
     /**
-     * 容器默认服务
-     * @var
+     * 容器置前服务
+     * @var array
      */
-    protected $defaultServices = [
+    protected $beforeServices = [
         LogsServiceProvider::class,
         ConfigServiceProvider::class,
     ];
+
+    /**
+     * 容器置后服务
+     * @var array
+     */
+    protected $afterServices = [];
+
+    /**
+     * 容器服务
+     * @var
+     */
+    protected $services;
 
     /**
      * @var ApplicationProcessor
@@ -56,19 +69,19 @@ class Application implements ApplicationInterface
     private $processor;
 
     /**
-     * 初始 Processor 类
+     * 初始置前 Processor 类
      * @var array
      */
-    protected $defaultProcessors = [
+    protected $beforeProcessors = [
         EnvProcessor::class
     ];
 
     /**
-     * Processor 类
+     * 置后 Processor 类
      * @var array
      */
-    protected $processors = [
-
+    protected $afterProcessors = [
+        ConsoleProcessor::class
     ];
 
     /**
@@ -163,6 +176,13 @@ class Application implements ApplicationInterface
         if ($appTimeZone = config()->get('APP_TIME_ZONE')) {
             $this->setDateTimezone($appTimeZone);
         }
+
+        $this->servicesRegister($this->afterServices);
+
+        // Container 注入App应用
+        $this->container->add('app', $this);
+
+        $this->services = $this->container->getServices();
     }
 
     /**
@@ -197,16 +217,16 @@ class Application implements ApplicationInterface
         static::$app = $this;
 
         // 初始 Processor 配置类
-        $defaultProcessors = $this->processors($this->defaultProcessors);
-        $this->processor->addFirstProcessor(...$defaultProcessors);
+        $beforeProcessors = $this->processors($this->beforeProcessors);
+        $this->processor->addFirstProcessor(...$beforeProcessors);
         $this->processor->handle();
-        $this->processor->addDisabledProcessors($defaultProcessors);
+        $this->processor->addDisabledProcessors($beforeProcessors);
 
         // Ioc容器服务注册
-        $this->servicesRegister();
+        $this->servicesRegister($this->beforeServices);
 
         // Processor 服务进程
-        $processors = $this->processors($this->processors);
+        $processors = $this->processors($this->afterProcessors);
         $this->processor->addFirstProcessor(...$processors);
     }
 
@@ -253,9 +273,9 @@ class Application implements ApplicationInterface
     /**
      * 服务容器注册
      */
-    protected function servicesRegister()
+    protected function servicesRegister(array $services)
     {
-        foreach ($this->defaultServices as $service) {
+        foreach ($services as $service) {
             (new $service)->register($this->container);
         }
     }
