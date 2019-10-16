@@ -42,7 +42,16 @@ class SwooleCommand extends Command
         $server_name = $input->getArgument('server_name') ?? 'http';
         $handle = $input->getArgument('handle') ?? 'status';
 
-        new SwooleServer($server_name, $handle);
+        switch (strtoupper($server_name)) {
+            case 'HTTP':
+                $options = config()->get('APP_SWOOLE.HTTP');
+                break;
+            case 'WEBSOCKET':
+                $options = config()->get('APP_SWOOLE.WEBSOCKET');
+                break;
+        }
+
+        new SwooleServer($server_name, $options, $handle);
     }
 }
 
