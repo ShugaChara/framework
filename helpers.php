@@ -31,7 +31,7 @@ if (! function_exists('container')) {
      */
     function container()
     {
-        return app()->container();
+        return app()->getContainer();
     }
 }
 

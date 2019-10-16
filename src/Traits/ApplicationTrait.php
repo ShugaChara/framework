@@ -100,7 +100,7 @@ trait ApplicationTrait
      * 获取IOC容器
      * @return Container
      */
-    public function container()
+    public function getContainer()
     {
         return $this->container;
     }
