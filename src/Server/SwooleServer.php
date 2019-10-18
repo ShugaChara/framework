@@ -12,9 +12,12 @@
 namespace ShugaChara\Framework\Server;
 
 use ShugaChara\Core\Helpers;
+use ShugaChara\Framework\Constant\Consts;
 use ShugaChara\Framework\Contracts\SwooleManagerInterface;
 use ShugaChara\Swoole\Server\Http;
 use ShugaChara\Swoole\Server\WebSocket;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Class SwooleServer
@@ -22,10 +25,6 @@ use ShugaChara\Swoole\Server\WebSocket;
  */
 class SwooleServer implements SwooleManagerInterface
 {
-    const DEFAULT_SERVER = 'HTTP';
-
-    const DEFAULT_SERVER_HANDLE = 'status';
-
     protected $swoole;
 
     /**
@@ -46,32 +45,36 @@ class SwooleServer implements SwooleManagerInterface
      */
     protected $handle;
 
-    const SERVER_STATUS_NAME = 'status';
-
-    const SERVER_START_NAME = 'start';
-
-    const SERVER_STOP_NAME = 'stop';
-
-    const SERVER_RELOAD_NAME = 'reload';
+    /**
+     * 控制台输出
+     * @var
+     */
+    protected $consoleOutput;
 
     /**
      * 操作状态类型
      * @var array
      */
     protected $handleType = [
-        self::SERVER_START_NAME, self::SERVER_STATUS_NAME, self::SERVER_STOP_NAME, self::SERVER_RELOAD_NAME
+        Consts::SWOOLE_SERVER_START_NAME,
+        Consts::SWOOLE_SERVER_STATUS_NAME,
+        Consts::SWOOLE_SERVER_STOP_NAME,
+        Consts::SWOOLE_SERVER_RELOAD_NAME
     ];
 
     public function __construct(
-        $serverName = self::DEFAULT_SERVER,
+        $serverName = Consts::SWOOLE_SERVER_HTTP,
         array $options = [],
-        string $handle = self::DEFAULT_SERVER_HANDLE
+        string $handle = Consts::SWOOLE_SERVER_STATUS_NAME,
+        OutputInterface $output = null
     )
     {
         $this->server = $serverName;
         $this->options = $options;
         $this->handle = $handle;
 
+        $this->consoleOutput = null === $output ? new ConsoleOutput() : $output;
+dd(da());
         $this->server();
     }
 
@@ -86,21 +89,21 @@ class SwooleServer implements SwooleManagerInterface
         if (in_array($handle, $this->handleType)) {
 
             switch ($handle) {
-                case self::SERVER_START_NAME:
+                case Consts::SWOOLE_SERVER_START_NAME:
                     {
                         $this->createSwooleServer($host, $port, $options);
                         break;
                     }
-                case self::SERVER_STOP_NAME:
+                case Consts::SWOOLE_SERVER_STOP_NAME:
                     {
                         return $this->$handle();
                         break;
                     }
-                case self::SERVER_STATUS_NAME:
+                case Consts::SWOOLE_SERVER_STATUS_NAME:
                     {
                         break;
                     }
-                case self::SERVER_RELOAD_NAME:
+                case Consts::SWOOLE_SERVER_RELOAD_NAME:
                     {
                         break;
                     }
@@ -118,12 +121,12 @@ class SwooleServer implements SwooleManagerInterface
     protected function createSwooleServer($host, $port, $options = [])
     {
         switch (strtoupper($this->server)) {
-            case 'HTTP':
+            case Consts::SWOOLE_SERVER_HTTP:
                 {
                     $this->swoole = new Http($host, $port, $options);
                     break;
                 }
-            case 'WEBSOCKET':
+            case Consts::SWOOLE_SERVER_WEBSOCKET:
                 {
                     $this->swoole = new WebSocket($host, $port, $options);
                     break;

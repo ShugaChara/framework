@@ -12,6 +12,7 @@
 namespace ShugaChara\Framework\Console\Commands;
 
 use ShugaChara\Console\Command;
+use ShugaChara\Framework\Constant\Consts;
 use ShugaChara\Framework\Server\SwooleServer;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -34,24 +35,30 @@ class SwooleCommand extends Command
             ->setDescription('创建一个swoole服务器')  // 简短描述
             ->setHelp('创建一个http服务器:支持 http/websocket')  // 运行命令时使用 "--help" 选项时的完整命令描述
             ->addArgument('server_name', InputArgument::OPTIONAL, '服务名称')  // 配置可选参数
-            ->addArgument('handle', InputArgument::OPTIONAL, '服务状态');  // 配置可选参数
+            ->addArgument('handle', InputArgument::OPTIONAL, '服务状态')
+            ->addArgument('daemonize', InputArgument::OPTIONAL, '守护进程');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $server_name = $input->getArgument('server_name') ?? 'http';
         $handle = $input->getArgument('handle') ?? 'status';
+        $daemonize = in_array($input->getArgument('daemonize'), ['d', 'daemon', 'daemonize']) ? true : false;
 
-        switch (strtoupper($server_name)) {
-            case 'HTTP':
-                $options = config()->get('APP_SWOOLE.HTTP');
-                break;
-            case 'WEBSOCKET':
-                $options = config()->get('APP_SWOOLE.WEBSOCKET');
-                break;
+        $strtoupper_server_name = strtoupper($server_name);
+        if (in_array($strtoupper_server_name, [
+            Consts::SWOOLE_SERVER_HTTP,
+            Consts::SWOOLE_SERVER_WEBSOCKET
+        ])) {
+            $options = config()->get('APP_SWOOLE.' . $strtoupper_server_name);
+
+            // 配置守护进程
+            if ($daemonize) {
+                $options['options']['daemonize'] = $daemonize;
+            }
+
+            new SwooleServer($server_name, $options, $handle);
         }
-
-        new SwooleServer($server_name, $options, $handle);
     }
 }
 
