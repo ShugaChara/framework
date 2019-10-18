@@ -204,6 +204,7 @@ class SwooleServer implements SwooleManagerInterface
                         $this->mode,
                         $this->socket_type
                     );
+
                     break;
                 }
             case Consts::SWOOLE_SERVER_WEBSOCKET:
@@ -266,7 +267,7 @@ class SwooleServer implements SwooleManagerInterface
                 $this->pid_file = $this->options['pid_file'];
             }
             if (empty($this->pid_file)) {
-                $this->pid_file = '/tmp/' . str_replace(' ', '-', $this->serverName) . '.pid';
+                $this->options['pid_file'] = $this->pid_file = '/tmp/' . str_replace(' ', '-', $this->serverName) . '.pid';
             }
         }
 
