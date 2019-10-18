@@ -19,6 +19,7 @@ use ShugaChara\Swoole\Server\WebSocket;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
+use swoole_server;
 
 /**
  * Class SwooleServer
@@ -28,7 +29,25 @@ class SwooleServer implements SwooleManagerInterface
 {
     const VERSION = '1.0.0';
 
+    /**
+     * 实例化的 Http | WebSocket Swoole外层封装服务
+     * @var
+     */
     protected $swoole;
+
+    /**
+     * Swoole 服务
+     * @var
+     */
+    protected $server;
+
+    /**
+     * Swoole 回调事件 (重写 ShugaChara\Swoole\Traits 服务类回调方法及Http WebSocket服务回调)
+     * @var array
+     */
+    protected $callback = [
+        'onStart',
+    ];
 
     /**
      * 服务名称 http | websocket
@@ -67,6 +86,24 @@ class SwooleServer implements SwooleManagerInterface
     protected $port;
 
     /**
+     * 运行模式 (多进程模式)SWOOLE_PROCESS | (基本模式)SWOOLE_BASE
+     * @var
+     */
+    protected $mode = SWOOLE_PROCESS;
+
+    /**
+     * Socket 类型    TCP | UDP | TCP6 | UDP6 | UnixSocket Stream/Dgram
+     * @var
+     */
+    protected $socket_type = SWOOLE_SOCK_TCP;
+
+    /**
+     * 服务pid
+     * @var
+     */
+    protected $pid;
+
+    /**
      * 服务pid文件
      * @var
      */
@@ -95,6 +132,62 @@ class SwooleServer implements SwooleManagerInterface
     }
 
     /**
+     * Swoole 运行模式设置
+     * @param $mode
+     * @return $this
+     */
+    public function setSwooleMode($mode)
+    {
+        $this->mode = $mode;
+        return $this;
+    }
+
+    /**
+     * Swoole 运行模式获取
+     * @return mixed
+     */
+    public function getSwooleMode()
+    {
+        return $this->mode;
+    }
+
+    /**
+     * Swoole Socket类型设置
+     * @param $socket_type
+     * @return $this
+     */
+    public function setSwooleSocketType($socket_type)
+    {
+        $this->socket_type = $socket_type;
+        return $this;
+    }
+
+    /**
+     * Swoole Socket类型获取
+     * @return mixed
+     */
+    public function getSwooleSocketType()
+    {
+        return $this->socket_type;
+    }
+
+    /**
+     * 获取Swoole Socket类型名称
+     * @return string
+     */
+    public function getSwooleSocketTypeName()
+    {
+        switch ($this->socket_type) {
+            case 1: return Consts::SWOOLE_SERVER_SCHEME_TCP;
+            case 2: return Consts::SWOOLE_SERVER_SCHEME_UDP;
+            case 3: return Consts::SWOOLE_SERVER_SCHEME_TCP6;
+            case 4: return Consts::SWOOLE_SERVER_SCHEME_UDP6;
+            case 5: return Consts::SWOOLE_SERVER_SCHEME_UNIX_DGRAM;
+            case 6: return Consts::SWOOLE_SERVER_SCHEME_UNIX_STREAM;
+        }
+    }
+
+    /**
      * 创建Swoole服务器
      *
      * @return Http|WebSocket
@@ -104,7 +197,13 @@ class SwooleServer implements SwooleManagerInterface
         switch (strtoupper($this->serverName)) {
             case Consts::SWOOLE_SERVER_HTTP:
                 {
-                    $this->swoole = new Http($this->host, $this->port, $this->options);
+                    $this->swoole = new Http(
+                        $this->host,
+                        $this->port,
+                        $this->options,
+                        $this->mode,
+                        $this->socket_type
+                    );
                     break;
                 }
             case Consts::SWOOLE_SERVER_WEBSOCKET:
@@ -115,16 +214,42 @@ class SwooleServer implements SwooleManagerInterface
             default:
         }
 
-        return $this->swoole;
+        $this->server = $this->swoole->getServer();
+
+        $this->onCallback();
+
+        return $this;
     }
 
     /**
-     * 获取swoole服务
+     * 获取swoole外层服务
      * @return mixed
      */
     protected function swoole()
     {
         return $this->swoole;
+    }
+
+    /**
+     * Swoole 服务
+     * @return mixed
+     */
+    protected function getServer()
+    {
+        return $this->server;
+    }
+
+    /**
+     * Swoole 事件回调
+     * @return $this
+     */
+    protected function onCallback()
+    {
+        foreach ($this->callback as $event) {
+            $this->server->on(lcfirst(substr($event, 2)), [$this, $event]);
+        }
+
+        return $this;
     }
 
     /**
@@ -255,6 +380,10 @@ class SwooleServer implements SwooleManagerInterface
         return true;
     }
 
+    /**
+     * 服务停止
+     * @return bool
+     */
     public function stop(): bool
     {
         // TODO: Implement stop() method.
@@ -296,10 +425,30 @@ class SwooleServer implements SwooleManagerInterface
         return true;
     }
 
+    /**
+     * 服务重启
+     * @return bool
+     */
     public function restart(): bool
     {
         $this->swoole->shutdown();
         $this->swoole->start();
+        return true;
+    }
+
+    public function onStart(swoole_server $server)
+    {
+        if (version_compare(SWOOLE_VERSION, '1.9.5', '<')) {
+            file_put_contents($this->pid_file, $server->master_pid);
+            $this->pid = $server->master_pid;
+        }
+
+        process_rename($this->serverName . ' master');
+
+        $this->consoleOutput->writeln(sprintf("Listen: <info>%s://%s:%s</info>", $this->getSwooleSocketTypeName(), $this->host, $this->port));
+        $this->consoleOutput->writeln(sprintf('PID file: <info>%s</info>, PID: <info>%s</info>', $this->pid_file, $server->master_pid));
+        $this->consoleOutput->writeln(sprintf('Server Master[<info>%s</info>] is started', $server->master_pid), OutputInterface::VERBOSITY_DEBUG);
+
         return true;
     }
 }

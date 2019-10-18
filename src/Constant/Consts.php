@@ -24,6 +24,9 @@ class Consts
     const SWOOLE_SERVER_RESTART_NAME = 'restart';
 
     const SWOOLE_SERVER_SCHEME_TCP = 'tcp';
-    const SWOOLE_SERVER_SCHEME_UNIX = 'unix';
+    const SWOOLE_SERVER_SCHEME_TCP6 = 'tcp6';
+    const SWOOLE_SERVER_SCHEME_UNIX_DGRAM = 'unix_dgram';
+    const SWOOLE_SERVER_SCHEME_UNIX_STREAM = 'unix_stream';
     const SWOOLE_SERVER_SCHEME_UDP = 'udp';
+    const SWOOLE_SERVER_SCHEME_UDP6 = 'udp6';
 }

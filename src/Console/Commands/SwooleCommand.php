@@ -69,7 +69,6 @@ class SwooleCommand extends Command
             }
 
             $SwooleServer = new SwooleServer($server_name, $config, $output);
-            // $SwooleServer->createSwooleServer();
             if (in_array($handle, $this->handleType)) {
                 $SwooleServer->$handle();
             }
