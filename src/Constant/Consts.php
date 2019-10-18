@@ -21,6 +21,7 @@ class Consts
     const SWOOLE_SERVER_START_NAME = 'start';
     const SWOOLE_SERVER_STOP_NAME = 'stop';
     const SWOOLE_SERVER_RELOAD_NAME = 'reload';
+    const SWOOLE_SERVER_RESTART_NAME = 'restart';
 
     const SWOOLE_SERVER_SCHEME_TCP = 'tcp';
     const SWOOLE_SERVER_SCHEME_UNIX = 'unix';
