@@ -20,6 +20,8 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use swoole_server;
+use swoole_http_request;
+use swoole_http_response;
 
 /**
  * Class SwooleServer
@@ -46,7 +48,7 @@ class SwooleServer implements SwooleManagerInterface
      * @var array
      */
     protected $callback = [
-        'onStart',
+        'onStart', 'onShutdown', 'onRequest'
     ];
 
     /**
@@ -437,6 +439,12 @@ class SwooleServer implements SwooleManagerInterface
         return true;
     }
 
+    /**
+     * Start server process
+     *
+     * @param swoole_server $server
+     * @return bool
+     */
     public function onStart(swoole_server $server)
     {
         if (version_compare(SWOOLE_VERSION, '1.9.5', '<')) {
@@ -451,6 +459,26 @@ class SwooleServer implements SwooleManagerInterface
         $this->consoleOutput->writeln(sprintf('Server Master[<info>%s</info>] is started', $server->master_pid), OutputInterface::VERBOSITY_DEBUG);
 
         return true;
+    }
+
+    /**
+     * Shutdown server process.
+     *
+     * @param swoole_server $server
+     * @return void
+     */
+    public function onShutdown(swoole_server $server)
+    {
+        if (file_exists($this->pid_file)) {
+            unlink($this->pid_file);
+        }
+
+        $this->consoleOutput->writeln(sprintf('Server <info>%s</info> Master[<info>%s</info>] is shutdown ', $this->serverName, $server->master_pid), OutputInterface::VERBOSITY_DEBUG);
+    }
+
+    public function onRequest(swoole_http_request $request, swoole_http_response $response)
+    {
+
     }
 }
 
