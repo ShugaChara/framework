@@ -17,15 +17,24 @@
 
 namespace ShugaChara\Framework;
 
+use Exception;
+use ErrorException;
+use Psr\Http\Message\ServerRequestInterface;
+use ReflectionClass;
 use ShugaChara\Container\Container;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Helpers\czHelper;
 use ShugaChara\Framework\Processor\ApplicationProcessor;
-use ShugaChara\Framework\Processor\ConsoleProcessor;
-use ShugaChara\Framework\Processor\EnvProcessor;
 use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
+use ShugaChara\Framework\ServiceProvider\ConsoleServiceProvider;
 use ShugaChara\Framework\ServiceProvider\LogsServiceProvider;
+use ShugaChara\Framework\ServiceProvider\RouterServiceProvider;
 use ShugaChara\Framework\Traits\ApplicationTrait;
+use ShugaChara\Http\HttpException;
+use ShugaChara\Http\JsonResponse;
+use ShugaChara\Http\Message\ServerRequest;
+use ShugaChara\Http\Response;
+use Throwable;
 
 class Application implements ApplicationInterface
 {
@@ -37,51 +46,39 @@ class Application implements ApplicationInterface
     public static $app;
 
     /**
+     * 应用运行状态
+     * @var
+     */
+    protected $isRun = false;
+
+    /**
      * 容器
      * @var Container
      */
     protected $container;
 
     /**
-     * 容器置前服务
-     * @var array
+     * 进程处理器
+     * @var
      */
-    protected $beforeServices = [
-        LogsServiceProvider::class,
-        ConfigServiceProvider::class,
-    ];
+    protected $processor;
 
     /**
-     * 容器置后服务
+     * 前置加载应用服务
      * @var array
      */
-    protected $afterServices = [];
+    protected $before_services = [
+        ConfigServiceProvider::class
+    ];
 
     /**
      * 容器服务
-     * @var
-     */
-    protected $services;
-
-    /**
-     * @var ApplicationProcessor
-     */
-    private $processor;
-
-    /**
-     * 初始置前 Processor 类
      * @var array
      */
-    protected $beforeProcessors = [
-        EnvProcessor::class
-    ];
-
-    /**
-     * 置后 Processor 类
-     * @var array
-     */
-    protected $afterProcessors = [
-        ConsoleProcessor::class
+    protected $services = [
+        LogsServiceProvider::class,
+        ConsoleServiceProvider::class,
+        RouterServiceProvider::class,
     ];
 
     /**
@@ -127,6 +124,12 @@ class Application implements ApplicationInterface
     protected $configPath = 'config';
 
     /**
+     * 路由目录
+     * @var string
+     */
+    protected $routerPath = 'router';
+
+    /**
      * 缓存目录
      * @var string
      */
@@ -142,7 +145,7 @@ class Application implements ApplicationInterface
      * 默认时区
      * @var string
      */
-    protected $default_timezone = 'UTC';
+    protected $timezone = 'UTC';
 
     public function __construct()
     {
@@ -161,81 +164,136 @@ class Application implements ApplicationInterface
     }
 
     /**
-     * 运行框架
-     */
-    public function run(): void
-    {
-        // TODO: Implement run() method.
-
-        if (! $this->beforeRun()) {
-            return;
-        }
-
-        $this->processor->handle();
-
-        if ($appTimeZone = config()->get('APP_TIME_ZONE')) {
-            $this->setDateTimezone($appTimeZone);
-        }
-
-        $this->servicesRegister($this->afterServices);
-
-        // Container 注入App应用
-        $this->container->add('app', $this);
-
-        $this->services = $this->container->getServices();
-    }
-
-    /**
-     * 获取框架版本号
-     * @return string
-     */
-    public static function getFrameworkVersion(): string
-    {
-        return self::VERSION;
-    }
-
-    /**
      * 初始化前置操作
      */
-    protected function beforeInit(): void
+    final protected function beforeInit(): void
     {
         if (! defined('IN_PHAR')) {
             define('IN_PHAR', false);
         }
 
-        $this->setDateTimezone($this->default_timezone);
-    }
-
-    /**
-     * 初始化操作
-     */
-    protected function init()
-    {
+        $this->setDateTimezone($this->timezone);
         $this->basePath = $this->getBasePath();
         $this->setPathCompletion();
 
         static::$app = $this;
 
-        // 初始 Processor 配置类
-        $beforeProcessors = $this->processors($this->beforeProcessors);
-        $this->processor->addFirstProcessor(...$beforeProcessors);
-        $this->processor->handle();
-        $this->processor->addDisabledProcessors($beforeProcessors);
-
-        // Ioc容器服务注册
-        $this->servicesRegister($this->beforeServices);
-
-        // Processor 服务进程
-        $processors = $this->processors($this->afterProcessors);
-        $this->processor->addFirstProcessor(...$processors);
+        // load before services container
+        $this->servicesRegister($this->before_services);
     }
+
+    /**
+     * 初始化操作
+     */
+    protected function init() {}
 
     /**
      * 初始化后置操作
      */
     protected function afterInit()
     {
+        // app services register
+        $this->servicesRegister($this->services);
+    }
 
+    /**
+     * 运行框架
+     */
+    public function run(): void
+    {
+        // TODO: Implement run() method.
+
+        $this->isRun = true;
+
+        // Container 注入App应用
+        $this->container->add('app', $this);
+
+        // Http 请求响应
+        $request = ServerRequest::createServerRequestFromGlobals();
+        $response = $this->handleRequest($request);
+        $this->handleResponse($response);
+    }
+
+
+
+    /**
+     * 服务容器注册
+     *
+     * @param array $services
+     */
+    protected function servicesRegister(array $services)
+    {
+        foreach ($services as $service) {
+            (new $service)->register($this->container);
+        }
+    }
+
+    /**
+     * 请求处理
+     *
+     * @param ServerRequestInterface $request
+     * @return Response|\Symfony\Component\HttpFoundation\Response
+     * @throws Exception
+     */
+    public function handleRequest(ServerRequestInterface $request)
+    {
+        try {
+            $this->container->add('request', $request);
+            return router_dispatcher()->dispatch($request);
+        } catch (Exception $exception) {
+            return $this->handleException($exception);
+        } catch (Throwable $exception) {
+            $exception = new ErrorException($exception);
+            return $this->handleException($exception);
+        }
+    }
+
+    /**
+     * 响应处理
+     *
+     * @param $response
+     */
+    public function handleResponse($response)
+    {
+        $response->send();
+    }
+
+    /**
+     * 错误处理
+     *
+     * @param $e
+     * @return Response
+     * @throws FatalThrowableError
+     */
+    public function handleException($e)
+    {
+        if (!$e instanceof Exception) {
+            $e = new ErrorException($e);
+        }
+
+        try {
+            $trace = call_user_func(config()->get('exception.log'), $e);
+        } catch (Exception $exception) {
+            $trace = [
+                'original' => explode("\n", $e->getTraceAsString()),
+                'handler'  => explode("\n", $exception->getTraceAsString()),
+            ];
+        }
+
+        logs()->error($e->getMessage(), $trace);
+
+        $status = ($e instanceof HttpException) ? $e->getStatusCode() : $e->getCode();
+
+        if (! array_key_exists($status, Response::$statusTexts)) {
+            $status = Response::HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        $resposne = new JsonResponse(call_user_func(config()->get('exception.response'), $e), $status);
+        if (! $this->isRun()) {
+            $this->handleResponse($resposne);
+        }
+
+        return $resposne;
     }
 
     /**
@@ -251,33 +309,8 @@ class Application implements ApplicationInterface
         }
 
         // 获取当前类所在的位置
-
-        $ReflectionClass = new \ReflectionClass(static::class);
-
+        $ReflectionClass = new ReflectionClass(static::class);
         return dirname($ReflectionClass->getFileName(), $this->basePathLevel);
-    }
-
-    protected function processors(array $processors): array
-    {
-        $processorsServer = [];
-
-        if ($processors) {
-            foreach ($processors as $processor) {
-                $processorsServer[] = new $processor($this);
-            }
-        }
-
-        return $processorsServer;
-    }
-
-    /**
-     * 服务容器注册
-     */
-    protected function servicesRegister(array $services)
-    {
-        foreach ($services as $service) {
-            (new $service)->register($this->container);
-        }
     }
 
     /**
@@ -290,6 +323,7 @@ class Application implements ApplicationInterface
         $this->envPath = sprintf('%s/%s', $this->getBasePath(), $this->envPath);
         $this->appPath = sprintf('%s/%s', $this->getBasePath(), $this->appPath);
         $this->configPath = sprintf('%s/%s', $this->getBasePath(), $this->configPath);
+        $this->routerPath = sprintf('%s/%s', $this->getBasePath(), $this->routerPath);
         $this->runtimePath = sprintf('%s/%s', $this->getBasePath(), $this->runtimePath);
     }
 }

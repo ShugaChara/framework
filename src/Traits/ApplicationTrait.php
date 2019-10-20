@@ -21,13 +21,12 @@ use function date_default_timezone_set;
 trait ApplicationTrait
 {
     /**
-     * 启动框架前置操作
-     *
+     * 应用运行状态
      * @return bool
      */
-    public function beforeRun(): bool
+    public function isRun(): bool
     {
-        return true;
+        return $this->isRun;
     }
 
     /**
@@ -67,6 +66,14 @@ trait ApplicationTrait
     /**
      * @return mixed
      */
+    public function getRouterPath()
+    {
+        return $this->routerPath;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getConfigPath()
     {
         return $this->configPath;
@@ -89,6 +96,7 @@ trait ApplicationTrait
     }
 
     /**
+     * 获取APP VERSION
      * @return mixed
      */
     public function getAppVersion()
@@ -111,6 +119,6 @@ trait ApplicationTrait
      */
     public function getServices()
     {
-        return $this->container()->getServices();
+        return $this->container->getServices();
     }
 }

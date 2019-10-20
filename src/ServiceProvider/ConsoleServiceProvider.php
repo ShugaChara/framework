@@ -9,37 +9,35 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-namespace ShugaChara\Framework\Processor;
+namespace ShugaChara\Framework\ServiceProvider;
 
-use Dotenv\Environment\Adapter\EnvConstAdapter;
-use Dotenv\Environment\Adapter\PutenvAdapter;
-use Dotenv\Environment\Adapter\ServerConstAdapter;
-use ShugaChara\Config\Repositories\Dotenv;
 use ShugaChara\Console\Console;
+use ShugaChara\Container\Container;
+use ShugaChara\Container\ServiceProviderInterface;
 
 /**
- * 控制台命令
+ * 控制台服务
  *
- * Class ConsoleProcessor
- * @package ShugaChara\Framework\Processor
+ * Class ConsoleServiceProvider
+ * @package ShugaChara\Framework\ServiceProvider
  */
-class ConsoleProcessor extends Processor
+class ConsoleServiceProvider implements ServiceProviderInterface
 {
-    public function handle(): bool
+    public function register(Container $container)
     {
-        // TODO: Implement handle() method.
+        // TODO: Implement register() method.
 
         $consoleApplication = new Console();
 
-        if ($commands = config()->get('APP_CONSOLE_COMMANDS')) {
+        if ($commands = config()->get('CONSOLE_COMMANDS')) {
             foreach ($commands as $key => $command) {
                 $consoleApplication->add(new $command['name']($key));
             }
         }
 
-        $consoleApplication->run();
+        $container->add('console', $consoleApplication);
 
-        return true;
+        $consoleApplication->run();
     }
 }
 

@@ -42,10 +42,10 @@ if (! function_exists('logs')) {
      * @param string $server_name
      * @return mixed
      */
-    function logs($name = null, $server_name = 'logs')
+    function logs($name = null)
     {
         $name = $name ?? app()->getAppName();
-        return container()->get($server_name)($name);
+        return container()->get('logs')($name);
     }
 }
 
@@ -54,9 +54,53 @@ if (! function_exists('config')) {
      * 配置服务
      * @return mixed
      */
-    function config($server_name = 'config')
+    function config()
     {
-        return container()->get($server_name);
+        return container()->get('config');
+    }
+}
+
+if (! function_exists('console')) {
+    /**
+     * 控制台命令服务
+     * @return mixed
+     */
+    function console()
+    {
+        return container()->get('console');
+    }
+}
+
+if (! function_exists('router')) {
+    /**
+     * 路由服务
+     * @return mixed
+     */
+    function router()
+    {
+        return container()->get('router');
+    }
+}
+
+if (! function_exists('router_dispatcher')) {
+    /**
+     * 路由分发服务
+     * @return mixed
+     */
+    function router_dispatcher()
+    {
+        return container()->get('router_dispatcher');
+    }
+}
+
+if (! function_exists('request')) {
+    /**
+     * Http 请求服务
+     * @return mixed
+     */
+    function request()
+    {
+        return container()->get('request');
     }
 }
 

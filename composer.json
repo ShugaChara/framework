@@ -26,7 +26,9 @@
     "shugachara/container": "dev-master",
     "shugachara/console": "dev-master",
     "shugachara/swoole": "dev-master",
-    "shugachara/http": "dev-master"
+    "shugachara/http": "dev-master",
+    "shugachara/router": "dev-master",
+    "shugachara/middleware": "dev-master"
   },
   "require-dev": {},
   "autoload": {

@@ -14,8 +14,8 @@ namespace ShugaChara\Framework\Constant;
 class Consts
 {
     // swoole server
-    const SWOOLE_SERVER_HTTP = 'HTTP';
-    const SWOOLE_SERVER_WEBSOCKET = 'WEBSOCKET';
+    const SWOOLE_SERVER_HTTP = 'http';
+    const SWOOLE_SERVER_WEBSOCKET = 'websocket';
 
     const SWOOLE_SERVER_STATUS_NAME = 'status';
     const SWOOLE_SERVER_START_NAME = 'start';

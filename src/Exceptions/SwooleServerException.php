@@ -9,16 +9,15 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-namespace ShugaChara\Framework\Contracts;
+namespace ShugaChara\Framework\Exceptions;
+
+use ShugaChara\Core\Exceptions\Exception;
 
 /**
- * Interface ApplicationInterface
- * @package ShugaChara\Framework\Contracts
+ * Class SwooleServerException
+ * @package ShugaChara\Framework\Exceptions
  */
-interface ApplicationInterface
+class SwooleServerException extends Exception
 {
-    /**
-     * 运行框架
-     */
-    public function run(): void;
+
 }

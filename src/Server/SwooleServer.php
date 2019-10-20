@@ -12,8 +12,12 @@
 namespace ShugaChara\Framework\Server;
 
 use ShugaChara\Core\Helpers;
+use ShugaChara\Core\Traits\Singleton;
 use ShugaChara\Framework\Constant\Consts;
 use ShugaChara\Framework\Contracts\SwooleManagerInterface;
+use ShugaChara\Framework\Exceptions\SwooleServerException;
+use ShugaChara\Framework\Traits\SwooleServerTrait;
+use ShugaChara\Http\SwooleServerRequest;
 use ShugaChara\Swoole\Server\Http;
 use ShugaChara\Swoole\Server\WebSocket;
 use Symfony\Component\Console\Helper\Table;
@@ -22,70 +26,69 @@ use Symfony\Component\Console\Output\OutputInterface;
 use swoole_server;
 use swoole_http_request;
 use swoole_http_response;
+use Throwable;
 
 /**
+ * Swoole 服务器
+ *
  * Class SwooleServer
  * @package ShugaChara\Framework\Server
  */
 class SwooleServer implements SwooleManagerInterface
 {
-    const VERSION = '1.0.0';
+    use Singleton, SwooleServerTrait;
 
-    /**
-     * 实例化的 Http | WebSocket Swoole外层封装服务
-     * @var
-     */
-    protected $swoole;
+    const VERSION = '1.0.0';
 
     /**
      * Swoole 服务
      * @var
      */
-    protected $server;
+    protected $swooleServer;
 
     /**
-     * Swoole 回调事件 (重写 ShugaChara\Swoole\Traits 服务类回调方法及Http WebSocket服务回调)
+     * 默认 Swoole 回调事件
      * @var array
      */
-    protected $callback = [
+    protected $defaultServerEventCallback = [
         'onStart', 'onShutdown', 'onRequest'
     ];
 
     /**
-     * 服务名称 http | websocket
+     * Swoole 回调事件 (重写 Swoole 服务类回调方法)
+     * @var array
+     */
+    protected $serverEventCallback = [];
+
+    /**
+     * 服务名称
      * @var
      */
     protected $serverName;
 
     /**
-     * 配置参数
-     * @var array
-     */
-    protected $config = [];
-
-    /**
-     * Swoole 参数配置
+     * Swoole 配置参数
      * @var array
      */
     protected $options = [];
 
     /**
-     * 控制台输出
+     * 控制台输出对象
      * @var
      */
-    protected $consoleOutput;
+    public $consoleOutput;
 
     /**
      * 服务地址 address
      * @var
      */
-    protected $host;
+    protected $host = '127.0.0.1';
 
     /**
      * 服务端口 port
      * @var
      */
-    protected $port;
+    protected $port = 9002;
 
     /**
      * 运行模式 (多进程模式)SWOOLE_PROCESS | (基本模式)SWOOLE_BASE
@@ -111,187 +114,30 @@ class SwooleServer implements SwooleManagerInterface
      */
     protected $pid_file;
 
-    public function __construct(
+    public function initAppSwooleServer(
         $serverName = Consts::SWOOLE_SERVER_HTTP,
         array $config = [],
         OutputInterface $output = null
-    )
-    {
+    ) {
         $this->serverName = $serverName;
-        $this->config = $config;
 
         $this->consoleOutput = null === $output ? new ConsoleOutput() : $output;
 
-        $this->configure();
+        $this->configure($config);
+
+        return $this;
     }
 
-    private function configure()
+    /**
+     * 初始配置
+     * @param array $config
+     */
+    private function configure(array $config)
     {
-        $this->host = Helpers::array_get($this->config, 'host', '127.0.0.1');
-        $this->port = Helpers::array_get($this->config, 'port');
-        $this->options = Helpers::array_get($this->config, 'options', []);
+        $this->host = Helpers::array_get($config, 'host', $this->getServerHost());
+        $this->port = Helpers::array_get($config, 'port', $this->getServerPort());
+        $this->options = Helpers::array_get($config, 'options', $this->getServerOptions());
         $this->setPidFile();
-    }
-
-    /**
-     * Swoole 运行模式设置
-     * @param $mode
-     * @return $this
-     */
-    public function setSwooleMode($mode)
-    {
-        $this->mode = $mode;
-        return $this;
-    }
-
-    /**
-     * Swoole 运行模式获取
-     * @return mixed
-     */
-    public function getSwooleMode()
-    {
-        return $this->mode;
-    }
-
-    /**
-     * Swoole Socket类型设置
-     * @param $socket_type
-     * @return $this
-     */
-    public function setSwooleSocketType($socket_type)
-    {
-        $this->socket_type = $socket_type;
-        return $this;
-    }
-
-    /**
-     * Swoole Socket类型获取
-     * @return mixed
-     */
-    public function getSwooleSocketType()
-    {
-        return $this->socket_type;
-    }
-
-    /**
-     * 获取Swoole Socket类型名称
-     * @return string
-     */
-    public function getSwooleSocketTypeName()
-    {
-        switch ($this->socket_type) {
-            case 1: return Consts::SWOOLE_SERVER_SCHEME_TCP;
-            case 2: return Consts::SWOOLE_SERVER_SCHEME_UDP;
-            case 3: return Consts::SWOOLE_SERVER_SCHEME_TCP6;
-            case 4: return Consts::SWOOLE_SERVER_SCHEME_UDP6;
-            case 5: return Consts::SWOOLE_SERVER_SCHEME_UNIX_DGRAM;
-            case 6: return Consts::SWOOLE_SERVER_SCHEME_UNIX_STREAM;
-        }
-    }
-
-    /**
-     * 创建Swoole服务器
-     *
-     * @return Http|WebSocket
-     */
-    public function createSwooleServer()
-    {
-        switch (strtoupper($this->serverName)) {
-            case Consts::SWOOLE_SERVER_HTTP:
-                {
-                    $this->swoole = new Http(
-                        $this->host,
-                        $this->port,
-                        $this->options,
-                        $this->mode,
-                        $this->socket_type
-                    );
-
-                    break;
-                }
-            case Consts::SWOOLE_SERVER_WEBSOCKET:
-                {
-                    $this->swoole = new WebSocket($this->host, $this->port, $this->options);
-                    break;
-                }
-            default:
-        }
-
-        $this->server = $this->swoole->getServer();
-
-        $this->onCallback();
-
-        return $this;
-    }
-
-    /**
-     * 获取swoole外层服务
-     * @return mixed
-     */
-    protected function swoole()
-    {
-        return $this->swoole;
-    }
-
-    /**
-     * Swoole 服务
-     * @return mixed
-     */
-    protected function getServer()
-    {
-        return $this->server;
-    }
-
-    /**
-     * Swoole 事件回调
-     * @return $this
-     */
-    protected function onCallback()
-    {
-        foreach ($this->callback as $event) {
-            $this->server->on(lcfirst(substr($event, 2)), [$this, $event]);
-        }
-
-        return $this;
-    }
-
-    /**
-     * 设置PidFile
-     * @param string $pidFile
-     * @return bool
-     */
-    public function setPidFile(string $pidFile = '')
-    {
-        if ($pidFile) {
-            $this->pid_file = $pidFile;
-        } else {
-            if (isset($this->options['pid_file'])) {
-                $this->pid_file = $this->options['pid_file'];
-            }
-            if (empty($this->pid_file)) {
-                $this->options['pid_file'] = $this->pid_file = '/tmp/' . str_replace(' ', '-', $this->serverName) . '.pid';
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * 获取PidFile
-     * @return mixed
-     */
-    public function getPidFile()
-    {
-        return $this->pid_file;
-    }
-
-    /**
-     * 获取APP服务项目名称
-     * @return string
-     */
-    public function getAppServerName()
-    {
-        return config()->get('APP_NAME') . '.' . $this->serverName;
     }
 
     /**
@@ -300,15 +146,83 @@ class SwooleServer implements SwooleManagerInterface
      */
     protected function isRunning()
     {
-        if (file_exists($this->pid_file)) {
-            return posix_kill(file_get_contents($this->pid_file), 0);
+        if (file_exists($this->getPidFile())) {
+            return posix_kill(file_get_contents($this->getPidFile()), 0);
         }
 
-        if ($is_running = process_is_running("{$this->serverName} master")) {
-            $is_running = port_is_running($this->port);
+        if ($is_running = process_is_running("{$this->getServerName()} master")) {
+            $is_running = port_is_running($this->getServerPort());
         }
 
         return $is_running;
+    }
+
+    /**
+     * 创建Swoole服务器
+     * @return Http|WebSocket
+     */
+    public function createAppSwooleServer()
+    {
+        switch (strtolower($this->getServerName())) {
+            case Consts::SWOOLE_SERVER_HTTP:
+                {
+                    $this->swooleServer = $this->createSwooleHttpServer();
+                    break;
+                }
+            case Consts::SWOOLE_SERVER_WEBSOCKET:
+                {
+                    $this->swooleServer = $this->createSwooleWebSocketServer();
+                    break;
+                }
+            default:
+        }
+
+        // register default swoole events callback
+        $this->registerDefaultServerEventCallback();
+
+        return $this;
+    }
+
+    /**
+     * 创建 Http 服务器
+     * @return Http
+     */
+    protected function createSwooleHttpServer()
+    {
+        return new Http(
+            $this->getServerHost(),
+            $this->getServerPort(),
+            $this->getServerOptions()
+        );
+    }
+
+    protected function createSwooleWebSocketServer()
+    {
+        return;
+    }
+
+    /**
+     * 注册默认 Swoole 事件回调
+     * @return SwooleServer
+     */
+    private function registerDefaultServerEventCallback()
+    {
+        return $this->registerServerEventCallback($this->defaultServerEventCallback);
+    }
+
+    /**
+     * 注册 Swoole 事件回调
+     *
+     * @param array $callback
+     * @return $this
+     */
+    public function registerServerEventCallback(array $callback)
+    {
+        $this->serverEventCallback = array_merge($this->serverEventCallback, $callback);
+        // 注册到 swoole server
+        $this->getAppSwooleServer()->registerServerEventCallback($callback);
+
+        return $this;
     }
 
     /**
@@ -320,14 +234,23 @@ class SwooleServer implements SwooleManagerInterface
         // TODO: Implement status() method.
 
         if (! $this->isRunning()) {
-            $this->consoleOutput->writeln(sprintf('Server <info>%s</info> is not running...', $this->getAppServerName()));
             return false;
         }
 
-        exec("ps axu | grep '{$this->serverName}' | grep -v grep", $output);
+        $this->getSwooleServerStatusInfo();
+
+        return true;
+    }
+
+    /**
+     * 获取Swoole服务状态信息
+     */
+    protected function getSwooleServerStatusInfo()
+    {
+        exec("ps axu | grep '{$this->getServerName()}' | grep -v grep", $output);
 
         // list all process
-        $output = get_all_process($this->serverName);
+        $output = get_all_process($this->getServerName());
 
         // combine
         $headers = ['USER', 'PID', 'RSS', 'STAT', 'START', 'COMMAND'];
@@ -338,17 +261,16 @@ class SwooleServer implements SwooleManagerInterface
         $table = new Table($this->consoleOutput);
         $table
             ->setHeaders($headers)
-            ->setRows($output);
+            ->setRows($output)
+        ;
 
-        $this->consoleOutput->writeln(sprintf("Server: <info>%s</info>", $this->getAppServerName()));
-        $this->consoleOutput->writeln(sprintf('App version: <info>%s</info>', SwooleServer::VERSION));
+        $this->consoleOutput->writeln(sprintf("Server: <info>%s</info>", $this->getAppSwooleServerName()));
+        $this->consoleOutput->writeln(sprintf('App version: <info>%s</info>', $this->getServerVersion()));
         $this->consoleOutput->writeln(sprintf('Swoole version: <info>%s</info>', SWOOLE_VERSION));
-        $this->consoleOutput->writeln(sprintf("PID file: <info>%s</info>, PID: <info>%s</info>", $this->pid_file, (int) @file_get_contents($this->pid_file)) . PHP_EOL);
+        $this->consoleOutput->writeln(sprintf("PID file: <info>%s</info>, PID: <info>%s</info>", $this->getPidFile(), (int) @file_get_contents($this->getPidFile())) . PHP_EOL);
         $table->render();
 
         unset($table, $headers, $output);
-
-        return true;
     }
 
     /**
@@ -360,24 +282,25 @@ class SwooleServer implements SwooleManagerInterface
         // TODO: Implement start() method.
 
         if ($this->isRunning()) {
-            $this->consoleOutput->writeln(sprintf('Server <info>[%s] %s:%s</info> address already in use', $this->getAppServerName(), $this->host, $this->port));
-        } else {
-            try {
-                if (! $this->swoole) {
-                    $this->createSwooleServer();
-                }
+            $this->consoleOutput->writeln(sprintf('Server <info>[%s] %s:%s</info> address already in use', $this->getAppSwooleServerName(), $this->getServerHost(), $this->getServerPort()));
+            return false;
+        }
 
-                if (! file_exists($dir = dirname($this->pid_file))) {
-                    mkdir($dir, 0755, true);
-                }
-
-                $this->consoleOutput->writeln(sprintf("Server: <info>%s</info> is running...", $this->getAppServerName()));
-
-                $this->swoole->start();
-
-            } catch (\Exception $exception) {
-                $this->consoleOutput->write("<error>{$exception->getMessage()}</error>\n");
+        try {
+            if (! $this->getAppSwooleServer()) {
+                $this->createAppSwooleServer();
             }
+
+            if (! file_exists($dir = dirname($this->getPidFile()))) {
+                mkdir($dir, 0755, true);
+            }
+
+            $this->consoleOutput->writeln(sprintf("Server: <info>%s</info> is running...", $this->getAppSwooleServerName()));
+
+            $this->getAppSwooleServer()->start();
+
+        } catch (Throwable $exception) {
+            throw new SwooleServerException($exception->getMessage());
         }
 
         return true;
@@ -398,11 +321,11 @@ class SwooleServer implements SwooleManagerInterface
 
         $pid = (int) @file_get_contents($this->getPidFile());
         if (process_kill($pid, SIGTERM)) {
-            unlink($this->pid_file);
+            unlink($this->getPidFile());
         }
 
-        $this->consoleOutput->writeln(sprintf('Server <info>%s</info> [<info>#%s</info>] is shutdown...', $this->getAppServerName(), $pid));
-        $this->consoleOutput->writeln(sprintf('PID file %s is unlink', $this->pid_file), OutputInterface::VERBOSITY_DEBUG);
+        $this->consoleOutput->writeln(sprintf('Server <info>%s</info> [<info>#%s</info>] is shutdown...', $this->getAppSwooleServerName(), $pid));
+        $this->consoleOutput->writeln(sprintf('PID file %s is unlink', $this->getPidFile()), OutputInterface::VERBOSITY_DEBUG);
 
         return true;
     }
@@ -416,14 +339,14 @@ class SwooleServer implements SwooleManagerInterface
         // TODO: Implement reload() method.
 
         if (! $this->isRunning()) {
-            $this->consoleOutput->writeln(sprintf('Server <info>%s</info> is not running...', $this->getAppServerName()));
+            $this->consoleOutput->writeln(sprintf('Server <info>%s</info> is not running...', $this->getAppSwooleServerName()));
             return false;
         }
 
         $pid = (int) @file_get_contents($this->getPidFile());
         posix_kill($pid, SIGUSR1);
 
-        $this->consoleOutput->writeln(sprintf('Server <info>%s</info> [<info>%s</info>] is reloading...', $this->getAppServerName(), $pid));
+        $this->consoleOutput->writeln(sprintf('Server <info>%s</info> [<info>%s</info>] is reloading...', $this->getAppSwooleServerName(), $pid));
 
         return true;
     }
@@ -434,8 +357,8 @@ class SwooleServer implements SwooleManagerInterface
      */
     public function restart(): bool
     {
-        $this->swoole->shutdown();
-        $this->swoole->start();
+        $this->getAppSwooleServer()->shutdown();
+        $this->getAppSwooleServer()->start();
         return true;
     }
 
@@ -448,14 +371,14 @@ class SwooleServer implements SwooleManagerInterface
     public function onStart(swoole_server $server)
     {
         if (version_compare(SWOOLE_VERSION, '1.9.5', '<')) {
-            file_put_contents($this->pid_file, $server->master_pid);
+            file_put_contents($this->getPidFile(), $server->master_pid);
             $this->pid = $server->master_pid;
         }
 
-        process_rename($this->serverName . ' master');
+        process_rename($this->getServerName() . ' master');
 
-        $this->consoleOutput->writeln(sprintf("Listen: <info>%s://%s:%s</info>", $this->getSwooleSocketTypeName(), $this->host, $this->port));
-        $this->consoleOutput->writeln(sprintf('PID file: <info>%s</info>, PID: <info>%s</info>', $this->pid_file, $server->master_pid));
+        $this->consoleOutput->writeln(sprintf("Listen: <info>%s://%s:%s</info>", $this->getSwooleSocketTypeName(), $this->getServerHost(), $this->getServerPort()));
+        $this->consoleOutput->writeln(sprintf('PID file: <info>%s</info>, PID: <info>%s</info>', $this->getPidFile(), $server->master_pid));
         $this->consoleOutput->writeln(sprintf('Server Master[<info>%s</info>] is started', $server->master_pid), OutputInterface::VERBOSITY_DEBUG);
 
         return true;
@@ -476,9 +399,33 @@ class SwooleServer implements SwooleManagerInterface
         $this->consoleOutput->writeln(sprintf('Server <info>%s</info> Master[<info>%s</info>] is shutdown ', $this->serverName, $server->master_pid), OutputInterface::VERBOSITY_DEBUG);
     }
 
-    public function onRequest(swoole_http_request $request, swoole_http_response $response)
+    /**
+     * @param swoole_http_request  $request
+     * @param swoole_http_response $response
+     */
+    public function onRequest(swoole_http_request $swooleRequest, swoole_http_response $swooleResponse)
     {
+        // 转接 Swoole request 对象
+        $request = SwooleServerRequest::createServerRequestFromSwoole($swooleRequest);
+        $response = app()->handleRequest($request);
+        foreach ($response->getHeaders() as $key => $header) {
+            $swooleResponse->header($key, $response->getHeaderLine($key));
+        }
+        foreach ($response->getCookieParams() as $key => $cookieParam) {
+            $swooleResponse->cookie(
+                $key,
+                $cookieParam->getValue(),
+                $cookieParam->getExpire(),
+                $cookieParam->getPath(),
+                $cookieParam->getDomain(),
+                $cookieParam->isSecure(),
+                $cookieParam->isHttpOnly()
+            );
+        }
 
+        $swooleResponse->status($response->getStatusCode());
+        $swooleResponse->end((string) $response->getBody());
+        return;
     }
 }
 
