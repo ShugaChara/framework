@@ -14,10 +14,10 @@ namespace ShugaChara\Framework\Contracts;
 interface SwooleManagerInterface
 {
     /**
-     * 获取Swoole服务
+     * 获取Swoole服务器
      * @return mixed
      */
-    public function getSwooleServer();
+    public function getAppSwooleServer();
 
     /**
      * 服务启动

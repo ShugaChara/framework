@@ -22,20 +22,13 @@ trait SwooleServerTrait
 {
     /**
      * 获取 App Swoole 服务器
+     *      获取Swoole服务 $this->getAppSwooleServer()->getSwooleServer()
+     *
      * @return mixed
      */
     public function getAppSwooleServer()
     {
         return $this->swooleServer;
-    }
-
-    /**
-     * 获取Swoole服务
-     * @return mixed
-     */
-    public function getSwooleServer()
-    {
-        return $this->getAppSwooleServer()->getSwooleServer();
     }
 
     /**

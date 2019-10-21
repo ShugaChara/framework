@@ -104,6 +104,17 @@ if (! function_exists('request')) {
     }
 }
 
+if (! function_exists('sw')) {
+    /**
+     * swoole 服务
+     * @return mixed
+     */
+    function sw()
+    {
+        return container()->get('sw');
+    }
+}
+
 /**********************************   应用环境    *******************************/
 
 if (! function_exists('environment')) {

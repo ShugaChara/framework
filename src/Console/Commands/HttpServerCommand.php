@@ -35,19 +35,29 @@ class HttpServerCommand extends BaseServerCommand
             ->setName(self::$name)  // 命令的名称
             ->setDescription('创建一个swoole ' . self::$name . ' 服务器')  // 简短描述
             ->setHelp($this->help())  // 运行命令时使用 "--help" 选项时的完整命令描述
-            ->addArgument('handle', InputArgument::OPTIONAL, '服务状态');
+            ->addArgument('handle', InputArgument::OPTIONAL, '服务状态')
+            ->addArgument('daemonize', InputArgument::OPTIONAL, '服务守护进程');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $handle = strtolower($input->getArgument('handle')) ?? Consts::SWOOLE_SERVER_STATUS_NAME;
+        $daemonize = in_array(strtolower($input->getArgument('daemonize')), ['d', 'daemon', 'daemonize']) ? true : false;
         if (in_array($handle, $this->handleType)) {
             $serverConfig = config()->get('swoole.http') ?? [];
+            if ((in_array($handle, [Consts::SWOOLE_SERVER_START_NAME, Consts::SWOOLE_SERVER_RESTART_NAME]))
+                && isset($serverConfig['options']['daemonize'])
+                && $daemonize
+            ) {
+                $serverConfig['options']['daemonize'] = $daemonize;
+            }
+
             $this->server = SwooleServer::getInstance()->initAppSwooleServer(
                 Consts::SWOOLE_SERVER_HTTP,
                 $serverConfig,
                 $output
             );
+
             $this->$handle();
 
             return true;
@@ -56,61 +66,73 @@ class HttpServerCommand extends BaseServerCommand
         throw new Exception($handle . ' 服务状态未定义,请通过 --help 查看命令');
     }
 
+    /**
+     * @return array|mixed
+     */
     public function status()
     {
         // TODO: Implement status() method.
 
         $swooleServer = $this->getSwooleServer();
-        if (! $swooleServer->status()) {
-            $swooleServer->consoleOutput->writeln(sprintf('Server <info>%s</info> is not running...', $swooleServer->getAppSwooleServerName()));
-            return false;
-        }
+        $swooleServerStatus = $swooleServer->status() ? true : false;
 
-        return true;
+        return [$swooleServer, $swooleServerStatus];
     }
 
+    /**
+     * @return bool|mixed
+     */
     public function start()
     {
         // TODO: Implement start() method.
 
-        $swooleServer = $this->getSwooleServer();
-        if ($swooleServer->status()) {
+        list($swooleServer, $swooleServerStatus) = $this->status();
+        if ($swooleServerStatus) {
             return false;
         }
 
         return $swooleServer->start();
     }
 
+    /**
+     * @return bool|mixed
+     */
     public function stop()
     {
         // TODO: Implement stop() method.
 
-        $swooleServer = $this->getSwooleServer();
-        if (! $swooleServer->status()) {
+        list($swooleServer, $swooleServerStatus) = $this->status();
+        if (! $swooleServerStatus) {
             return false;
         }
 
         return $swooleServer->stop();
     }
 
+    /**
+     * @return bool|mixed
+     */
     public function reload()
     {
         // TODO: Implement reload() method.
 
-        $swooleServer = $this->getSwooleServer();
-        if (! $swooleServer->status()) {
+        list($swooleServer, $swooleServerStatus) = $this->status();
+        if (! $swooleServerStatus) {
             return false;
         }
 
         return $swooleServer->reload();
     }
 
+    /**
+     * @return bool|mixed
+     */
     public function restart()
     {
         // TODO: Implement restart() method.
 
-        $swooleServer = $this->getSwooleServer();
-        if (! $swooleServer->status()) {
+        list($swooleServer, $swooleServerStatus) = $this->status();
+        if (! $swooleServerStatus) {
             return false;
         }
 
