@@ -208,6 +208,9 @@ class Application implements ApplicationInterface
         // Container 注入App应用
         $this->container->add('app', $this);
 
+        // 控制台 shell 命令启动
+        console()->run();
+
         // Http 请求响应
         $request = ServerRequest::createServerRequestFromGlobals();
         $response = $this->handleRequest($request);

@@ -36,8 +36,6 @@ class ConsoleServiceProvider implements ServiceProviderInterface
         }
 
         $container->add('console', $consoleApplication);
-
-        $consoleApplication->run();
     }
 }
 
