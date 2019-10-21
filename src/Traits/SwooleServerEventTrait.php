@@ -31,7 +31,7 @@ trait SwooleServerEventTrait
      */
     public function onStart(swoole_server $server)
     {
-        $swooleServer = sw();
+        $swooleServer = swoole();
         if (version_compare(SWOOLE_VERSION, '1.9.5', '<')) {
             file_put_contents($swooleServer->getPidFile(), $server->master_pid);
             $swooleServer->pid = $server->master_pid;
@@ -55,7 +55,7 @@ trait SwooleServerEventTrait
      */
     public function onShutdown(swoole_server $server)
     {
-        $swooleServer = sw();
+        $swooleServer = swoole();
         if (file_exists($swooleServer->getPidFile())) {
             unlink($swooleServer->getPidFile());
         }

@@ -16,6 +16,7 @@ use ShugaChara\Core\Traits\Singleton;
 use ShugaChara\Framework\Constant\Consts;
 use ShugaChara\Framework\Contracts\SwooleManagerInterface;
 use ShugaChara\Framework\Exceptions\SwooleServerException;
+use ShugaChara\Framework\Tools\SwooleListenRestart;
 use ShugaChara\Framework\Traits\SwooleServerEventTrait;
 use ShugaChara\Framework\Traits\SwooleServerTrait;
 use ShugaChara\Swoole\Server\Http;
@@ -275,7 +276,7 @@ class SwooleServer implements SwooleManagerInterface
             $this->consoleOutput->writeln(sprintf("当前 Swoole 服务 <info>%s</info> 正在启动中...", $this->getAppSwooleServerName()));
 
             // swoole 服务注入
-            container()->add('sw', $this);
+            container()->add('swoole', $this);
 
             $this->getAppSwooleServer()->start();
 

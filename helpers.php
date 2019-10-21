@@ -10,6 +10,8 @@
 // +----------------------------------------------------------------------
 
 use ShugaChara\Framework\Application;
+use ShugaChara\Http\Response;
+use ShugaChara\Http\JsonResponse;
 
 if (! function_exists('app')) {
     /**
@@ -104,14 +106,27 @@ if (! function_exists('request')) {
     }
 }
 
-if (! function_exists('sw')) {
+if (! function_exists('response')) {
+    /**
+     * Http 响应服务
+     * @return mixed
+     */
+    function response()
+    {
+        return container()->has('response')
+            ? container()->get('response')
+            : container()->add('response', new Response());
+    }
+}
+
+if (! function_exists('swoole')) {
     /**
      * swoole 服务
      * @return mixed
      */
-    function sw()
+    function swoole()
     {
-        return container()->get('sw');
+        return container()->get('swoole');
     }
 }
 
@@ -125,6 +140,17 @@ if (! function_exists('environment')) {
     function environment()
     {
         return trim(getenv('APP_ENV'));
+    }
+}
+
+if (! function_exists('is_debug')) {
+    /**
+     * 是否调试模式
+     * @return mixed
+     */
+    function is_debug()
+    {
+        return config()->get('APP_DEBUG') === 'true' ? true : false;
     }
 }
 

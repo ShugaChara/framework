@@ -32,7 +32,6 @@ use ShugaChara\Framework\ServiceProvider\RouterServiceProvider;
 use ShugaChara\Framework\Traits\ApplicationTrait;
 use ShugaChara\Http\HttpException;
 use ShugaChara\Http\JsonResponse;
-use ShugaChara\Http\Message\ServerRequest;
 use ShugaChara\Http\Response;
 use Throwable;
 
@@ -185,7 +184,10 @@ class Application implements ApplicationInterface
     /**
      * 初始化操作
      */
-    protected function init() {}
+    protected function init()
+    {
+        $this->registerExceptionHandler();
+    }
 
     /**
      * 初始化后置操作
@@ -211,13 +213,26 @@ class Application implements ApplicationInterface
         // 控制台 shell 命令启动
         console()->run();
 
-        // Http 请求响应
-        $request = ServerRequest::createServerRequestFromGlobals();
-        $response = $this->handleRequest($request);
-        $this->handleResponse($response);
+        // Web Http 请求响应
+        // $request = ServerRequest::createServerRequestFromGlobals();
+        // $response = $this->handleRequest($request);
+        // $this->handleResponse($response);
     }
 
+    /**
+     * 注册错误处理
+     */
+    protected function registerExceptionHandler()
+    {
+        $level = config()->get('exception.error_reporting', E_ALL);
+        error_reporting($level);
 
+        set_exception_handler([$this, 'handleException']);
+
+        set_error_handler(function ($level, $message, $file, $line) {
+            throw new ErrorException($message, 0, $level, $file, $line);
+        }, $level);
+    }
 
     /**
      * 服务容器注册
@@ -242,7 +257,12 @@ class Application implements ApplicationInterface
     {
         try {
             $this->container->add('request', $request);
-            return router_dispatcher()->dispatch($request);
+            if (! (($response = router_dispatcher()->dispatch($request)) instanceof Response)) {
+                return new JsonResponse([$response]);
+            }
+
+            return $response;
+
         } catch (Exception $exception) {
             return $this->handleException($exception);
         } catch (Throwable $exception) {
