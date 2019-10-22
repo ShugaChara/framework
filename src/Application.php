@@ -282,7 +282,10 @@ class Application implements ApplicationInterface
         try {
             $this->container->add('request', $request);
             if (! (($response = router_dispatcher()->dispatch($request)) instanceof Response)) {
-                return new JsonResponse([$response]);
+                if (! is_array($response)) {
+                    $response = (array) $response;
+                }
+                return new JsonResponse($response);
             }
 
             return $response;

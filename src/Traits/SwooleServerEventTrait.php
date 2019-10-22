@@ -24,6 +24,22 @@ use Symfony\Component\Console\Output\OutputInterface;
 trait SwooleServerEventTrait
 {
     /**
+     * 此事件在Worker进程/Task进程启动时发生。这里创建的对象可以在进程生命周期内使用
+     *      onWorkerStart/onStart是并发执行的，没有先后顺序
+     *      可以通过$server->taskworker属性来判断当前是Worker进程还是Task进程
+     *      设置了worker_num和task_worker_num超过1时，每个进程都会触发一次onWorkerStart事件，可通过判断$worker_id区分不同的工作进程
+     *      由 worker 进程向 task 进程发送任务，task 进程处理完全部任务之后通过onFinish回调函数通知 worker 进程。例如，我们在后台操作向十万个用户群发通知邮件，操作完成后操作的状态显示为发送中，这时我们可以继续其他操作。等邮件群发完毕后，操作的状态自动改为已发送。
+     *
+     * @param swoole_server $server
+     * @param int           $worker_id
+     */
+    public function onWorkerStart(swoole_server $server, int $worker_id)
+    {
+        // Worker进程/Task进程启动 回调事件处理
+        app()->getMainSwooleEvents()->doWorkerStart($server, $worker_id);
+    }
+
+    /**
      * Start server process
      *
      * @param swoole_server $server
@@ -43,7 +59,7 @@ trait SwooleServerEventTrait
         $swooleServer->consoleOutput->writeln(sprintf('PID 进程文件: <info>%s</info>, PID: <info>%s</info>', $swooleServer->getPidFile(), $server->master_pid));
         $swooleServer->consoleOutput->writeln(sprintf('服务主进程 Master[<info>%s</info>] 已启动', $server->master_pid), OutputInterface::VERBOSITY_DEBUG);
 
-        // 主进程事件回调
+        // 启动进程事件回调
         app()->getMainSwooleEvents()->doStart($server);
 
         return true;

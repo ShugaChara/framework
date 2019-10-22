@@ -48,7 +48,7 @@ class SwooleServer implements SwooleManagerInterface
      * @var array
      */
     protected $defaultServerEventCallback = [
-        'onStart', 'onShutdown', 'onRequest'
+        'onWorkerStart', 'onStart', 'onShutdown', 'onRequest'
     ];
 
     /**

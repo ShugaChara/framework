@@ -16,6 +16,14 @@ use swoole_server;
 interface MainSwooleEventsInterface
 {
     /**
+     * 每个 Worker进程/Task进程启动 回调事件处理
+     * @param swoole_server $server
+     * @param int           $worker_id
+     * @return mixed
+     */
+    public function doWorkerStart(swoole_server $server, int $worker_id);
+
+    /**
      * 服务启动事件回调处理
      * @param swoole_server $server
      * @return mixed
