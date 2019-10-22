@@ -34,7 +34,6 @@ trait SwooleServerEventTrait
         $swooleServer = swoole();
         if (version_compare(SWOOLE_VERSION, '1.9.5', '<')) {
             file_put_contents($swooleServer->getPidFile(), $server->master_pid);
-            $swooleServer->pid = $server->master_pid;
         }
 
         process_rename($swooleServer->getServerName() . ' master');
@@ -43,6 +42,9 @@ trait SwooleServerEventTrait
         $swooleServer->consoleOutput->writeln(sprintf("服务监听: <info>%s://%s:%s</info>", $swooleServer->getSwooleSocketTypeName(), $swooleServer->getServerHost(), $swooleServer->getServerPort()));
         $swooleServer->consoleOutput->writeln(sprintf('PID 进程文件: <info>%s</info>, PID: <info>%s</info>', $swooleServer->getPidFile(), $server->master_pid));
         $swooleServer->consoleOutput->writeln(sprintf('服务主进程 Master[<info>%s</info>] 已启动', $server->master_pid), OutputInterface::VERBOSITY_DEBUG);
+
+        // 主进程事件回调
+        app()->getMainSwooleEvents()->doStart($server);
 
         return true;
     }

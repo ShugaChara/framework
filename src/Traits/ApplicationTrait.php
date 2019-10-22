@@ -58,6 +58,14 @@ trait ApplicationTrait
     /**
      * @return mixed
      */
+    public function getmainSwooleEventsFilePath()
+    {
+        return $this->mainSwooleEventsFilePath;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getAppPath()
     {
         return $this->appPath;
@@ -120,5 +128,14 @@ trait ApplicationTrait
     public function getServices()
     {
         return $this->container->getServices();
+    }
+
+    /**
+     * Swoole 主进程类对象
+     * @return mixed
+     */
+    public function getMainSwooleEvents()
+    {
+        return $this->mainSwooleEvents;
     }
 }

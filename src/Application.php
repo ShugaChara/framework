@@ -63,6 +63,12 @@ class Application implements ApplicationInterface
     protected $processor;
 
     /**
+     * Swoole 主进程类对象
+     * @var
+     */
+    protected $mainSwooleEvents;
+
+    /**
      * 前置加载应用服务
      * @var array
      */
@@ -109,6 +115,18 @@ class Application implements ApplicationInterface
      * @var string
      */
     protected $envPath = 'env';
+
+    /**
+     * Swoole 主事件监听文件名 (类文件名和类名必须保持一致)
+     * @var string
+     */
+    protected $mainSwooleEventsClassName = 'mainSwooleEvents';
+
+    /**
+     * Swoole 主事件监听文件
+     * @var
+     */
+    protected $mianSwooleEventsFilePath;
 
     /**
      * app目录
@@ -174,6 +192,12 @@ class Application implements ApplicationInterface
         $this->setDateTimezone($this->timezone);
         $this->basePath = $this->getBasePath();
         $this->setPathCompletion();
+
+        // 加载 Swoole 主进程监听文件
+        if (file_exists($this->getmainSwooleEventsFilePath()) && (! $this->getMainSwooleEvents())) {
+            require_once $this->getmainSwooleEventsFilePath();
+            $this->mainSwooleEvents = new $this->mainSwooleEventsClassName();
+        }
 
         static::$app = $this;
 
@@ -344,6 +368,7 @@ class Application implements ApplicationInterface
     {
         $this->envFile = sprintf('%s/%s', $this->getBasePath(), $this->envFile);
         $this->envPath = sprintf('%s/%s', $this->getBasePath(), $this->envPath);
+        $this->mainSwooleEventsFilePath = sprintf('%s/%s.php', $this->getBasePath(), $this->mainSwooleEventsClassName);
         $this->appPath = sprintf('%s/%s', $this->getBasePath(), $this->appPath);
         $this->configPath = sprintf('%s/%s', $this->getBasePath(), $this->configPath);
         $this->routerPath = sprintf('%s/%s', $this->getBasePath(), $this->routerPath);

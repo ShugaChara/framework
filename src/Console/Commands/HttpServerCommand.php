@@ -13,10 +13,10 @@ namespace ShugaChara\Framework\Console\Commands;
 
 use Exception;
 use ShugaChara\Framework\Constant\Consts;
-use ShugaChara\Framework\Exceptions\SwooleServerException;
 use ShugaChara\Framework\Server\SwooleServer;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -36,20 +36,20 @@ class HttpServerCommand extends BaseServerCommand
             ->setDescription('创建一个swoole ' . self::$name . ' 服务器')  // 简短描述
             ->setHelp($this->help())  // 运行命令时使用 "--help" 选项时的完整命令描述
             ->addArgument('handle', InputArgument::OPTIONAL, '服务状态')
-            ->addArgument('daemonize', InputArgument::OPTIONAL, '服务守护进程');
+            ->addOption('daemon', 'd', InputOption::VALUE_NONE, '服务守护进程');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $handle = strtolower($input->getArgument('handle')) ?? Consts::SWOOLE_SERVER_STATUS_NAME;
-        $daemonize = in_array(strtolower($input->getArgument('daemonize')), ['d', 'daemon', 'daemonize']) ? true : false;
+        $daemon = $input->hasParameterOption(['--daemon', '-d'], true) ? true : false;
         if (in_array($handle, $this->handleType)) {
             $serverConfig = config()->get('swoole.http') ?? [];
             if ((in_array($handle, [Consts::SWOOLE_SERVER_START_NAME, Consts::SWOOLE_SERVER_RESTART_NAME]))
                 && isset($serverConfig['options']['daemonize'])
-                && $daemonize
+                && $daemon
             ) {
-                $serverConfig['options']['daemonize'] = $daemonize;
+                $serverConfig['options']['daemonize'] = $daemon;
             }
 
             $this->server = SwooleServer::getInstance()->initAppSwooleServer(
@@ -60,7 +60,7 @@ class HttpServerCommand extends BaseServerCommand
 
             $this->$handle();
 
-            return true;
+            return 1;
         }
 
         throw new Exception($handle . ' 服务状态未定义,请通过 --help 查看命令');

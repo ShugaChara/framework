@@ -16,7 +16,6 @@ use ShugaChara\Core\Traits\Singleton;
 use ShugaChara\Framework\Constant\Consts;
 use ShugaChara\Framework\Contracts\SwooleManagerInterface;
 use ShugaChara\Framework\Exceptions\SwooleServerException;
-use ShugaChara\Framework\Tools\SwooleListenRestart;
 use ShugaChara\Framework\Traits\SwooleServerEventTrait;
 use ShugaChara\Framework\Traits\SwooleServerTrait;
 use ShugaChara\Swoole\Server\Http;
