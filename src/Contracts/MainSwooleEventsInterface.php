@@ -11,22 +11,15 @@
 
 namespace ShugaChara\Framework\Contracts;
 
-use swoole_server;
-
+/**
+ * Interface MainSwooleEventsInterface
+ * @package ShugaChara\Framework\Contracts
+ */
 interface MainSwooleEventsInterface
 {
     /**
-     * 每个 Worker进程/Task进程启动 回调事件处理
-     * @param swoole_server $server
-     * @param int           $worker_id
+     * 初始化事件
      * @return mixed
      */
-    public function doWorkerStart(swoole_server $server, int $worker_id);
-
-    /**
-     * 服务启动事件回调处理
-     * @param swoole_server $server
-     * @return mixed
-     */
-    public function doStart(swoole_server $server);
+    public static function initialize();
 }

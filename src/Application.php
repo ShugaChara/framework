@@ -22,7 +22,9 @@ use ErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionClass;
 use ShugaChara\Container\Container;
+use ShugaChara\Framework\Constant\Consts;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
+use ShugaChara\Framework\Contracts\MainSwooleEventsInterface;
 use ShugaChara\Framework\Helpers\czHelper;
 use ShugaChara\Framework\Processor\ApplicationProcessor;
 use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
@@ -38,6 +40,11 @@ use Throwable;
 class Application implements ApplicationInterface
 {
     use ApplicationTrait;
+
+    /**
+     * APP 启动模式
+     */
+    const APP_MODE = [ Consts::APP_WEB_MODE, Consts::APP_SWOOLE_MODE ];
 
     /**
      * @var
@@ -57,30 +64,11 @@ class Application implements ApplicationInterface
     protected $container;
 
     /**
-     * 进程处理器
-     * @var
-     */
-    protected $processor;
-
-    /**
-     * Swoole 主进程类对象
-     * @var
-     */
-    protected $mainSwooleEvents;
-
-    /**
-     * 前置加载应用服务
+     * 加载组件应用服务
      * @var array
      */
-    protected $before_services = [
-        ConfigServiceProvider::class
-    ];
-
-    /**
-     * 容器服务
-     * @var array
-     */
-    protected $services = [
+    protected $appComponentServices = [
+        ConfigServiceProvider::class,
         LogsServiceProvider::class,
         ConsoleServiceProvider::class,
         RouterServiceProvider::class,
@@ -97,6 +85,12 @@ class Application implements ApplicationInterface
      * @var string
      */
     protected $appVersion = '1.0.0';
+
+    /**
+     * 应用模式 目前支持 web | swoole
+     * @var string
+     */
+    protected $appMode = Consts::APP_WEB_MODE;
 
     /**
      * 项目根目录
@@ -120,13 +114,7 @@ class Application implements ApplicationInterface
      * Swoole 主事件监听文件名 (类文件名和类名必须保持一致)
      * @var string
      */
-    protected $mainSwooleEventsClassName = 'mainSwooleEvents';
-
-    /**
-     * Swoole 主事件监听文件
-     * @var
-     */
-    protected $mianSwooleEventsFilePath;
+    protected $mainSwooleEventsObjectName = 'mainSwooleEvents';
 
     /**
      * app目录
@@ -164,109 +152,101 @@ class Application implements ApplicationInterface
      */
     protected $timezone = 'UTC';
 
-    public function __construct()
+    final public function __construct()
     {
         // check runtime env
         czHelper::checkRuntime();
 
         $this->container = new Container();
-
-        $this->processor = new ApplicationProcessor($this);
-
-        $this->beforeInit();
-
-        $this->init();
-
-        $this->afterInit();
     }
 
     /**
-     * 初始化前置操作
+     * 初始化处理器
+     * @throws \ReflectionException
      */
-    final protected function beforeInit(): void
+    final private function handleInitialize(): void
     {
-        if (! defined('IN_PHAR')) {
-            define('IN_PHAR', false);
-        }
+        if (! defined('IN_PHAR')) define('IN_PHAR', false);
+
+        // init app conf
+        $this->initialize();
 
         $this->setDateTimezone($this->timezone);
         $this->basePath = $this->getBasePath();
         $this->setPathCompletion();
 
-        // 加载 Swoole 主进程监听文件
-        if (file_exists($this->getmainSwooleEventsFilePath()) && (! $this->getMainSwooleEvents())) {
-            require_once $this->getmainSwooleEventsFilePath();
-            $this->mainSwooleEvents = new $this->mainSwooleEventsClassName();
-        }
-
         static::$app = $this;
 
-        // load before services container
-        $this->servicesRegister($this->before_services);
+        // load app services provider register
+        $this->appServiceProviderRegister($this->appComponentServices);
+
+        if ($this->isGeneralMode()) {
+            // 加载 Swoole 主服务事件监听对象
+            if (file_exists($this->getMainSwooleEventsFilePath())) {
+                require_once $this->getMainSwooleEventsFilePath();
+                if (class_exists($this->mainSwooleEventsObjectName)) {
+                    try {
+                        $ref = new ReflectionClass($this->mainSwooleEventsObjectName);
+                        if(! $ref->implementsInterface(MainSwooleEventsInterface::class)){
+                            die('global file for MainSwooleEventsInterface is not compatible for ' . $this->mainSwooleEventsObjectName);
+                        }
+                        unset($ref);
+                    } catch (Throwable $throwable){
+                        die($throwable->getMessage());
+                    }
+                } else {
+                    die("global events file missing!\n");
+                }
+            }
+
+            // init app events
+            $this->getSwooleEventsObjectName()::initialize();
+        }
+
+        // register exception
+        $this->registerExceptionHandler();
     }
 
     /**
      * 初始化操作
      */
-    protected function init()
-    {
-        $this->registerExceptionHandler();
-    }
-
-    /**
-     * 初始化后置操作
-     */
-    protected function afterInit()
-    {
-        // app services register
-        $this->servicesRegister($this->services);
-    }
+    protected function initialize() {}
 
     /**
      * 运行框架
      */
-    public function run(): void
+    final public function run(): void
     {
         // TODO: Implement run() method.
 
+        // 载入初始化处理器
+        $this->handleInitialize();
+
         $this->isRun = true;
 
-        // Container 注入App应用
-        $this->container->add('app', $this);
-
-        // 控制台 shell 命令启动
-        console()->run();
-
-        // Web Http 请求响应
-        // $request = ServerRequest::createServerRequestFromGlobals();
-        // $response = $this->handleRequest($request);
-        // $this->handleResponse($response);
-    }
-
-    /**
-     * 注册错误处理
-     */
-    protected function registerExceptionHandler()
-    {
-        $level = config()->get('exception.error_reporting', E_ALL);
-        error_reporting($level);
-
-        set_exception_handler([$this, 'handleException']);
-
-        set_error_handler(function ($level, $message, $file, $line) {
-            throw new ErrorException($message, 0, $level, $file, $line);
-        }, $level);
+        switch ($this->getAppMode()) {
+            case Consts::APP_WEB_MODE:
+                {
+                    break;
+                }
+            case Consts::APP_SWOOLE_MODE:
+                {
+                    console()->run();
+                    break;
+                }
+            default:
+                die("app does not start!\n");
+        }
     }
 
     /**
      * 服务容器注册
-     *
      * @param array $services
      */
-    protected function servicesRegister(array $services)
+    final protected function appServiceProviderRegister(array $services)
     {
         foreach ($services as $service) {
-            (new $service)->register($this->container);
+            (new $service)->register($this->getContainer());
         }
     }
 
@@ -287,9 +267,7 @@ class Application implements ApplicationInterface
                 }
                 return new JsonResponse($response);
             }
-
             return $response;
-
         } catch (Exception $exception) {
             return $this->handleException($exception);
         } catch (Throwable $exception) {
@@ -347,8 +325,22 @@ class Application implements ApplicationInterface
     }
 
     /**
+     * 注册错误处理
+     */
+    protected function registerExceptionHandler()
+    {
+        $level = config()->get('exception.error_reporting', E_ALL);
+        error_reporting($level);
+
+        set_exception_handler([$this, 'handleException']);
+
+        set_error_handler(function ($level, $message, $file, $line) {
+            throw new ErrorException($message, 0, $level, $file, $line);
+        }, $level);
+    }
+
+    /**
      * 获取根目录
-     *
      * @return string|void
      * @throws \ReflectionException
      */
@@ -357,7 +349,6 @@ class Application implements ApplicationInterface
         if ($this->basePath) {
             return $this->basePath;
         }
-
         // 获取当前类所在的位置
         $ReflectionClass = new ReflectionClass(static::class);
         return dirname($ReflectionClass->getFileName(), $this->basePathLevel);
@@ -367,11 +358,10 @@ class Application implements ApplicationInterface
      * 目录路径补全
      * @throws \ReflectionException
      */
-    private function setPathCompletion()
+    protected function setPathCompletion()
     {
         $this->envFile = sprintf('%s/%s', $this->getBasePath(), $this->envFile);
         $this->envPath = sprintf('%s/%s', $this->getBasePath(), $this->envPath);
-        $this->mainSwooleEventsFilePath = sprintf('%s/%s.php', $this->getBasePath(), $this->mainSwooleEventsClassName);
         $this->appPath = sprintf('%s/%s', $this->getBasePath(), $this->appPath);
         $this->configPath = sprintf('%s/%s', $this->getBasePath(), $this->configPath);
         $this->routerPath = sprintf('%s/%s', $this->getBasePath(), $this->routerPath);

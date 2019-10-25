@@ -12,6 +12,8 @@
 namespace ShugaChara\Framework\Traits;
 
 use function date_default_timezone_set;
+use ShugaChara\Framework\Application;
+use ShugaChara\Framework\Constant\Consts;
 
 /**
  * Trait ApplicationTrait
@@ -30,6 +32,30 @@ trait ApplicationTrait
     }
 
     /**
+     * App是否普通模式 web为普通模式
+     * @return bool
+     */
+    public function isGeneralMode()
+    {
+        return ($this->getAppMode() == Consts::APP_WEB_MODE) ? true : false;
+    }
+
+    /**
+     * 设置APP模式
+     * @param string $mode
+     * @return $this
+     */
+    public function setAppMode(string $mode): Application
+    {
+        $mode = strtolower($mode);
+        if (in_array($mode, static::APP_MODE)) {
+            $this->appMode = $mode;
+        }
+
+        return $this;
+    }
+
+    /**
      * 设置时区
      *
      * @param string $timezone
@@ -40,9 +66,18 @@ trait ApplicationTrait
     }
 
     /**
+     * 获取时区
+     * @return string
+     */
+    public function getDateTimezone()
+    {
+        return date_default_timezone_get();
+    }
+
+    /**
      * @return mixed
      */
-    public function getEnvFile()
+    public function getEnvFile(): string
     {
         return $this->envFile;
     }
@@ -50,7 +85,7 @@ trait ApplicationTrait
     /**
      * @return mixed
      */
-    public function getEnvPath()
+    public function getEnvPath(): string
     {
         return $this->envPath;
     }
@@ -58,15 +93,15 @@ trait ApplicationTrait
     /**
      * @return mixed
      */
-    public function getmainSwooleEventsFilePath()
+    public function getMainSwooleEventsFilePath(): string
     {
-        return $this->mainSwooleEventsFilePath;
+        return sprintf('%s/%s.php', $this->getBasePath(), $this->mainSwooleEventsClassName);
     }
 
     /**
      * @return mixed
      */
-    public function getAppPath()
+    public function getAppPath(): string
     {
         return $this->appPath;
     }
@@ -74,7 +109,7 @@ trait ApplicationTrait
     /**
      * @return mixed
      */
-    public function getRouterPath()
+    public function getRouterPath(): string
     {
         return $this->routerPath;
     }
@@ -82,7 +117,7 @@ trait ApplicationTrait
     /**
      * @return mixed
      */
-    public function getConfigPath()
+    public function getConfigPath(): string
     {
         return $this->configPath;
     }
@@ -90,7 +125,7 @@ trait ApplicationTrait
     /**
      * @return mixed
      */
-    public function getRuntimePath()
+    public function getRuntimePath(): string
     {
         return $this->runtimePath;
     }
@@ -98,7 +133,7 @@ trait ApplicationTrait
     /**
      * @return mixed
      */
-    public function getAppName()
+    public function getAppName(): string
     {
         return $this->appName;
     }
@@ -107,9 +142,18 @@ trait ApplicationTrait
      * 获取APP VERSION
      * @return mixed
      */
-    public function getAppVersion()
+    public function getAppVersion(): string
     {
         return $this->appVersion;
+    }
+
+    /**
+     * 获取APP 模式
+     * @return mixed
+     */
+    public function getAppMode(): string
+    {
+        return $this->appMode;
     }
 
     /**
@@ -122,20 +166,11 @@ trait ApplicationTrait
     }
 
     /**
-     * 获取IOC容器所有服务
+     * 获取Swoole监听事件对象
      * @return mixed
      */
-    public function getServices()
+    public function getSwooleEventsObjectName()
     {
-        return $this->container->getServices();
-    }
-
-    /**
-     * Swoole 主进程类对象
-     * @return mixed
-     */
-    public function getMainSwooleEvents()
-    {
-        return $this->mainSwooleEvents;
+        return $this->mainSwooleEventsObjectName;
     }
 }

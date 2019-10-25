@@ -13,7 +13,7 @@ namespace ShugaChara\Framework\Console\Commands;
 
 use ShugaChara\Console\Command;
 use ShugaChara\Framework\Constant\Consts;
-use ShugaChara\Framework\Server\SwooleServer;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 /**
  * Class BaseServerCommand
@@ -22,16 +22,15 @@ use ShugaChara\Framework\Server\SwooleServer;
 abstract class BaseServerCommand extends Command
 {
     /**
-     * 服务对象
-     * @var SwooleServer
+     * @var ConsoleOutput
      */
-    protected $server;
+    protected $output;
 
     /**
-     * 操作状态类型
+     * 服务状态类型
      * @var array
      */
-    protected $handleType = [
+    protected $serverStatusType = [
         Consts::SWOOLE_SERVER_START_NAME,
         Consts::SWOOLE_SERVER_STATUS_NAME,
         Consts::SWOOLE_SERVER_STOP_NAME,
@@ -39,42 +38,21 @@ abstract class BaseServerCommand extends Command
         Consts::SWOOLE_SERVER_RESTART_NAME,
     ];
 
-    /**
-     * @return SwooleServer
-     */
-    protected function getSwooleServer()
+    public function __construct(string $name = null)
     {
-        return $this->server;
+        parent::__construct($name);
+
+        $this->output = new ConsoleOutput();
     }
 
-    /**
-     * 服务状态
-     * @return mixed
-     */
     abstract function status();
 
-    /**
-     * 启动服务
-     * @return mixed
-     */
     abstract function start();
 
-    /**
-     * 停止服务
-     * @return mixed
-     */
     abstract function stop();
 
-    /**
-     * 服务平滑加载
-     * @return mixed
-     */
     abstract function reload();
 
-    /**
-     * 重启服务
-     * @return mixed
-     */
     abstract function restart();
 }
 

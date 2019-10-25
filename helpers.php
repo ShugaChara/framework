@@ -9,14 +9,17 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
+use ShugaChara\Config\FileConfig;
 use ShugaChara\Framework\Application;
 use ShugaChara\Http\Response;
-use ShugaChara\Http\JsonResponse;
+use ShugaChara\Console\Console;
+use ShugaChara\Router\RouteCollection;
+use ShugaChara\Router\RouteDispatcher;
 
 if (! function_exists('app')) {
     /**
      * 获取应用App
-     * @return mixed
+     * @return Application
      */
     function app()
     {
@@ -54,7 +57,7 @@ if (! function_exists('logs')) {
 if (! function_exists('config')) {
     /**
      * 配置服务
-     * @return mixed
+     * @return FileConfig
      */
     function config()
     {
@@ -65,7 +68,7 @@ if (! function_exists('config')) {
 if (! function_exists('console')) {
     /**
      * 控制台命令服务
-     * @return mixed
+     * @return Console
      */
     function console()
     {
@@ -76,7 +79,7 @@ if (! function_exists('console')) {
 if (! function_exists('router')) {
     /**
      * 路由服务
-     * @return mixed
+     * @return RouteCollection
      */
     function router()
     {
@@ -87,7 +90,7 @@ if (! function_exists('router')) {
 if (! function_exists('router_dispatcher')) {
     /**
      * 路由分发服务
-     * @return mixed
+     * @return RouteDispatcher
      */
     function router_dispatcher()
     {
