@@ -17,6 +17,7 @@
 
 namespace ShugaChara\Framework;
 
+use App\Swoole\mainSwooleEvents;
 use Exception;
 use ErrorException;
 use Psr\Http\Message\ServerRequestInterface;
@@ -111,10 +112,10 @@ class Application implements ApplicationInterface
     protected $envPath = 'env';
 
     /**
-     * Swoole 主事件监听文件名 (类文件名和类名必须保持一致)
+     * Swoole 主服务事件监听类
      * @var string
      */
-    protected $mainSwooleEventsObjectName = 'mainSwooleEvents';
+    protected $mainSwooleEventsObjectName = mainSwooleEvents::class;
 
     /**
      * app目录
@@ -146,18 +147,14 @@ class Application implements ApplicationInterface
      */
     protected $basePathLevel = 2;
 
-    /**
-     * 默认时区
-     * @var string
-     */
-    protected $timezone = 'UTC';
-
     final public function __construct()
     {
         // check runtime env
         czHelper::checkRuntime();
 
         $this->container = new Container();
+
+        static::$app = $this;
     }
 
     /**
@@ -171,35 +168,31 @@ class Application implements ApplicationInterface
         // init app conf
         $this->initialize();
 
-        $this->setDateTimezone($this->timezone);
         $this->basePath = $this->getBasePath();
         $this->setPathCompletion();
-
-        static::$app = $this;
 
         // load app services provider register
         $this->appServiceProviderRegister($this->appComponentServices);
 
-        if ($this->isGeneralMode()) {
+        $this->setDateTimezone(config()->get('APP_TIME_ZONE', 'UTC'));
+
+        if (! $this->isGeneralMode()) {
             // 加载 Swoole 主服务事件监听对象
-            if (file_exists($this->getMainSwooleEventsFilePath())) {
-                require_once $this->getMainSwooleEventsFilePath();
-                if (class_exists($this->mainSwooleEventsObjectName)) {
-                    try {
-                        $ref = new ReflectionClass($this->mainSwooleEventsObjectName);
-                        if(! $ref->implementsInterface(MainSwooleEventsInterface::class)){
-                            die('global file for MainSwooleEventsInterface is not compatible for ' . $this->mainSwooleEventsObjectName);
-                        }
-                        unset($ref);
-                    } catch (Throwable $throwable){
-                        die($throwable->getMessage());
+            if (class_exists($this->getSwooleEventsObjectName())) {
+                try {
+                    $ref = new ReflectionClass($this->getSwooleEventsObjectName());
+                    if(! $ref->implementsInterface(MainSwooleEventsInterface::class)){
+                        die('global file for MainSwooleEventsInterface is not compatible for ' . $this->getSwooleEventsObjectName());
                     }
-                } else {
-                    die("global events file missing!\n");
+                    unset($ref);
+                } catch (Throwable $throwable){
+                    die($throwable->getMessage());
                 }
+            } else {
+                die("global events file missing!\n");
             }
 
-            // init app events
+            // init app handle
             $this->getSwooleEventsObjectName()::initialize();
         }
 

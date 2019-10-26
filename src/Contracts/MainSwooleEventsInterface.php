@@ -11,6 +11,8 @@
 
 namespace ShugaChara\Framework\Contracts;
 
+use ShugaChara\Swoole\Events\EventsRegister;
+
 /**
  * Interface MainSwooleEventsInterface
  * @package ShugaChara\Framework\Contracts
@@ -18,8 +20,15 @@ namespace ShugaChara\Framework\Contracts;
 interface MainSwooleEventsInterface
 {
     /**
-     * 初始化事件
+     * 初始化操作
      * @return mixed
      */
     public static function initialize();
+
+    /**
+     * hook 全局的 mainSwooleServerEventsCreate 事件
+     * @param EventsRegister $register
+     * @return mixed
+     */
+    public static function mainSwooleServerEventsCreate(EventsRegister $register);
 }

@@ -93,14 +93,6 @@ trait ApplicationTrait
     /**
      * @return mixed
      */
-    public function getMainSwooleEventsFilePath(): string
-    {
-        return sprintf('%s/%s.php', $this->getBasePath(), $this->mainSwooleEventsClassName);
-    }
-
-    /**
-     * @return mixed
-     */
     public function getAppPath(): string
     {
         return $this->appPath;
@@ -166,7 +158,7 @@ trait ApplicationTrait
     }
 
     /**
-     * 获取Swoole监听事件对象
+     * 获取 Swoole 主服务监听事件对象名
      * @return mixed
      */
     public function getSwooleEventsObjectName()
