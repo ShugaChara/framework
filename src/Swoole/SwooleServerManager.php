@@ -71,7 +71,7 @@ class SwooleServerManager extends MasterManager
                 function (swoole_server $server, $workerId) use ($serverName) {
                     if(PHP_OS != 'Darwin'){
                         if( ($workerId < config()->get('swoole.' . $serverName . '.setting.worker_num')) && $workerId >= 0){
-                            cli_set_process_title("{$serverName}.Worker.{$workerId}");
+                            process_rename("{$serverName}.Worker.{$workerId}");
                         }
                     }
                 }

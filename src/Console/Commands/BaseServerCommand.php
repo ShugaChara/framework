@@ -15,9 +15,11 @@ use ShugaChara\Console\Command;
 use ShugaChara\Core\Helpers;
 use ShugaChara\Framework\Constant\Consts;
 use ShugaChara\Framework\Swoole\SwooleServerManager;
+use ShugaChara\Swoole\Events\EventsRegister;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use swoole_process;
+use swoole_server;
 
 /**
  * Class BaseServerCommand
@@ -181,6 +183,11 @@ abstract class BaseServerCommand extends Command
 
         // hook 全局 mainSwooleServerEventsCreate 事件
         app()->getSwooleEventsObjectName()::mainSwooleServerEventsCreate($this->getSwooleServerManager()->getSwooleServerEventRegister());
+
+        // 注册onTask事件
+        $this->getSwooleServerManager()->getSwooleServerEventRegister()->setEvent(EventsRegister::onTask, function (swoole_server $serv, int $task_id, int $src_worker_id, mixed $data) {
+            // ...待填充
+        });
 
         $pidFile = isset($this->config['pid_file']) ? $this->config['pid_file']  : '/tmp/' . str_replace(' ', '-', $this->server_name) . '.pid';
         if (! file_exists($dir = dirname($pidFile))) {

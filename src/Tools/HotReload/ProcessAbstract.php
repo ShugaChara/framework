@@ -14,6 +14,7 @@ namespace ShugaChara\Framework\Tools\HotReload;
 use Swoole\Coroutine;
 use Swoole\Event;
 use Swoole\Process;
+use Swoole\Timer;
 use Swoole\Coroutine\Scheduler;
 
 abstract class ProcessAbstract

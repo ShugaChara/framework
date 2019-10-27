@@ -28,7 +28,9 @@
     "shugachara/swoole": "dev-master",
     "shugachara/http": "dev-master",
     "shugachara/router": "dev-master",
-    "shugachara/middleware": "dev-master"
+    "shugachara/middleware": "dev-master",
+    "shugachara/databases": "dev-master",
+    "shugachara/redis": "dev-master"
   },
   "require-dev": {},
   "autoload": {
