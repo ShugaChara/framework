@@ -155,6 +155,9 @@ class Application implements ApplicationInterface
         $this->container = new Container();
 
         static::$app = $this;
+
+        // 载入初始化处理器
+        $this->handleInitialize();
     }
 
     /**
@@ -201,7 +204,7 @@ class Application implements ApplicationInterface
     }
 
     /**
-     * 初始化操作
+     * 初始化 Application
      */
     protected function initialize() {}
 
@@ -211,9 +214,6 @@ class Application implements ApplicationInterface
     final public function run(): void
     {
         // TODO: Implement run() method.
-
-        // 载入初始化处理器
-        $this->handleInitialize();
 
         $this->isRun = true;
 

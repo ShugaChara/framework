@@ -189,7 +189,7 @@ abstract class BaseServerCommand extends Command
             // ...待填充
         });
 
-        $pidFile = isset($this->config['pid_file']) ? $this->config['pid_file']  : '/tmp/' . str_replace(' ', '-', $this->server_name) . '.pid';
+        $pidFile = isset($this->config['pid_file']) ? $this->config['pid_file']  : app()->getRuntimePath() . '/tmp/' . str_replace(' ', '-', $this->server_name) . '.pid';
         if (! file_exists($dir = dirname($pidFile))) {
             mkdir($dir, 0755, true);
         }

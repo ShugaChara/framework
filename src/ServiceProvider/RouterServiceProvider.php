@@ -32,7 +32,7 @@ class RouterServiceProvider implements ServiceProviderInterface
 
         $router = new RouteCollection(config()->get('CONTROLLER_NAMESPACE', $this->controller_namespace));
 
-        $router_dispatcher = new RouteDispatcher($router, config()->get('HTTP_MIDDLEWARES', []));
+        $router_dispatcher = new RouteDispatcher($router, config()->get('middlewares', []));
 
         // 注册路由
         $container->add('router', $router);
