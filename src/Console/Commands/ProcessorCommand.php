@@ -116,9 +116,9 @@ class ProcessorCommand extends Command
         $this->daemon = $input->hasParameterOption(['--daemon', '-d'], true) ? true : false;
         if (in_array($status, $this->serverStatusType)) {
 
-            $pid_path = app()->getRuntimePath() . '/process';
-            if (!file_exists($pid_path)) {
-                mkdir($pid_path, 0755, true);
+            $this->pid_path = app()->getRuntimePath() . '/process';
+            if (!file_exists($this->pid_path)) {
+                mkdir($this->pid_path, 0755, true);
             }
 
             $this->pid_file = $this->pid_path . '/' . $this->process_name . '.pid';
@@ -134,14 +134,14 @@ class ProcessorCommand extends Command
             }
             $config = $this->processes[$this->process_name];
             $processClassName = $config['process'];
-            if (!class_exists($processClassName)) {
+            if (! class_exists($processClassName)) {
                 throw new RuntimeException(sprintf('Process class "%s" is not found.', $this->process_name));
             }
 
             $this->options = isset($config['options']) ? (array) $config['options'] : [];
             $this->process = new $processClassName();
             $this->process->name($this->process_name);
-            if (!($this->process instanceof ProcessManager)) {
+            if (! ($this->process instanceof ProcessManager)) {
                 throw new RuntimeException('Process must be instance of \ShugaChara\Swoole\Manager\ProcessManager');
             }
             if ($input->hasParameterOption(['--daemon', '-d'])) {
@@ -170,7 +170,7 @@ class ProcessorCommand extends Command
             ['pid', sprintf('<info>%s</info>', $info[1])],
         ];
         foreach ($this->options as $key => $value) {
-            $rows[] = ['options.'.$key, sprintf('<info>%s</info>', $value)];
+            $rows[] = ['options.' . $key, sprintf('<info>%s</info>', $value)];
         }
         $table->setRows($rows);
         $table->setStyle('compact');

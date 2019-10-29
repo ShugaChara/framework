@@ -9,15 +9,12 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-namespace ShugaChara\Framework\Contracts;
+namespace ShugaChara\Framework\Processor;
 
-use swoole_process;
+use ShugaChara\Framework\Contracts\ProcessorInterface;
+use ShugaChara\Swoole\Manager\ProcessManager;
 
-interface ProcessorInterface
+abstract class Processor extends ProcessManager implements ProcessorInterface
 {
-    /**
-     * 处理方法
-     * @return mixed
-     */
-    public function handle(swoole_process $process);
+
 }
