@@ -11,26 +11,15 @@
 
 namespace ShugaChara\Framework\Contracts;
 
-use ShugaChara\Swoole\Events\EventsRegister;
-use swoole_server;
-
 /**
- * Interface MainSwooleEventsInterface
+ * Interface PoolInterface
  * @package ShugaChara\Framework\Contracts
  */
-interface MainSwooleEventsInterface
+interface PoolInterface
 {
     /**
-     * 初始化操作
+     * 初始化连接池
      * @return mixed
      */
-    public static function initialize();
-
-    /**
-     * hook 全局的 mainSwooleServerEventsCreate 事件
-     * @param EventsRegister $register
-     * @param swoole_server  $swoole_server
-     * @return mixed
-     */
-    public static function mainSwooleServerEventsCreate(EventsRegister $register, swoole_server $swoole_server);
+    public function initPool();
 }

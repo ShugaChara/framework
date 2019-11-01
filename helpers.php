@@ -122,6 +122,30 @@ if (! function_exists('response')) {
     }
 }
 
+if (! function_exists('db')) {
+    /**
+     * Databases
+     *
+     * @return \ShugaChara\Databases\DB|\ShugaChara\Databases\Capsule
+     */
+    function db($drive = 'default')
+    {
+        return container()->get('databases')->getConnection($drive);
+    }
+}
+
+if (! function_exists('redis')) {
+    /**
+     * Redis
+     * @param string $drive
+     * @return \ShugaChara\Redis\Redis
+     */
+    function redis($drive = 'default')
+    {
+        return container()->get('redis')->getConnection($drive);
+    }
+}
+
 if (! function_exists('swoole')) {
     /**
      * swoole 服务

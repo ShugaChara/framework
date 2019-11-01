@@ -30,7 +30,9 @@ use ShugaChara\Framework\Helpers\czHelper;
 use ShugaChara\Framework\Processor\ApplicationProcessor;
 use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
 use ShugaChara\Framework\ServiceProvider\ConsoleServiceProvider;
+use ShugaChara\Framework\ServiceProvider\DatabaseServiceProvider;
 use ShugaChara\Framework\ServiceProvider\LogsServiceProvider;
+use ShugaChara\Framework\ServiceProvider\RedisServiceProvider;
 use ShugaChara\Framework\ServiceProvider\RouterServiceProvider;
 use ShugaChara\Framework\Traits\ApplicationTrait;
 use ShugaChara\Http\HttpException;
@@ -73,6 +75,8 @@ class Application implements ApplicationInterface
         LogsServiceProvider::class,
         ConsoleServiceProvider::class,
         RouterServiceProvider::class,
+        DatabaseServiceProvider::class,
+        RedisServiceProvider::class,
     ];
 
     /**
@@ -302,6 +306,10 @@ class Application implements ApplicationInterface
         }
 
         logs()->error($e->getMessage(), $trace);
+
+        if ($this->getAppMode() == Consts::APP_WEB_MODE) {
+            throw $e;
+        }
 
         $status = ($e instanceof HttpException) ? $e->getStatusCode() : $e->getCode();
 

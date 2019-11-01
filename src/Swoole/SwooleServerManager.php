@@ -13,6 +13,7 @@ namespace ShugaChara\Framework\Swoole;
 
 use ShugaChara\Core\Traits\Singleton;
 use ShugaChara\Framework\Constant\Consts;
+use ShugaChara\Framework\Contracts\PoolInterface;
 use ShugaChara\Http\SwooleServerRequest;
 use ShugaChara\Swoole\Events\EventsRegister;
 use ShugaChara\Swoole\Manager\SwooleServerManager as MasterManager;
@@ -72,6 +73,13 @@ class SwooleServerManager extends MasterManager
                     if(PHP_OS != 'Darwin'){
                         if( ($workerId < config()->get('swoole.' . $serverName . '.setting.worker_num')) && $workerId >= 0){
                             process_rename("{$serverName}.Worker.{$workerId}");
+                        }
+                    }
+
+                    // 建立Pool连接池
+                    foreach (container()->all() as $service) {
+                        if ($service instanceof PoolInterface) {
+                            $service->initPool();
                         }
                     }
                 }

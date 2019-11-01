@@ -14,13 +14,14 @@ namespace ShugaChara\Framework\Console\Commands;
 use RuntimeException;
 use ShugaChara\Console\Command;
 use ShugaChara\Framework\Constant\Consts;
-use ShugaChara\Swoole\Manager\ProcessManager;
+use ShugaChara\Framework\Processor\ProcessManager;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
+use swoole_process;
 
 /**
  * Class ProcessorCommand
@@ -29,6 +30,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ProcessorCommand extends Command
 {
     protected static $name = 'process';
+
+    /**
+     * 字符串替换占位符
+     * @var string
+     */
+    private $placeholder = '#placeholder#';
 
     /**
      * @var ConsoleOutput
@@ -117,11 +124,11 @@ class ProcessorCommand extends Command
         if (in_array($status, $this->serverStatusType)) {
 
             $this->pid_path = app()->getRuntimePath() . '/process';
-            if (!file_exists($this->pid_path)) {
+            if (! file_exists($this->pid_path)) {
                 mkdir($this->pid_path, 0755, true);
             }
 
-            $this->pid_file = $this->pid_path . '/' . $this->process_name . '.pid';
+            $this->pid_file = $this->pid_path . '/' . ($this->process_name ? : $this->placeholder) . '.pid';
 
             if ($input->hasParameterOption(['--list', '-l']) || empty($this->process_name)) {
                 $this->showProcesses($input, $output);
@@ -129,7 +136,7 @@ class ProcessorCommand extends Command
             }
 
             $this->processes = config()->get('process', []);
-            if (!isset($this->processes[$this->process_name])) {
+            if (! isset($this->processes[$this->process_name])) {
                 throw new RuntimeException(sprintf('Process %s cannot found', $this->process_name));
             }
             $config = $this->processes[$this->process_name];
@@ -139,8 +146,7 @@ class ProcessorCommand extends Command
             }
 
             $this->options = isset($config['options']) ? (array) $config['options'] : [];
-            $this->process = new $processClassName();
-            $this->process->name($this->process_name);
+            $this->process = new $processClassName($this->process_name);
             if (! ($this->process instanceof ProcessManager)) {
                 throw new RuntimeException('Process must be instance of \ShugaChara\Swoole\Manager\ProcessManager');
             }
@@ -238,29 +244,30 @@ class ProcessorCommand extends Command
     protected function getProcessInfo($process_name)
     {
         $isRunning = false;
-        $pid = file_exists($this->pid_file) ? (int) file_get_contents($this->pid_file) : '';
+        $pid_file = str_replace($this->placeholder, $process_name, $this->pid_file);
+        $pid = file_exists($pid_file) ? (int) file_get_contents($pid_file) : '';
         if (is_numeric($pid)) {
-            $isRunning = process_kill($pid, 0);
+            $isRunning = swoole_process::kill($pid, 0);
         }
 
         return [
             $process_name,
             $isRunning ? $pid : '',
             $isRunning ? '运行中' : '已停止',
-            $isRunning ? date('Y-m-d H:i:s', filemtime($this->pid_file)) : '',
-            $isRunning ? time() - filemtime($this->pid_file) : '',
+            $isRunning ? date('Y-m-d H:i:s', filemtime($pid_file)) : '',
+            $isRunning ? time() - filemtime($pid_file) : '',
         ];
     }
 
     /**
-     * @param     $name
+     * @param     $process_name
      * @param     $pid
      * @param int $code
      * @param int $signal
      */
-    protected function finish($name, $pid, $code = 0, $signal = 0)
+    protected function finish($process_name, $pid, $code = 0, $signal = 0)
     {
-        $this->output->writeln(sprintf('process: %s. PID: %s exit. code: %s. signal: %s', $name, $pid, $code, $signal));
+        $this->output->writeln(sprintf('process: %s. PID: %s exit. code: %s. signal: %s', $process_name, $pid, $code, $signal));
     }
 
     /**

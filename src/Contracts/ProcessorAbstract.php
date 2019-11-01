@@ -9,12 +9,11 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-namespace ShugaChara\Framework\Processor;
+namespace ShugaChara\Framework\Contracts;
 
-use ShugaChara\Framework\Contracts\ProcessorInterface;
-use ShugaChara\Swoole\Manager\ProcessManager;
+use ShugaChara\Framework\Processor\ProcessManager;
 
-abstract class Processor extends ProcessManager implements ProcessorInterface
+abstract class ProcessorAbstract extends ProcessManager implements ProcessorInterface
 {
 
 }

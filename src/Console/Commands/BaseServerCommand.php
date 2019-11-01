@@ -182,7 +182,7 @@ abstract class BaseServerCommand extends Command
         );
 
         // hook 全局 mainSwooleServerEventsCreate 事件
-        app()->getSwooleEventsObjectName()::mainSwooleServerEventsCreate($this->getSwooleServerManager()->getSwooleServerEventRegister());
+        app()->getSwooleEventsObjectName()::mainSwooleServerEventsCreate($this->getSwooleServerManager()->getSwooleServerEventRegister(), $this->getSwooleServerManager()->getServer());
 
         // 注册onTask事件
         $this->getSwooleServerManager()->getSwooleServerEventRegister()->setEvent(EventsRegister::onTask, function (swoole_server $serv, int $task_id, int $src_worker_id, mixed $data) {

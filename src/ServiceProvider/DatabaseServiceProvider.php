@@ -13,35 +13,24 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\ServiceProviderInterface;
-use ShugaChara\Router\RouteCollection;
-use ShugaChara\Router\RouteDispatcher;
+use ShugaChara\Framework\Pools\DatabasesPool;
 
 /**
- * 路由服务
+ * DB服务
  *
- * Class RouterServiceProvider
+ * Class DatabaseServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
-class RouterServiceProvider implements ServiceProviderInterface
+class DatabaseServiceProvider implements ServiceProviderInterface
 {
-    protected $controller_namespace = '\\App\\Http\\Controllers\\';
-
     public function register(Container $container)
     {
         // TODO: Implement register() method.
 
-        $router = new RouteCollection(config()->get('CONTROLLER_NAMESPACE', $this->controller_namespace));
+        $databases = config()->get('databases', []);
 
-        $router_dispatcher = new RouteDispatcher($router, config()->get('middlewares', []));
-
-        // 注册路由
-        $container->add('router', $router);
-
-        // 注册路由分发器
-        $container->add('router_dispatcher', $router_dispatcher);
-
-        foreach (glob(app()->getRouterPath() . '/*.php') as $filename) {
-            include $filename;
+        if ($databases) {
+            $container->add('databases', new DatabasesPool($databases));
         }
     }
 }
