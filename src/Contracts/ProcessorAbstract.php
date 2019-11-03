@@ -13,6 +13,10 @@ namespace ShugaChara\Framework\Contracts;
 
 use ShugaChara\Framework\Processor\ProcessManager;
 
+/**
+ * Class ProcessorAbstract
+ * @package ShugaChara\Framework\Contracts
+ */
 abstract class ProcessorAbstract extends ProcessManager implements ProcessorInterface
 {
 

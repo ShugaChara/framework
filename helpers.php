@@ -15,6 +15,8 @@ use ShugaChara\Http\Response;
 use ShugaChara\Console\Console;
 use ShugaChara\Router\RouteCollection;
 use ShugaChara\Router\RouteDispatcher;
+use ShugaChara\Core\Helpers;
+use ShugaChara\Framework\Tools\CodeAPI;
 
 if (! function_exists('app')) {
     /**
@@ -112,13 +114,40 @@ if (! function_exists('request')) {
 if (! function_exists('response')) {
     /**
      * Http 响应服务
-     * @return mixed
+     * @return Response
      */
     function response()
     {
-        return container()->has('response')
-            ? container()->get('response')
-            : container()->add('response', new Response());
+        return container()->get('response');
+    }
+}
+
+if (! function_exists('responseAPI')) {
+    /**
+     * API Json响应
+     * @param array $data
+     * @param int   $status
+     * @param array $headers
+     * @return Response
+     */
+    function responseAPI($data = [], $status = Response::HTTP_OK, array $headers = [])
+    {
+        $status = $apiStatus = (int) $status;
+
+        if ( ($status < 100) || ($status > 599) ) {
+            $status = Response::HTTP_OK;
+        }
+
+        $endResponseTime = microtime(true) - Helpers::array_get(request()->getServerParams(), 'REQUEST_TIME_FLOAT', 0);
+
+        $CodeAPI = config()->get('APP_CODE_API') ? : CodeAPI::class;
+
+        return response()->json([
+            'code'              =>      $apiStatus,
+            'message'           =>      $CodeAPI::getInstance()->getCodeMessage($apiStatus),
+            'data'              =>      $data,
+            'response_time'     =>      $endResponseTime
+        ], $status, $headers);
     }
 }
 
@@ -165,6 +194,17 @@ if (! function_exists('swoole')) {
     function swoole()
     {
         return container()->get('swoole');
+    }
+}
+
+if (! function_exists('swooleHttpServerCommandIOC')) {
+    /**
+     * Http Swoole 命令管理通道
+     * @return mixed
+     */
+    function swooleHttpServerCommandIOC()
+    {
+        return container()->get('swooleHttpServerCommandIOC');
     }
 }
 

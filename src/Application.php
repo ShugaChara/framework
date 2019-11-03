@@ -37,7 +37,6 @@ use ShugaChara\Framework\ServiceProvider\RouterServiceProvider;
 use ShugaChara\Framework\ServiceProvider\ValidatorServiceProvider;
 use ShugaChara\Framework\Traits\ApplicationTrait;
 use ShugaChara\Http\HttpException;
-use ShugaChara\Http\JsonResponse;
 use ShugaChara\Http\Response;
 use Throwable;
 
@@ -260,11 +259,12 @@ class Application implements ApplicationInterface
     {
         try {
             $this->container->add('request', $request);
+            $this->container->add('response', new Response());
             if (! (($response = router_dispatcher()->dispatch($request)) instanceof Response)) {
                 if (! is_array($response)) {
                     $response = (array) $response;
                 }
-                return new JsonResponse($response);
+                return response()->json($response);
             }
             return $response;
         } catch (Exception $exception) {
@@ -319,7 +319,7 @@ class Application implements ApplicationInterface
             $status = Response::HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        $resposne = new JsonResponse(call_user_func(config()->get('exception.response'), $e), $status);
+        $resposne = (new Response())->json(call_user_func(config()->get('exception.response'), $e), $status);
         if (! $this->isRun()) {
             $this->handleResponse($resposne);
         }

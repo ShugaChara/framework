@@ -218,6 +218,9 @@ abstract class BaseServerCommand extends Command
         $this->output->writeln('czphp app swoole : ' . app()->getAppVersion()) . PHP_EOL;
         $this->output->writeln('environment : ' . environment()) . PHP_EOL;
 
+        // 注入swoole
+        container()->add('swoole', $this->getSwooleServerManager()->getServer());
+
         // 注册回调事件
         $this->getSwooleServerManager()->start();
     }

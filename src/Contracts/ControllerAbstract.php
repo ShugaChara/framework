@@ -12,6 +12,7 @@
 namespace ShugaChara\Framework\Contracts;
 
 use ShugaChara\Http\Message\ServerRequest;
+use ShugaChara\Http\Response;
 
 /**
  * Class ControllerAbstract
@@ -20,9 +21,14 @@ use ShugaChara\Http\Message\ServerRequest;
 abstract class ControllerAbstract
 {
     /**
-     * @var object
+     * @var ServerRequest
      */
     private $request;
+
+    /**
+     * @var Response
+     */
+    private $response;
 
     /**
      * ControllerAbstract constructor.
@@ -30,6 +36,8 @@ abstract class ControllerAbstract
     final public function __construct()
     {
         $this->request = request();
+
+        $this->response = response();
 
         $this->initialize();
     }
@@ -44,12 +52,24 @@ abstract class ControllerAbstract
     }
 
     /**
-     * 数据验证
-     * @return \Illuminate\Contracts\Validation\Factory|\Illuminate\Contracts\Validation\Validator|\Runner\Validator\Validator|\ShugaChara\Validation\Validator
+     * 获取Response响应对象
+     * @return Response
      */
-    final public function validator()
+    final public function response(): Response
     {
-        return validator();
+        return $this->response;
+    }
+
+    /**
+     * 响应API Json数据
+     * @param array $data
+     * @param int   $status
+     * @param array $headers
+     * @return Response
+     */
+    final public function responseAPI($data = [], $status = Response::HTTP_OK, array $headers = [])
+    {
+        return responseAPI($data, $status, $headers);
     }
 
     abstract function index();

@@ -43,7 +43,6 @@ class HttpServerCommand extends BaseServerCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->server_name = Consts::SWOOLE_SERVER_HTTP;
-
         $status = strtolower($input->getArgument('status')) ? : Consts::SWOOLE_SERVER_STATUS_NAME;
         $this->daemon = $input->hasParameterOption(['--daemon', '-d'], true) ? true : false;
         $this->force = $input->hasParameterOption(['--force'], true) ? true : false;
