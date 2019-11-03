@@ -34,6 +34,7 @@ use ShugaChara\Framework\ServiceProvider\DatabaseServiceProvider;
 use ShugaChara\Framework\ServiceProvider\LogsServiceProvider;
 use ShugaChara\Framework\ServiceProvider\RedisServiceProvider;
 use ShugaChara\Framework\ServiceProvider\RouterServiceProvider;
+use ShugaChara\Framework\ServiceProvider\ValidatorServiceProvider;
 use ShugaChara\Framework\Traits\ApplicationTrait;
 use ShugaChara\Http\HttpException;
 use ShugaChara\Http\JsonResponse;
@@ -77,6 +78,7 @@ class Application implements ApplicationInterface
         RouterServiceProvider::class,
         DatabaseServiceProvider::class,
         RedisServiceProvider::class,
+        ValidatorServiceProvider::class,
     ];
 
     /**

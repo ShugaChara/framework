@@ -55,6 +55,10 @@ class HttpServerCommand extends BaseServerCommand
             if ($this->daemon) {
                 $this->config['setting']['daemonize'] = $this->daemon;
             }
+
+            // 注入Http Swoole 命令管理通道
+            container()->add('swooleHttpServerCommandIOC', $this);
+
             $this->$status();
             return 1;
         }

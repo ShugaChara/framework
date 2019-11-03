@@ -146,6 +146,17 @@ if (! function_exists('redis')) {
     }
 }
 
+if (! function_exists('validator')) {
+    /**
+     * 数据验证类
+     * @return \ShugaChara\Validation\Validator
+     */
+    function validator()
+    {
+        return container()->get('validator');
+    }
+}
+
 if (! function_exists('swoole')) {
     /**
      * swoole 服务

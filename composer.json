@@ -30,7 +30,8 @@
     "shugachara/router": "dev-master",
     "shugachara/middleware": "dev-master",
     "shugachara/databases": "dev-master",
-    "shugachara/redis": "dev-master"
+    "shugachara/redis": "dev-master",
+    "shugachara/validation": "dev-master"
   },
   "require-dev": {},
   "autoload": {
