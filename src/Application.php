@@ -37,6 +37,7 @@ use ShugaChara\Framework\ServiceProvider\RouterServiceProvider;
 use ShugaChara\Framework\ServiceProvider\ValidatorServiceProvider;
 use ShugaChara\Framework\Traits\ApplicationTrait;
 use ShugaChara\Http\HttpException;
+use ShugaChara\Http\Message\ServerRequest;
 use ShugaChara\Http\Response;
 use Throwable;
 
@@ -225,6 +226,9 @@ class Application implements ApplicationInterface
         switch ($this->getAppMode()) {
             case Consts::APP_WEB_MODE:
                 {
+                    $request = ServerRequest::createServerRequestFromGlobals();
+                    $response = $this->handleRequest($request);
+                    $this->handleResponse($response);
                     break;
                 }
             case Consts::APP_SWOOLE_MODE:
@@ -235,6 +239,8 @@ class Application implements ApplicationInterface
             default:
                 die("app does not start!\n");
         }
+
+        return ;
     }
 
     /**

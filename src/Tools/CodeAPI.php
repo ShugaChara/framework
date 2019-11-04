@@ -11,6 +11,7 @@
 
 namespace ShugaChara\Framework\Tools;
 
+use ShugaChara\Core\Helpers;
 use ShugaChara\Core\Traits\Singleton;
 use ShugaChara\Http\Message\Response;
 
@@ -44,9 +45,13 @@ class CodeAPI
     public function getCodeMessage($status)
     {
         if (! isset(static::$statusTexts[$status])) {
-            return 'Unknown status code';
+            return [Response::HTTP_OK, 'Unknown status code'];
         }
 
-        return static::$statusTexts[$status];
+        if (is_array(static::$statusTexts[$status])) {
+            return [Helpers::array_get(static::$statusTexts[$status], 1, Response::HTTP_OK), static::$statusTexts[$status][0]];
+        }
+
+        return [Response::HTTP_OK, static::$statusTexts[$status]];
     }
 }

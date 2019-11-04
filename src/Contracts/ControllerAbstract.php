@@ -13,6 +13,7 @@ namespace ShugaChara\Framework\Contracts;
 
 use ShugaChara\Http\Message\ServerRequest;
 use ShugaChara\Http\Response;
+use ShugaChara\Validation\Validator;
 
 /**
  * Class ControllerAbstract
@@ -70,6 +71,15 @@ abstract class ControllerAbstract
     final public function responseAPI($data = [], $status = Response::HTTP_OK, array $headers = [])
     {
         return responseAPI($data, $status, $headers);
+    }
+
+    /**
+     * 数据验证
+     * @return \Illuminate\Contracts\Validation\Factory|\Illuminate\Contracts\Validation\Validator|\Runner\Validator\Validator|\ShugaChara\Validation\Validator
+     */
+    final public function validator(): Validator
+    {
+        return validator();
     }
 
     abstract function index();

@@ -17,6 +17,7 @@ use ShugaChara\Router\RouteCollection;
 use ShugaChara\Router\RouteDispatcher;
 use ShugaChara\Core\Helpers;
 use ShugaChara\Framework\Tools\CodeAPI;
+use ShugaChara\Http\Message\Request;
 
 if (! function_exists('app')) {
     /**
@@ -103,7 +104,7 @@ if (! function_exists('router_dispatcher')) {
 if (! function_exists('request')) {
     /**
      * Http 请求服务
-     * @return mixed
+     * @return Request
      */
     function request()
     {
@@ -132,22 +133,20 @@ if (! function_exists('responseAPI')) {
      */
     function responseAPI($data = [], $status = Response::HTTP_OK, array $headers = [])
     {
-        $status = $apiStatus = (int) $status;
+        $status = (int) $status;
 
-        if ( ($status < 100) || ($status > 599) ) {
-            $status = Response::HTTP_OK;
-        }
-
-        $endResponseTime = microtime(true) - Helpers::array_get(request()->getServerParams(), 'REQUEST_TIME_FLOAT', 0);
+        $startResponseTime = Helpers::array_get(request()->getServerParams(), 'REQUEST_TIME_FLOAT', 0) ? : Helpers::array_get($_SERVER, 'REQUEST_TIME_FLOAT', 0);
+        $endResponseTime = microtime(true) - $startResponseTime;
 
         $CodeAPI = config()->get('APP_CODE_API') ? : CodeAPI::class;
+        list($httpCode, $message) = $CodeAPI::getInstance()->getCodeMessage($status);
 
         return response()->json([
-            'code'              =>      $apiStatus,
-            'message'           =>      $CodeAPI::getInstance()->getCodeMessage($apiStatus),
+            'code'              =>      $status,
+            'message'           =>      $message,
             'data'              =>      $data,
             'response_time'     =>      $endResponseTime
-        ], $status, $headers);
+        ], $httpCode, $headers);
     }
 }
 
