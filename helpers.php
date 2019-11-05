@@ -18,6 +18,13 @@ use ShugaChara\Router\RouteDispatcher;
 use ShugaChara\Core\Helpers;
 use ShugaChara\Framework\Tools\CodeAPI;
 use ShugaChara\Http\Message\Request;
+use ShugaChara\Framework\Console\Commands\HttpServerCommand;
+use ShugaChara\Framework\Console\Commands\WebsocketServerCommand;
+use ShugaChara\Databases\Capsule;
+use ShugaChara\Databases\DB;
+use ShugaChara\Redis\Redis;
+use ShugaChara\Swoole\Events\EventsRegister;
+use ShugaChara\Validation\Validator;
 
 if (! function_exists('app')) {
     /**
@@ -90,14 +97,14 @@ if (! function_exists('router')) {
     }
 }
 
-if (! function_exists('router_dispatcher')) {
+if (! function_exists('routerDispatcher')) {
     /**
      * 路由分发服务
      * @return RouteDispatcher
      */
-    function router_dispatcher()
+    function routerDispatcher()
     {
-        return container()->get('router_dispatcher');
+        return container()->get('routerDispatcher');
     }
 }
 
@@ -154,7 +161,7 @@ if (! function_exists('db')) {
     /**
      * Databases
      *
-     * @return \ShugaChara\Databases\DB|\ShugaChara\Databases\Capsule
+     * @return DB|Capsule
      */
     function db($drive = 'default')
     {
@@ -166,7 +173,7 @@ if (! function_exists('redis')) {
     /**
      * Redis
      * @param string $drive
-     * @return \ShugaChara\Redis\Redis
+     * @return Redis
      */
     function redis($drive = 'default')
     {
@@ -177,7 +184,7 @@ if (! function_exists('redis')) {
 if (! function_exists('validator')) {
     /**
      * 数据验证类
-     * @return \ShugaChara\Validation\Validator
+     * @return Validator
      */
     function validator()
     {
@@ -196,14 +203,25 @@ if (! function_exists('swoole')) {
     }
 }
 
-if (! function_exists('swooleHttpServerCommandIOC')) {
+if (! function_exists('swooleEventDispatcher')) {
     /**
-     * Http Swoole 命令管理通道
-     * @return mixed
+     * Swoole 事件分发器
+     * @return EventsRegister
      */
-    function swooleHttpServerCommandIOC()
+    function swooleEventDispatcher()
     {
-        return container()->get('swooleHttpServerCommandIOC');
+        return container()->get('swooleEventDispatcher');
+    }
+}
+
+if (! function_exists('swooleServerCommandIOC')) {
+    /**
+     * Swoole 命令管理通道 | 管理swoole的 status start stop reload restart ...等
+     * @return HttpServerCommand | WebsocketServerCommand
+     */
+    function swooleServerCommandIOC()
+    {
+        return container()->get('swooleServerCommandIOC');
     }
 }
 

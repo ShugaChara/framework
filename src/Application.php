@@ -266,7 +266,7 @@ class Application implements ApplicationInterface
         try {
             $this->container->add('request', $request);
             $this->container->add('response', new Response());
-            if (! (($response = router_dispatcher()->dispatch($request)) instanceof Response)) {
+            if (! (($response = routerDispatcher()->dispatch($request)) instanceof Response)) {
                 if (! is_array($response)) {
                     $response = (array) $response;
                 }

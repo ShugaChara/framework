@@ -20,12 +20,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Class HttpServerCommand
+ * Class WebsocketServerCommand
  * @package ShugaChara\Framework\Console\Commands
  */
-class HttpServerCommand extends BaseServerCommand
+class WebsocketServerCommand extends BaseServerCommand
 {
-    protected static $name = 'http';
+    protected static $name = 'websocket';
 
     protected function configure()
     {
@@ -42,7 +42,7 @@ class HttpServerCommand extends BaseServerCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->server_name = Consts::SWOOLE_SERVER_HTTP;
+        $this->server_name = Consts::SWOOLE_SERVER_WEBSOCKET;
         $status = strtolower($input->getArgument('status')) ? : Consts::SWOOLE_SERVER_STATUS_NAME;
         $this->daemon = $input->hasParameterOption(['--daemon', '-d'], true) ? true : false;
         $this->force = $input->hasParameterOption(['--force'], true) ? true : false;
@@ -106,7 +106,7 @@ class HttpServerCommand extends BaseServerCommand
      */
     public function help(): string
     {
-        return '创建一个http服务器';
+        return '创建一个Websocket服务器';
     }
 }
 

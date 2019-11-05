@@ -21,6 +21,7 @@ use ShugaChara\Swoole\Manager\TimerManager;
 use swoole_server;
 use swoole_http_request;
 use swoole_http_response;
+use swoole_websocket_server;
 
 /**
  * Class SwooleServerManager
@@ -36,7 +37,9 @@ class SwooleServerManager extends MasterManager
      */
     public function registerDefaultCallback(swoole_server $server, $serverName)
     {
-        if (in_array(strtolower($serverName), [Consts::SWOOLE_SERVER_HTTP, Consts::SWOOLE_SERVER_WEBSOCKET])) {
+        $serverName = strtolower($serverName);
+
+        if (in_array($serverName, [Consts::SWOOLE_SERVER_HTTP, Consts::SWOOLE_SERVER_WEBSOCKET])) {
             // 注册请求事件 request event
             $this->getSwooleServerEventRegister()->on(
                 $server,
@@ -66,6 +69,11 @@ class SwooleServerManager extends MasterManager
                 }
             );
 
+            // 注册默认的 websocket onMessage event
+            if ($serverName == Consts::SWOOLE_SERVER_WEBSOCKET) {
+                $this->getSwooleServerEventRegister()->addEvent('message', function(swoole_websocket_server $server, $frame) {});
+            }
+
             // 注册默认的 worker start
             $this->getSwooleServerEventRegister()->addEvent(
                 EventsRegister::onWorkerStart,
@@ -90,6 +98,11 @@ class SwooleServerManager extends MasterManager
                     TimerManager::getInstance()->clearAllTimer();
                 }
             );
+
+            // 注册onTask事件
+            $this->getSwooleServerEventRegister()->addEvent(EventsRegister::onTask, function (swoole_server $serv, int $task_id, int $src_worker_id, mixed $data) {
+                // ...待填充
+            });
         }
     }
 }

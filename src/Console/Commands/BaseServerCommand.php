@@ -184,11 +184,6 @@ abstract class BaseServerCommand extends Command
         // hook 全局 mainSwooleServerEventsCreate 事件
         app()->getSwooleEventsObjectName()::mainSwooleServerEventsCreate($this->getSwooleServerManager()->getSwooleServerEventRegister(), $this->getSwooleServerManager()->getServer());
 
-        // 注册onTask事件
-        $this->getSwooleServerManager()->getSwooleServerEventRegister()->setEvent(EventsRegister::onTask, function (swoole_server $serv, int $task_id, int $src_worker_id, mixed $data) {
-            // ...待填充
-        });
-
         $pidFile = isset($this->config['pid_file']) ? $this->config['pid_file']  : app()->getRuntimePath() . '/tmp/' . str_replace(' ', '-', $this->server_name) . '.pid';
         if (! file_exists($dir = dirname($pidFile))) {
             mkdir($dir, 0755, true);
@@ -220,6 +215,9 @@ abstract class BaseServerCommand extends Command
 
         // 注入swoole
         container()->add('swoole', $this->getSwooleServerManager()->getServer());
+
+        // 注入 Swoole 事件分发器
+        container()->add('swooleEventDispatcher', $this->getSwooleServerManager()->getSwooleServerEventRegister());
 
         // 注册回调事件
         $this->getSwooleServerManager()->start();

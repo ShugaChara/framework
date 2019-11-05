@@ -16,6 +16,8 @@ use ShugaChara\Http\Response;
 use ShugaChara\Validation\Validator;
 
 /**
+ * 控制器抽象类
+ *
  * Class ControllerAbstract
  * @package ShugaChara\Framework\Contracts
  */
