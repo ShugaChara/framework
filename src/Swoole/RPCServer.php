@@ -11,15 +11,15 @@
 
 namespace ShugaChara\Framework\Swoole;
 
-use ShugaChara\Swoole\Contracts\RPCClientAbstract;
-use ShugaChara\Swoole\Contracts\RPCClientInterface;
+use ShugaChara\Swoole\Contracts\RPCServerAbstract;
+use ShugaChara\Swoole\Contracts\RPCServerInterface;
 
 /**
- * RPC Client
- * Class RPCClient
+ * RPC Server
+ * Class RPCServer
  * @package ShugaChara\Framework\Swoole
  */
-abstract class RPCClient extends RPCClientAbstract implements RPCClientInterface
+abstract class RPCServer extends RPCServerAbstract implements RPCServerInterface
 {
 
 }
