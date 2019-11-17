@@ -29,7 +29,7 @@
     "shugachara/http": "^1.0",
     "shugachara/router": "^1.0",
     "shugachara/middleware": "^1.0",
-    "shugachara/databases": "dev-master",
+    "shugachara/databases": "^1.0.1",
     "shugachara/redis": "^1.0",
     "shugachara/validation": "^1.0"
   },
