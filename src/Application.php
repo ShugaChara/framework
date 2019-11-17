@@ -177,8 +177,14 @@ class Application implements ApplicationInterface
         // init app conf
         $this->initialize();
 
+        $envName = $this->envFile;
+
         $this->basePath = $this->getBasePath();
         $this->setPathCompletion();
+
+        if (! file_exists($this->getEnvFile())) {
+            throw new Exception($this->getEnvFile() . ' 不存在！请先将 ' . $envName . '.example 文件复制为 ' . $envName);
+        }
 
         // load app services provider register
         $this->appServiceProviderRegister($this->appComponentServices);
