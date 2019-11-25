@@ -15,11 +15,7 @@ use ShugaChara\Console\Command;
 use ShugaChara\Core\Helpers;
 use ShugaChara\Framework\Constant\Consts;
 use ShugaChara\Framework\Swoole\SwooleServerManager;
-use ShugaChara\Swoole\Events\EventsRegister;
-use Symfony\Component\Console\Helper\Table;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use swoole_process;
-use swoole_server;
 
 /**
  * Class BaseServerCommand
@@ -27,11 +23,6 @@ use swoole_server;
  */
 abstract class BaseServerCommand extends Command
 {
-    /**
-     * @var ConsoleOutput
-     */
-    protected $output;
-
     /**
      * 服务管理
      * @var SwooleServerManager
@@ -77,8 +68,6 @@ abstract class BaseServerCommand extends Command
     public function __construct(string $name = null)
     {
         parent::__construct($name);
-
-        $this->output = new ConsoleOutput();
     }
 
     /**
@@ -155,10 +144,10 @@ abstract class BaseServerCommand extends Command
     {
         if ($this->getServerStatus()) {
             $this->getSwooleServerStatusInfo($this->server_name);
-            return $this->output->writeln('server is running ...');
+            return $this->alert('服务已启动');
         }
 
-        return $this->output->writeln('server is not running ...');
+        return $this->alert('服务未启动');
     }
 
     /**
@@ -192,26 +181,26 @@ abstract class BaseServerCommand extends Command
         // 主进程命名
         process_rename($this->getMasterProcessName());
 
-        $this->output->writeln('main server : ' . $this->server_name . PHP_EOL);
-        $this->output->writeln('listen address : ' . $this->config['host'] . PHP_EOL);
-        $this->output->writeln('listen port : ' . $this->config['port'] . PHP_EOL);
+        $this->info('主服务 Master : ' . $this->server_name);
+        $this->info('服务监听地址 : ' . $this->config['host']);
+        $this->info('服务监听端口 : ' . $this->config['port']);
 
         $ips = swoole_get_local_ip();
         foreach ($ips as $eth => $val){
-            $this->output->writeln('ip@' . $eth . $val) . PHP_EOL;
+            $this->info('ip@' . $eth . $val);
         }
 
         foreach (Helpers::array_get($this->config, 'setting', []) as $key => $datum){
-            $this->output->writeln($key . " : " . (string)$datum) . PHP_EOL;
+            $this->info($key . " : " . (string)$datum);
         }
 
         $user = Helpers::array_get($this->config, 'setting.user', get_current_user());
-        $this->output->writeln('run at user : ' . $user) . PHP_EOL;
-        $this->output->writeln('daemonize : ' . $this->daemon) . PHP_EOL;
-        $this->output->writeln('swoole version : ' . phpversion('swoole')) . PHP_EOL;
-        $this->output->writeln('php version : ' . phpversion()) . PHP_EOL;
-        $this->output->writeln('czphp app swoole : ' . app()->getAppVersion()) . PHP_EOL;
-        $this->output->writeln('environment : ' . environment()) . PHP_EOL;
+        $this->info('运行服务用户 : ' . $user);
+        $this->info('服务守护进程状态 : ' . $this->daemon);
+        $this->info('swoole 服务运行版本 : ' . phpversion('swoole'));
+        $this->info('php 运行版本 : ' . phpversion());
+        $this->info('czphp 框架运行版本 : ' . app()->getAppVersion());
+        $this->info('服务环境 : ' . environment());
 
         // 注入swoole
         container()->add('swoole', $this->getSwooleServerManager()->getServer());
@@ -232,7 +221,7 @@ abstract class BaseServerCommand extends Command
         if (file_exists($pidFile)) {
             $pid = intval(file_get_contents($pidFile));
             if (! swoole_process::kill($pid, 0)) {
-                return $this->output->writeln("PID :{$pid} not exist ");
+                return $this->error("服务PID :{$pid} 不存在 ");
             }
 
             if ($this->force) {
@@ -249,18 +238,18 @@ abstract class BaseServerCommand extends Command
                     if (is_file($pidFile)) {
                         unlink($pidFile);
                     }
-                    return $this->output->writeln('server stop at ' . date('Y-m-d H:i:s'));
+                    return $this->alert('服务停止时间: ' . date('Y-m-d H:i:s'));
                     break;
                 } else {
                     if (time() - $time > 15) {
-                        return $this->output->writeln('stop server fail , try : php czphp stop force');
+                        return $this->error('服务停止失败 , try : 请尝试强制停止服务');
                         break;
                     }
                 }
             }
-            return $this->output->writeln('stop server fail');
+            return $this->error('服务停止失败');
         } else {
-            return $this->output->writeln('PID file does not exist, please check whether to run in the daemon mode!');
+            return $this->warn('服务PID文件不存在, 请检查是否以守护程序模式运行!');
         }
     }
 
@@ -274,12 +263,12 @@ abstract class BaseServerCommand extends Command
             Helpers::opCacheClear();
             $pid = file_get_contents($pidFile);
             if (! swoole_process::kill($pid, 0)) {
-                return $this->output->writeln("pid :{$pid} not exist ");
+                return $this->error("服务PID :{$pid} 不存在 ");
             }
             swoole_process::kill($pid, SIGUSR1);
-            return $this->output->writeln('PID: ' . $pid . ' reloadType all-worker send server reload command at ' . date('Y-m-d H:i:s'));
+            return $this->info('服务PID: ' . $pid . ' 重新加载所有Worker 并发送服务器重载命令: ' . date('Y-m-d H:i:s'));
         } else {
-            return $this->output->writeln('PID file does not exist, please check whether to run in the daemon mode!');
+            return $this->warn('服务PID文件不存在, 请检查是否以守护程序模式运行!');
         }
     }
 
@@ -300,20 +289,15 @@ abstract class BaseServerCommand extends Command
         exec("ps axu | grep '{$server_name}' | grep -v grep", $output);
 
         // list all process
-        $output = get_all_process($server_name);
+        $rows = get_all_process($server_name);
 
         // combine
         $headers = ['USER', 'PID', 'RSS', 'STAT', 'START', 'COMMAND'];
-        foreach ($output as $key => $value) {
-            $output[$key] = array_combine($headers, $value);
+        foreach ($rows as $key => $value) {
+            $rows[$key] = array_combine($headers, $value);
         }
 
-        $table = new Table($this->output);
-        $table
-            ->setHeaders($headers)
-            ->setRows($output)
-        ;
-        $table->render();
+        $this->table($headers, $rows);
 
         unset($table, $headers, $output);
     }

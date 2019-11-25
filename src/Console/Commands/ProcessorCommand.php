@@ -40,7 +40,7 @@ class ProcessorCommand extends Command
     /**
      * @var ConsoleOutput
      */
-    protected $output;
+    protected $consoleOutput;
 
     /**
      * processor 状态类型
@@ -99,7 +99,7 @@ class ProcessorCommand extends Command
     {
         parent::__construct($name);
 
-        $this->output = new ConsoleOutput();
+        $this->consoleOutput = new ConsoleOutput();
     }
 
     protected function configure()
@@ -131,7 +131,7 @@ class ProcessorCommand extends Command
             $this->pid_file = $this->pid_path . '/' . ($this->process_name ? : $this->placeholder) . '.pid';
 
             if ($input->hasParameterOption(['--list', '-l']) || empty($this->process_name)) {
-                $this->showProcesses($input, $output);
+                $this->showProcesses();
                 return 1;
             }
 
@@ -166,7 +166,7 @@ class ProcessorCommand extends Command
      */
     public function status()
     {
-        $table = new Table($this->output);
+        $table = new Table($this->consoleOutput);
         $info = $this->getProcessInfo($this->process_name);
         $table->setColumnWidth(0, 15);
         $rows = [
@@ -191,8 +191,8 @@ class ProcessorCommand extends Command
     {
         $pid = $this->process->start();
         file_put_contents($this->pid_file, $pid);
-        $this->output->writeln(sprintf('process <info>%s</info> PID: <info>%s</info>', $this->process_name, $pid));
-        $this->output->writeln(sprintf('PID: <info>%s</info>', $this->pid_file));
+        $this->consoleOutput->writeln(sprintf('process <info>%s</info> PID: <info>%s</info>', $this->process_name, $pid));
+        $this->consoleOutput->writeln(sprintf('PID: <info>%s</info>', $this->pid_file));
 
         $this->process->wait(function ($ret) {
             return $this->finish($this->process_name, $ret['pid'], $ret['code'], $ret['signal']);
@@ -206,7 +206,7 @@ class ProcessorCommand extends Command
     {
         $pid = (int) file_get_contents($this->pid_file);
         if ($this->process->kill($pid, SIGTERM)) {
-            $this->output->writeln(sprintf('process %s PID %s is killed', $this->process_name, $pid));
+            $this->consoleOutput->writeln(sprintf('process %s PID %s is killed', $this->process_name, $pid));
         }
     }
 
@@ -221,19 +221,18 @@ class ProcessorCommand extends Command
 
     /**
      * 查看进程列表
-     * @param InputInterface  $input
-     * @param OutputInterface $output
      */
-    protected function showProcesses(InputInterface $input, OutputInterface $output)
+    protected function showProcesses()
     {
         $rows = [];
-        $table = new Table($output);
-        $table->setHeaders(['Process', 'Pid', 'Status', 'Start At', 'Runtime']);
         foreach (config()->get('process', []) as $name => $processor) {
             $rows[] = $this->getProcessInfo($name);
         }
-        $table->setRows($rows);
-        $table->render();
+
+        return $this->table(
+            ['Process', 'Pid', 'Status', 'Start At', 'Runtime'],
+            $rows
+        );
     }
 
     /**
@@ -267,7 +266,7 @@ class ProcessorCommand extends Command
      */
     protected function finish($process_name, $pid, $code = 0, $signal = 0)
     {
-        $this->output->writeln(sprintf('process: %s. PID: %s exit. code: %s. signal: %s', $process_name, $pid, $code, $signal));
+        $this->consoleOutput->writeln(sprintf('process: %s. PID: %s exit. code: %s. signal: %s', $process_name, $pid, $code, $signal));
     }
 
     /**
