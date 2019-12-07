@@ -31,7 +31,8 @@
     "shugachara/middleware": "^1.0",
     "shugachara/databases": "^1.0.1",
     "shugachara/redis": "^1.0",
-    "shugachara/validation": "^1.0"
+    "shugachara/validation": "^1.0",
+    "shugachara/migrations": "^1.0"
   },
   "require-dev": {},
   "autoload": {
