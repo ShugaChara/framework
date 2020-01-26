@@ -1,12 +1,12 @@
-# Framework Swoole Api 框架
+# Web API Framework
 
-[![GitHub release](https://img.shields.io/github/release/shugachara/framework.svg)](https://github.com/shugachara/czPHP/releases)
+[![GitHub release](https://img.shields.io/github/release/shugachara/framework.svg)](https://github.com/shugachara/framework/releases)
 [![PHP version](https://img.shields.io/badge/php-%3E%207-orange.svg)](https://github.com/php/php-src)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](#LICENSE)
 
 ## 说明
 
-个人基于Swoole扩展开发的一套高性能API框架。
+基于Swoole扩展开发的一套高性能API框架 (支持 php-fpm / swoole 模式)
 
 ## 包地址
 
@@ -23,7 +23,7 @@
 
 非常欢迎感兴趣，并且愿意参与其中，共同打造更好PHP生态。
 
-* 在你的系统中使用，将遇到的问题 [反馈](https://github.com/shugachara/czPHP/issues)
+* 在你的系统中使用，将遇到的问题 [反馈](https://github.com/shugachara/framework/issues)
 
 ### 联系
 

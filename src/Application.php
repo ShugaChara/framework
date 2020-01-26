@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------
 // | Created by linshan. 版权所有 @
 // +----------------------------------------------------------------------
-// | Copyright (c) 2019 All rights reserved.
+// | Copyright (c) 2020 All rights reserved.
 // +----------------------------------------------------------------------
 // | Technology changes the world . Accumulation makes people grow .
 // +----------------------------------------------------------------------
@@ -17,152 +17,94 @@
 
 namespace ShugaChara\Framework;
 
-use App\Swoole\mainSwooleEvents;
+use Carbon\Carbon;
 use Exception;
-use ErrorException;
-use Psr\Http\Message\ServerRequestInterface;
 use ReflectionClass;
 use ShugaChara\Container\Container;
-use ShugaChara\Framework\Constant\Consts;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
-use ShugaChara\Framework\Contracts\MainSwooleEventsInterface;
 use ShugaChara\Framework\Helpers\czHelper;
-use ShugaChara\Framework\Processor\ApplicationProcessor;
-use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
-use ShugaChara\Framework\ServiceProvider\ConsoleServiceProvider;
-use ShugaChara\Framework\ServiceProvider\DatabaseServiceProvider;
-use ShugaChara\Framework\ServiceProvider\LogsServiceProvider;
-use ShugaChara\Framework\ServiceProvider\RedisServiceProvider;
-use ShugaChara\Framework\ServiceProvider\RouterServiceProvider;
-use ShugaChara\Framework\ServiceProvider\ValidatorServiceProvider;
-use ShugaChara\Framework\Traits\ApplicationTrait;
-use ShugaChara\Http\HttpException;
-use ShugaChara\Http\Message\ServerRequest;
-use ShugaChara\Http\Response;
-use Throwable;
+use ShugaChara\Framework\Traits\Application as ApplicationTraits;
 
+/**
+ * Class Application
+ * @package ShugaChara\Framework
+ */
 class Application implements ApplicationInterface
 {
-    use ApplicationTrait;
+    use ApplicationTraits;
 
     /**
-     * APP 启动模式
+     * 应用框架本身 static
+     * @var Application
      */
-    const APP_MODE = [ Consts::APP_WEB_MODE, Consts::APP_SWOOLE_MODE ];
+    public static $application;
 
     /**
-     * @var
-     */
-    public static $app;
-
-    /**
-     * 应用运行状态
-     * @var
+     * 应用框架是否启动
+     * @var bool
      */
     protected $isRun = false;
 
     /**
-     * 容器
-     * @var Container
+     * APP应用框架启动模式, 目前有php-fpm / swoole , 默认 swoole
+     * @var string
      */
-    protected $container;
+    protected $appMode = PHP_SWOOLE_MODE;
 
     /**
-     * 加载组件应用服务
-     * @var array
-     */
-    protected $appComponentServices = [
-        ConfigServiceProvider::class,
-        LogsServiceProvider::class,
-        ConsoleServiceProvider::class,
-        RouterServiceProvider::class,
-        DatabaseServiceProvider::class,
-        RedisServiceProvider::class,
-        ValidatorServiceProvider::class,
-    ];
-
-    /**
-     * 应用名称
+     * App 应用框架名称
      * @var string
      */
     protected $appName = 'czphp';
 
     /**
-     * 应用版本号
+     * App 应用框架版本
      * @var string
      */
-    protected $appVersion = '1.0.0';
+    protected $appVersion = 'v1.0';
 
     /**
-     * 应用模式 目前支持 web | swoole
-     * @var string
+     * App 应用根目录
+     * @var
      */
-    protected $appMode = Consts::APP_WEB_MODE;
+    protected $appBasePath;
 
     /**
-     * 项目根目录
-     * @var string
+     * 容器服务
+     * @var Container
      */
-    protected $basePath = '';
+    protected $container;
 
     /**
-     * 系统核心配置文件
-     * @var string
+     * Application constructor.
+     * @param null   $appBasePath
+     * @param string $appMode
+     * @throws \ReflectionException
      */
-    protected $envFile = '.env';
-
-    /**
-     * 系统核心配置目录
-     * @var string
-     */
-    protected $envPath = 'env';
-
-    /**
-     * Swoole 主服务事件监听类
-     * @var string
-     */
-    protected $mainSwooleEventsObjectName = mainSwooleEvents::class;
-
-    /**
-     * app目录
-     * @var string
-     */
-    protected $appPath = 'app';
-
-    /**
-     * 配置目录
-     * @var string
-     */
-    protected $configPath = 'config';
-
-    /**
-     * 路由目录
-     * @var string
-     */
-    protected $routerPath = 'router';
-
-    /**
-     * 缓存目录
-     * @var string
-     */
-    protected $runtimePath = 'runtime';
-
-    /**
-     * 项目根目录层级
-     * @var int
-     */
-    protected $basePathLevel = 2;
-
-    final public function __construct()
+    final public function __construct($appBasePath = null, $appMode = PHP_SWOOLE_MODE)
     {
         // check runtime env
         czHelper::checkRuntime();
 
+        // 设置App应用项目路径
+        $this->setAppBasePath(
+            $appBasePath ?
+                : dirname((new ReflectionClass(self::class))->getFileName(), 2)
+        );
+
+        // 初始化项目路径
+        $this->initApplicationPath();
+
+        // 设置App启动模式
+        $this->setAppMode($appMode);
+
+        // static application
+        static::$application = $this;
+
+        // load container
         $this->container = new Container();
 
-        static::$app = $this;
-
-        // 载入初始化处理器
+        // load initialize
         $this->handleInitialize();
     }
 
@@ -170,49 +112,17 @@ class Application implements ApplicationInterface
      * 初始化处理器
      * @throws \ReflectionException
      */
-    final private function handleInitialize(): void
+    final protected function handleInitialize()
     {
-        if (! defined('IN_PHAR')) define('IN_PHAR', false);
-
-        // init app conf
+        // init application
         $this->initialize();
 
-        $envName = $this->envFile;
-
-        $this->basePath = $this->getBasePath();
-        $this->setPathCompletion();
-
         if (! file_exists($this->getEnvFile())) {
-            throw new Exception($this->getEnvFile() . ' 不存在！请先将 ' . $envName . '.example 文件复制为 ' . $envName);
+            throw new Exception($this->getEnvFile() . ' 不存在！请先将 .env.example 文件复制为 .env');
         }
 
-        // load app services provider register
-        $this->appServiceProviderRegister($this->appComponentServices);
+        // 加载配置服务组件
 
-        $this->setDateTimezone(config()->get('APP_TIME_ZONE', 'UTC'));
-
-        if (! $this->isGeneralMode()) {
-            // 加载 Swoole 主服务事件监听对象
-            if (class_exists($this->getSwooleEventsObjectName())) {
-                try {
-                    $ref = new ReflectionClass($this->getSwooleEventsObjectName());
-                    if(! $ref->implementsInterface(MainSwooleEventsInterface::class)){
-                        die('global file for MainSwooleEventsInterface is not compatible for ' . $this->getSwooleEventsObjectName());
-                    }
-                    unset($ref);
-                } catch (Throwable $throwable){
-                    die($throwable->getMessage());
-                }
-            } else {
-                die("global events file missing!\n");
-            }
-
-            // init app handle
-            $this->getSwooleEventsObjectName()::initialize();
-        }
-
-        // register exception
-        $this->registerExceptionHandler();
     }
 
     /**
@@ -221,166 +131,120 @@ class Application implements ApplicationInterface
     protected function initialize() {}
 
     /**
+     * 设置App启动模式
+     * @param string $appMode
+     */
+    final private function setAppMode(string $appMode): void
+    {
+        $appMode = strtolower($appMode);
+        if (in_array($appMode, [PHP_FPM_MODE, PHP_SWOOLE_MODE])) {
+            $this->appMode = $appMode;
+        }
+    }
+
+    /**
+     * 获取App启动模式
+     * @return string
+     */
+    public function getAppMode(): string
+    {
+        return $this->appMode;
+    }
+
+    /**
+     * 设置App应用框架名称
+     * @param string $appName
+     */
+    public function setAppName(string $appName)
+    {
+        $this->appName = $appName;
+        return $this;
+    }
+
+    /**
+     * 获取App应用框架名称
+     * @return mixed|string
+     */
+    public function getName()
+    {
+        // TODO: Implement getName() method.
+
+        return $this->appName;
+    }
+
+    /**
+     * 设置App应用框架版本
+     * @param string $appVersion
+     */
+    public function setAppVersion(string $appVersion)
+    {
+        $this->appVersion = $appVersion;
+        return $this;
+    }
+
+    /**
+     * 获取App应用框架版本
+     * @return mixed|string
+     */
+    public function getVersion()
+    {
+        // TODO: Implement getVersion() method.
+
+        return $this->appVersion;
+    }
+
+    /**
+     * 设置App应用根目录
+     * @param mixed $appBasePath
+     */
+    final private function setAppBasePath($appBasePath): void
+    {
+        $this->appBasePath = $appBasePath;
+    }
+
+    /**
+     * 获取App应用根目录
+     * @return mixed
+     */
+    public function getAppBasePath()
+    {
+        return $this->appBasePath;
+    }
+
+    /**
+     * 应用框架是否启动
+     * @return bool
+     */
+    public function isRun(): bool
+    {
+        return $this->isRun;
+    }
+
+    /**
+     * 获取应用框架本身 static
+     * @return Application
+     */
+    public static function getApplication(): Application
+    {
+        return self::$application;
+    }
+
+    /**
+     * 获取容器服务
+     * @return Container
+     */
+    public function getContainer(): Container
+    {
+        return $this->container;
+    }
+
+    /**
      * 运行框架
      */
-    final public function run(): void
+    public function run(): void
     {
         // TODO: Implement run() method.
 
-        $this->isRun = true;
-
-        switch ($this->getAppMode()) {
-            case Consts::APP_WEB_MODE:
-                {
-                    $request = ServerRequest::createServerRequestFromGlobals();
-                    $response = $this->handleRequest($request);
-                    $this->handleResponse($response);
-                    break;
-                }
-            case Consts::APP_SWOOLE_MODE:
-                {
-                    console()->run();
-                    break;
-                }
-            default:
-                die("app does not start!\n");
-        }
-
-        return ;
-    }
-
-    /**
-     * 服务容器注册
-     * @param array $services
-     */
-    final protected function appServiceProviderRegister(array $services)
-    {
-        foreach ($services as $service) {
-            (new $service)->register($this->getContainer());
-        }
-    }
-
-    /**
-     * 请求处理
-     *
-     * @param ServerRequestInterface $request
-     * @return Response|\Symfony\Component\HttpFoundation\Response
-     * @throws Exception
-     */
-    public function handleRequest(ServerRequestInterface $request)
-    {
-        try {
-            $this->container->add('request', $request);
-            $this->container->add('response', new Response());
-            if (! (($response = routerDispatcher()->dispatch($request)) instanceof Response)) {
-                if (! is_array($response)) {
-                    $response = (array) $response;
-                }
-                return response()->json($response);
-            }
-            return $response;
-        } catch (Exception $exception) {
-            return $this->handleException($exception);
-        } catch (Throwable $exception) {
-            $exception = new ErrorException($exception);
-            return $this->handleException($exception);
-        }
-    }
-
-    /**
-     * 响应处理
-     *
-     * @param $response
-     */
-    public function handleResponse($response)
-    {
-        $response->send();
-    }
-
-    /**
-     * 错误处理
-     *
-     * @param $e
-     * @return Response
-     * @throws FatalThrowableError
-     */
-    public function handleException($e)
-    {
-        if (!$e instanceof Exception) {
-            $e = new ErrorException($e);
-        }
-
-        try {
-            $trace = call_user_func(config()->get('exception.log'), $e);
-        } catch (Exception $exception) {
-            $trace = [
-                'original' => explode("\n", $e->getTraceAsString()),
-                'handler'  => explode("\n", $exception->getTraceAsString()),
-            ];
-        }
-
-        logs()->error($e->getMessage(), $trace);
-
-        if ($this->getAppMode() == Consts::APP_WEB_MODE) {
-            throw $e;
-        }
-
-        $status = ($e instanceof HttpException) ? $e->getStatusCode() : $e->getCode();
-
-        if (! array_key_exists($status, Response::$statusTexts)) {
-            $status = Response::HTTP_INTERNAL_SERVER_ERROR;
-        }
-
-        $resposne = (new Response())->json(call_user_func(config()->get('exception.response'), $e), $status);
-        if (! $this->isRun()) {
-            $this->handleResponse($resposne);
-        }
-
-        return $resposne;
-    }
-
-    /**
-     * 注册错误处理
-     */
-    protected function registerExceptionHandler()
-    {
-        $level = config()->get('exception.error_reporting', E_ALL);
-        error_reporting($level);
-
-        set_exception_handler([$this, 'handleException']);
-
-        set_error_handler(function ($level, $message, $file, $line) {
-            throw new ErrorException($message, 0, $level, $file, $line);
-        }, $level);
-    }
-
-    /**
-     * 获取根目录
-     * @return string|void
-     * @throws \ReflectionException
-     */
-    public function getBasePath()
-    {
-        if ($this->basePath) {
-            return $this->basePath;
-        }
-        // 获取当前类所在的位置
-        $ReflectionClass = new ReflectionClass(static::class);
-        return dirname($ReflectionClass->getFileName(), $this->basePathLevel);
-    }
-
-    /**
-     * 目录路径补全
-     * @throws \ReflectionException
-     */
-    protected function setPathCompletion()
-    {
-        $this->envFile = sprintf('%s/%s', $this->getBasePath(), $this->envFile);
-        $this->envPath = sprintf('%s/%s', $this->getBasePath(), $this->envPath);
-        $this->appPath = sprintf('%s/%s', $this->getBasePath(), $this->appPath);
-        $this->configPath = sprintf('%s/%s', $this->getBasePath(), $this->configPath);
-        $this->routerPath = sprintf('%s/%s', $this->getBasePath(), $this->routerPath);
-        $this->runtimePath = sprintf('%s/%s', $this->getBasePath(), $this->runtimePath);
     }
 }
 

@@ -1,14 +1,15 @@
 {
   "name": "shugachara/framework",
   "type": "library",
-  "description": "this is linshan czPHP framework",
+  "description": "基于Swoole扩展开发的一套高性能Web API框架",
   "keywords" : [
     "swoole",
     "framework",
     "async",
-    "czPHP",
     "api",
-    "shugachara"
+    "shugachara",
+    "web",
+    "php-fpm"
   ],
   "license" : "Apache-2.0",
   "authors": [
@@ -25,7 +26,7 @@
     "shugachara/logs": "^1.0",
     "shugachara/container": "^1.0",
     "shugachara/console": "^1.0",
-    "shugachara/swoole": "dev-master",
+    "shugachara/swoole": "^1.0",
     "shugachara/http": "^1.0",
     "shugachara/router": "^1.0",
     "shugachara/middleware": "^1.0",
@@ -40,6 +41,7 @@
       "ShugaChara\\Framework\\": "src/"
     },
     "files": [
+      "defined.php",
       "helpers.php"
     ]
   },

@@ -2,4 +2,4 @@
 
 2019.06.06 `v1.0.0`
 
-- 个人基于Swoole扩展开发的一套高性能API框架
+- 基于Swoole扩展开发的一套高性能Web API框架 (支持 php-fpm / swoole 模式)
