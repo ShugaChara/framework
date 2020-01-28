@@ -9,17 +9,20 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-defined('IN_PHAR') or define('IN_PHAR', false);
+namespace ShugaChara\Framework\Contracts;
 
-// 系统内核框架名称
-defined('FRAMEWORK_NAME') or define('FRAMEWORK_NAME', 'shugachara');
-// 系统内核框架版本
-defined('FRAMEWORK_VERSION') or define('FRAMEWORK_VERSION', 'v1.0');
+use Exception;
 
-// php-fpm 运行模式
-defined('PHP_FPM_MODE') or define('PHP_FPM_MODE', 'php-fpm');
-// swoole 运行模式
-defined('PHP_SWOOLE_MODE') or define('PHP_SWOOLE_MODE', 'swoole');
-
-// 系统应用控制器默认命名空间
-defined('APP_DEFAULT_CONTROLLER_NAMESPACE') or define('APP_DEFAULT_CONTROLLER_NAMESPACE', '\\App\\Http\\Controllers\\');
+/**
+ * Interface ThrowExceptionReturnInterface
+ * @package ShugaChara\Framework\Contracts
+ */
+interface ThrowExceptionReturnInterface
+{
+    /**
+     * 返回抛出异常结果集
+     * @param Exception $exception
+     * @return mixed
+     */
+    public static function getReturn(Exception $exception);
+}

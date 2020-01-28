@@ -1,6 +1,6 @@
 <?php
 // +----------------------------------------------------------------------
-// | Created by linshan. 版权所有 @
+// | Created by ShugaChara. 版权所有 @
 // +----------------------------------------------------------------------
 // | Copyright (c) 2020 All rights reserved.
 // +----------------------------------------------------------------------
@@ -9,28 +9,22 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-namespace ShugaChara\Framework\Contracts;
+/*
+|--------------------------------------------------------------------------
+| shugachara Request 请求类
+|--------------------------------------------------------------------------
+ */
+
+namespace ShugaChara\Framework\Http;
+
+use ShugaChara\Http\Request as HttpRequest;
 
 /**
- * Interface ApplicationInterface
- * @package ShugaChara\Framework\Contracts
+ * Class Request
+ * @package ShugaChara\Framework\Http
  */
-interface ApplicationInterface
+class Request extends HttpRequest
 {
-    /**
-     * 获取App应用框架名称
-     * @return mixed
-     */
-    public function getAppName();
 
-    /**
-     * 获取App应用框架版本
-     * @return mixed
-     */
-    public function getAppVersion();
-
-    /**
-     * 运行框架
-     */
-    public function run(): void;
 }
+

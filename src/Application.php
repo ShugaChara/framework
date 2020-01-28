@@ -17,13 +17,21 @@
 
 namespace ShugaChara\Framework;
 
-use Carbon\Carbon;
+use ErrorException;
 use Exception;
+use Psr\Http\Message\ServerRequestInterface;
 use ReflectionClass;
 use ShugaChara\Container\Container;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
+use ShugaChara\Framework\Exceptions\DebugLogsException;
+use ShugaChara\Framework\Exceptions\ResponseException;
 use ShugaChara\Framework\Helpers\czHelper;
+use ShugaChara\Framework\Http\Request;
+use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
 use ShugaChara\Framework\Traits\Application as ApplicationTraits;
+use ShugaChara\Http\Exceptions\HttpException;
+use ShugaChara\Framework\Http\Response;
+use Throwable;
 
 /**
  * Class Application
@@ -122,7 +130,18 @@ class Application implements ApplicationInterface
         }
 
         // 加载配置服务组件
+        $this->getContainer()->register(new ConfigServiceProvider());
+        // 加载其他服务组件
+        $ServiceProviders = config()->get('SERVICE_PROVIDERS');
+        foreach ($ServiceProviders as $serviceProvider) {
+            $this->getContainer()->register(new $serviceProvider());
+        }
 
+        // 注册响应
+        $this->getContainer()->add('response', new Response());
+
+        // register customize exceptions
+        $this->registerExceptionHandler();
     }
 
     /**
@@ -165,7 +184,7 @@ class Application implements ApplicationInterface
      * 获取App应用框架名称
      * @return mixed|string
      */
-    public function getName()
+    public function getAppName()
     {
         // TODO: Implement getName() method.
 
@@ -186,7 +205,7 @@ class Application implements ApplicationInterface
      * 获取App应用框架版本
      * @return mixed|string
      */
-    public function getVersion()
+    public function getAppVersion()
     {
         // TODO: Implement getVersion() method.
 
@@ -241,10 +260,118 @@ class Application implements ApplicationInterface
     /**
      * 运行框架
      */
-    public function run(): void
+    final public function run(): void
     {
         // TODO: Implement run() method.
 
+        $this->isRun = true;
+
+        // swoole 启动模式
+        if ($this->getAppMode() == PHP_SWOOLE_MODE) {
+
+        }
+
+        // php-fpm 启动模式
+        if ($this->getAppMode() == PHP_FPM_MODE) {
+            $request = Request::createServerRequestFromGlobals();
+            $response = $this->handleRequest($request);
+            $this->handleResponse($response);
+        }
+
+        return ;
+    }
+
+    /**
+     * 请求处理
+     *
+     * @param ServerRequestInterface $request
+     * @return Response|\Symfony\Component\HttpFoundation\Response
+     * @throws Exception
+     */
+    public function handleRequest(ServerRequestInterface $request)
+    {
+        try {
+            $this->getContainer()->add('request', $request);
+
+            if ((! (($response = router_dispatcher()->dispatch($request)) instanceof Response))) {
+                return response()->json($response);
+            }
+
+            return $response;
+
+        } catch (Exception $exception) {
+            return $this->handleException($exception);
+        } catch (Throwable $exception) {
+            return $this->handleException(new ErrorException($exception));
+        }
+    }
+
+    /**
+     * 响应处理
+     *
+     * @param $response
+     * @return mixed
+     */
+    public function handleResponse($response)
+    {
+        return $response->send();
+    }
+
+    /**
+     * 注册错误处理
+     */
+    protected function registerExceptionHandler()
+    {
+        $level = config()->get('ERROR_REPORTING', E_ALL);
+        error_reporting($level);
+
+        set_exception_handler([$this, 'handleException']);
+
+        set_error_handler(function ($level, $message, $file, $line) {
+            throw new ErrorException($message, 0, $level, $file, $line);
+        }, $level);
+    }
+
+    /**
+     * 错误处理
+     *
+     * @param $e
+     * @return Response
+     * @throws FatalThrowableErro
+     */
+    public function handleException($e)
+    {
+        if (!$e instanceof Exception) {
+            $e = new ErrorException($e);
+        }
+
+        try {
+            $trace = DebugLogsException::getReturn($e);
+        } catch (Exception $exception) {
+            $trace = [
+                'original' => explode("\n", $e->getTraceAsString()),
+                'handler'  => explode("\n", $exception->getTraceAsString()),
+            ];
+        }
+
+        logs()->error($e->getMessage(), $trace);
+
+        if ($this->getAppMode() == PHP_FPM_MODE) {
+            throw $e;
+        }
+
+        $status = ($e instanceof HttpException) ? $e->getStatusCode() : $e->getCode();
+
+        if (! array_key_exists($status, Response::$statusTexts)) {
+            $status = Response::HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        $resposne = response()->json(ResponseException::getReturn($e), $status);
+        if (! $this->isRun()) {
+            $this->handleResponse($resposne);
+        }
+
+        return $resposne;
     }
 }
 
