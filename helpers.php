@@ -115,6 +115,30 @@ if (! function_exists('validator')) {
     }
 }
 
+if (! function_exists('db')) {
+    /**
+     * 获取数据库连接服务对象
+     *
+     * @return \ShugaChara\Databases\DB|\ShugaChara\Databases\Capsule|\Illuminate\Database\MySqlConnection
+     */
+    function db($drive = 'default')
+    {
+        return container()->get('databases')->getConnection($drive);
+    }
+}
+
+if (! function_exists('redis')) {
+    /**
+     * 获取Redis服务
+     * @param string $drive
+     * @return \Predis\Client
+     */
+    function redis($drive = 'default')
+    {
+        return container()->get('redis')->getConnection($drive);
+    }
+}
+
 if (! function_exists('environment')) {
     /**
      * 获取应用环境
