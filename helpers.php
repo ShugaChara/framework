@@ -35,6 +35,17 @@ if (! function_exists('container')) {
     }
 }
 
+if (! function_exists('console')) {
+    /**
+     * 控制台命令服务
+     * @return \ShugaChara\Console\Console
+     */
+    function console()
+    {
+        return container()->get('console');
+    }
+}
+
 if (! function_exists('config')) {
     /**
      * 获取配置服务

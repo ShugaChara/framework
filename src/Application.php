@@ -268,7 +268,8 @@ class Application implements ApplicationInterface
 
         // swoole 启动模式
         if ($this->getAppMode() == PHP_SWOOLE_MODE) {
-
+            console()->run();
+            exit;
         }
 
         // php-fpm 启动模式
