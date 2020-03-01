@@ -356,11 +356,7 @@ class Application implements ApplicationInterface
         }
 
         logs()->error($e->getMessage(), $trace);
-
-        if ($this->getAppMode() == PHP_FPM_MODE) {
-            throw $e;
-        }
-
+        
         $status = ($e instanceof HttpException) ? $e->getStatusCode() : $e->getCode();
 
         if (! array_key_exists($status, Response::$statusTexts)) {
