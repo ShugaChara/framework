@@ -356,7 +356,7 @@ class Application implements ApplicationInterface
         }
 
         logs()->error($e->getMessage(), $trace);
-        
+
         $status = ($e instanceof HttpException) ? $e->getStatusCode() : $e->getCode();
 
         if (! array_key_exists($status, Response::$statusTexts)) {
@@ -365,7 +365,7 @@ class Application implements ApplicationInterface
 
         $resposne = response()->json(ResponseException::getReturn($e), $status);
         if (! $this->isRun()) {
-            $this->handleResponse($resposne);
+            return $this->handleResponse($resposne);
         }
 
         return $resposne;

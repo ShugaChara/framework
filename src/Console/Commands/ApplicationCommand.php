@@ -34,7 +34,39 @@ class ApplicationCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        dump(app()); return 0;
+        dump(app());
+        // TYPE = [CLASS, CONTAINER, FRAMEWORK, PHP]
+        $this->table(
+            ['TYPE', 'NAME', 'CONTENT_NAME', 'CONTENT'],
+            [
+                [
+                    'PHP', '', 'version', phpversion()
+                ],
+                [
+                    'PHP', '', 'swoole', SWOOLE_VERSION
+                ],
+                [
+                    'FRAMEWORK', '', 'frameworkName', get_framework_name()
+                ],
+                [
+                    'FRAMEWORK', '', 'frameworkVersion', get_framework_version()
+                ],
+                [
+                    'CLASS', 'Application', 'appName', app()->getAppName()
+                ],
+                [
+                    'CLASS', 'Application', 'appVersion', app()->getAppVersion()
+                ],
+                [
+                    'CLASS', 'Application', 'appBasePash', app()->getAppBasePath()
+                ],
+                [
+                    'CONTAINER', '', '', implode(PHP_EOL, container()->getContainerServiceNames())
+                ],
+            ],
+            'default'
+        );
+        return 0;
     }
 }
 
