@@ -29,12 +29,16 @@ class ApplicationCommand extends Command
 
         $this
             ->setName(static::$name)
-            ->setDescription('获取 Applincation 应用对象');
+            ->setDescription('获取 Applincation 应用信息');
     }
 
+    /**
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     * @return int
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        dump(app());
         // TYPE = [CLASS, CONTAINER, FRAMEWORK, PHP]
         $this->table(
             ['TYPE', 'NAME', 'CONTENT_NAME', 'CONTENT'],
@@ -46,26 +50,27 @@ class ApplicationCommand extends Command
                     'PHP', '', 'swoole', SWOOLE_VERSION
                 ],
                 [
-                    'FRAMEWORK', '', 'frameworkName', get_framework_name()
+                    'FRAMEWORK', '', 'framework_name', get_framework_name()
                 ],
                 [
-                    'FRAMEWORK', '', 'frameworkVersion', get_framework_version()
+                    'FRAMEWORK', '', 'framework_version', get_framework_version()
                 ],
                 [
-                    'CLASS', 'Application', 'appName', app()->getAppName()
+                    'CLASS', 'Application', 'app_name', app()->getAppName()
                 ],
                 [
-                    'CLASS', 'Application', 'appVersion', app()->getAppVersion()
+                    'CLASS', 'Application', 'app_version', app()->getAppVersion()
                 ],
                 [
-                    'CLASS', 'Application', 'appBasePash', app()->getAppBasePath()
+                    'CLASS', 'Application', 'app_base_pash', app()->getAppBasePath()
                 ],
                 [
-                    'CONTAINER', '', '', implode(PHP_EOL, container()->getContainerServiceNames())
+                    'CONTAINER', '', '', implode(',', container()->getContainerServiceNames())
                 ],
             ],
             'default'
         );
+
         return 0;
     }
 }

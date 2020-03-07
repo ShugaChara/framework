@@ -15,6 +15,7 @@ use Exception;
 use ShugaChara\Framework\Contracts\ThrowExceptionReturnInterface;
 
 /**
+ * 用于错误日志记录(不作为接口response响应)
  * Class DebugLogsException
  * @package ShugaChara\Framework\Exceptions
  */
@@ -29,11 +30,11 @@ class DebugLogsException implements ThrowExceptionReturnInterface
         // TODO: Implement getReturn() method.
 
         return [
-            'msg'   => $exception->getMessage(),
-            'code'  => $exception->getCode(),
-            'file'  => $exception->getFile(),
-            'line'  => $exception->getLine(),
-            'trace' => explode("\n", $exception->getTraceAsString()),
+            'message'   =>  $exception->getMessage(),
+            'code'      =>  $exception->getCode(),
+            'file'      =>  $exception->getFile(),
+            'line'      =>  $exception->getLine(),
+            'trace'     =>  explode("\n", $exception->getTraceAsString()),
         ];
     }
 }

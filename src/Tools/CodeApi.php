@@ -45,13 +45,13 @@ class CodeApi
     public function getCodeMessage($status)
     {
         if (! isset(static::$statusTexts[$status])) {
-            return [Response::HTTP_OK, 'Unknown status code'];
+            return [ Response::HTTP_OK, 'Unknown status code' ];
         }
 
         if (is_array(static::$statusTexts[$status])) {
             return [ Helpers::array_get(static::$statusTexts[$status], 1, Response::HTTP_OK), static::$statusTexts[$status][0] ];
         }
 
-        return [Response::HTTP_OK, static::$statusTexts[$status]];
+        return [ Response::HTTP_OK, static::$statusTexts[$status] ];
     }
 }

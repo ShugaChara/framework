@@ -363,7 +363,7 @@ class Application implements ApplicationInterface
             $status = Response::HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        $resposne = response()->json(ResponseException::getReturn($e), $status);
+        $resposne = response()->api(ResponseException::getReturn($e), $status);
         if (! $this->isRun()) {
             return $this->handleResponse($resposne);
         }

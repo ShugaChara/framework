@@ -16,6 +16,7 @@ use ShugaChara\Framework\Contracts\ThrowExceptionReturnInterface;
 use ShugaChara\Http\Message\Response;
 
 /**
+ * 用于接口response响应错误
  * Class ResponseException
  * @package ShugaChara\Framework\Exceptions
  */
@@ -29,9 +30,8 @@ class ResponseException implements ThrowExceptionReturnInterface
     {
         // TODO: Implement getReturn() method.
 
-        return [
-            'msg'  => $exception->getCode() == Response::HTTP_NOT_FOUND ? $exception->getMessage() : 'Internal Server Error',
-            'code' => $exception->getCode(),
-        ];
+        return (config()->get('APP_DEBUG') == 'true') ?
+            DebugLogsException::getReturn($exception)
+            : null;
     }
 }
