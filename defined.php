@@ -22,8 +22,8 @@ defined('PHP_FPM_MODE') or define('PHP_FPM_MODE', 'php-fpm');
 defined('PHP_SWOOLE_MODE') or define('PHP_SWOOLE_MODE', 'swoole');
 
 // swoole
-defined('SWOOLE_SERVER_HTTP') or define('SWOOLE_SERVER_HTTP', 'http');
-defined('SWOOLE_SERVER_WEBSOCKET') or define('SWOOLE_SERVER_WEBSOCKET', 'websocket');
+defined('SWOOLE_HTTP_SERVER') or define('SWOOLE_HTTP_SERVER', 'http');
+defined('SWOOLE_WEBSOCKET_SERVER') or define('SWOOLE_WEBSOCKET_SERVER', 'websocket');
 
 // 系统应用控制器默认命名空间
 defined('APP_DEFAULT_CONTROLLER_NAMESPACE') or define('APP_DEFAULT_CONTROLLER_NAMESPACE', '\\App\\Http\\Controllers\\');

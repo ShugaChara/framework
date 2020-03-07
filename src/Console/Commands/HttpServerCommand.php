@@ -14,7 +14,7 @@ namespace ShugaChara\Framework\Console\Commands;
 use Exception;
 use ShugaChara\Console\Command;
 use ShugaChara\Framework\Contracts\StatusManagerInterface;
-use ShugaChara\Framework\Swoole\ServerManager;
+use ShugaChara\Framework\Traits\Swoole;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -26,13 +26,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class HttpServerCommand extends Command implements StatusManagerInterface
 {
-    protected static $name = 'http';
+    use Swoole;
 
-    /**
-     * 服务管理器
-     * @var ServerManager
-     */
-    protected $serverManager;
+    protected static $name = 'http';
 
     protected function configure()
     {
@@ -58,16 +54,14 @@ class HttpServerCommand extends Command implements StatusManagerInterface
         $this->daemon = $input->hasParameterOption(['--daemon', '-d'], true) ? true : false;
         $this->force = $input->hasParameterOption(['--force'], true) ? true : false;
         if (in_array($status, self::STATUS_TYPES)) {
-            $this->serverManager = ServerManager::getInstance();
-
             // 服务配置
-            if (! $this->config = config()->get('swoole.' . SWOOLE_SERVER_HTTP, [])) {
+            if (! $this->getConfig(SWOOLE_HTTP_SERVER)) {
                 throw new Exception('请完成swoole配置才能启动服务');
             }
 
             // 服务守护进程
             if ($this->daemon) {
-                $this->config['setting']['daemonize'] = $this->daemon;
+                $this->setDaemonize(SWOOLE_HTTP_SERVER, $this->daemon);
             }
 
             $this->$status();
@@ -81,6 +75,13 @@ class HttpServerCommand extends Command implements StatusManagerInterface
     public function status()
     {
         // TODO: Implement status() method.
+
+        if ($this->getServerStatus()) {
+            $this->getSwooleServerStatusInfo(SWOOLE_HTTP_SERVER);
+            return $this->alert('服务已启动');
+        }
+
+        return $this->alert('服务未启动');
     }
 
     public function start()
