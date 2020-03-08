@@ -13,6 +13,7 @@ namespace ShugaChara\Framework\Console\Commands;
 
 use Exception;
 use ShugaChara\Console\Command;
+use ShugaChara\Core\Helpers;
 use ShugaChara\Framework\Contracts\StatusManagerInterface;
 use ShugaChara\Framework\Traits\Swoole;
 use Symfony\Component\Console\Input\InputArgument;
@@ -76,17 +77,75 @@ class HttpServerCommand extends Command implements StatusManagerInterface
     {
         // TODO: Implement status() method.
 
-        if ($this->getServerStatus()) {
+        if ($this->getServerStatus(SWOOLE_HTTP_SERVER)) {
             $this->getSwooleServerStatusInfo(SWOOLE_HTTP_SERVER);
-            return $this->alert('服务已启动');
+            return $this->alert(SWOOLE_HTTP_SERVER . ' 服务已启动');
         }
 
-        return $this->alert('服务未启动');
+        return $this->alert(SWOOLE_HTTP_SERVER . ' 服务未启动');
     }
 
     public function start()
     {
         // TODO: Implement start() method.
+
+        $config = $this->getConfig(SWOOLE_HTTP_SERVER);
+
+        // 创建服务器
+        $this->serverManager()->createServer(
+            SWOOLE_HTTP_SERVER,
+            Helpers::array_get($config, 'port'),
+            Helpers::array_get($config, 'host', '0.0.0.0'),
+            Helpers::array_get($config, 'setting', [])
+        );
+
+        // 注册默认回调事件
+        $this->serverManager()->registerDefaultCallback(
+            $this->serverManager()->getServer(),
+            SWOOLE_HTTP_SERVER
+        );
+
+        // hook 全局 mainSwooleServerEventsCreate 事件
+        // ...
+
+        // pid 进程文件
+        $pidFile = isset($config['pid_file']) ? $config['pid_file']  : app()->getRuntimePath() . '/tmp/' . str_replace(' ', '-', SWOOLE_HTTP_SERVER) . '.pid';
+        if (! file_exists($dir = dirname($pidFile))) {
+            mkdir($dir, 0755, true);
+        }
+
+        // 主进程命名
+        process_rename($this->getMasterProcessName(SWOOLE_HTTP_SERVER));
+
+        $this->info('主服务 Master : ' . SWOOLE_HTTP_SERVER);
+        $this->info('服务监听地址 : ' . $config['host']);
+        $this->info('服务监听端口 : ' . $config['port']);
+
+        $ips = swoole_get_local_ip();
+        foreach ($ips as $eth => $val){
+            $this->info('ip@' . $eth . $val);
+        }
+
+        foreach (Helpers::array_get($config, 'setting', []) as $key => $datum){
+            $this->info($key . " : " . (string)$datum);
+        }
+
+        $user = Helpers::array_get($config, 'setting.user', get_current_user());
+        $this->info('运行服务用户 : ' . $user);
+        $this->info('服务守护进程状态 : ' . $this->isDaemonize(SWOOLE_HTTP_SERVER));
+        $this->info('swoole 服务运行版本 : ' . SWOOLE_VERSION);
+        $this->info('php 运行版本 : ' . phpversion());
+        $this->info('czphp 框架运行版本 : ' . app()->getAppVersion());
+        $this->info('服务环境 : ' . environment());
+
+        // 注入 swoole
+        container()->add('swoole', $this->serverManager()->getServer());
+
+        // 注入 swoole 事件分发器
+        container()->add('swoole_event_dispatcher', $this->serverManager()->getEventsRegister());
+
+        // 注册回调事件
+        $this->serverManager()->start();
     }
 
     public function stop()

@@ -150,6 +150,28 @@ if (! function_exists('redis')) {
     }
 }
 
+if (! function_exists('swoole')) {
+    /**
+     * 获取 swoole 服务
+     * @return swoole_server
+     */
+    function swoole()
+    {
+        return container()->get('swoole');
+    }
+}
+
+if (! function_exists('swoole_event_dispatcher')) {
+    /**
+     * 获取 swoole 事件分发器
+     * @return swoole_server
+     */
+    function swoole_event_dispatcher()
+    {
+        return container()->get('swoole_event_dispatcher');
+    }
+}
+
 if (! function_exists('environment')) {
     /**
      * 获取应用环境
