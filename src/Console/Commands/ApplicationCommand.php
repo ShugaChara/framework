@@ -44,28 +44,28 @@ class ApplicationCommand extends Command
             ['TYPE', 'NAME', 'CONTENT_NAME', 'CONTENT'],
             [
                 [
-                    'PHP', '', 'version', phpversion()
+                    'PHP', '', 'php 版本', phpversion()
                 ],
                 [
-                    'PHP', '', 'swoole', SWOOLE_VERSION
+                    'PHP', '', 'swoole 版本', SWOOLE_VERSION
                 ],
                 [
-                    'FRAMEWORK', '', 'framework_name', get_framework_name()
+                    'FRAMEWORK', '', '内核框架名称', get_framework_name()
                 ],
                 [
-                    'FRAMEWORK', '', 'framework_version', get_framework_version()
+                    'FRAMEWORK', '', '内核框架版本', get_framework_version()
                 ],
                 [
-                    'CLASS', 'Application', 'app_name', app()->getAppName()
+                    'CLASS', 'Application', '应用名称', app()->getAppName()
                 ],
                 [
-                    'CLASS', 'Application', 'app_version', app()->getAppVersion()
+                    'CLASS', 'Application', '应用版本', app()->getAppVersion()
                 ],
                 [
-                    'CLASS', 'Application', 'app_base_pash', app()->getAppBasePath()
+                    'CLASS', 'Application', '应用根路径', app()->getAppBasePath()
                 ],
                 [
-                    'CONTAINER', '', '', implode(',', container()->getContainerServiceNames())
+                    'CONTAINER', '', '容器服务名', implode(',', container()->getContainerServiceNames())
                 ],
             ],
             'default'

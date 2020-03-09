@@ -68,8 +68,8 @@ trait Swoole
      */
     protected function setDaemonize($server_name, bool $value)
     {
-        if ($config = $this->getConfig($server_name)) {
-            $config['setting']['daemonize'] = $value;
+        if ($this->getConfig($server_name)) {
+            $this->swooleConfig[$server_name]['setting']['daemonize'] = $value;
         }
     }
 

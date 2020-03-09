@@ -20,6 +20,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use swoole_process;
 
 /**
  * Class HttpServerCommand
@@ -30,6 +31,12 @@ class HttpServerCommand extends Command implements StatusManagerInterface
     use Swoole;
 
     protected static $name = 'http';
+
+    /**
+     * 是否强制执行
+     * @var bool
+     */
+    protected $force = false;
 
     protected function configure()
     {
@@ -117,26 +124,48 @@ class HttpServerCommand extends Command implements StatusManagerInterface
         // 主进程命名
         process_rename($this->getMasterProcessName(SWOOLE_HTTP_SERVER));
 
-        $this->info('主服务 Master : ' . SWOOLE_HTTP_SERVER);
-        $this->info('服务监听地址 : ' . $config['host']);
-        $this->info('服务监听端口 : ' . $config['port']);
-
+        // 获取当前机器的所有网络接口的IP地址
+        $swooleGetLocalIp = '';
         $ips = swoole_get_local_ip();
         foreach ($ips as $eth => $val){
-            $this->info('ip@' . $eth . $val);
+            $swooleGetLocalIp .= 'ip@' . $eth . $val . ', ';
         }
 
-        foreach (Helpers::array_get($config, 'setting', []) as $key => $datum){
-            $this->info($key . " : " . (string)$datum);
+        $tableData = [
+            [
+                '主服务 Master', SWOOLE_HTTP_SERVER
+            ],
+            [
+                '服务监听地址', $config['host']
+            ],
+            [
+                '服务监听端口', $config['port']
+            ],
+            [
+                '当前机器的所有网络接口的IP地址', $swooleGetLocalIp
+            ],
+        ];
+
+        foreach (Helpers::array_get($config, 'setting', []) as $key => $datum) {
+            $countSetting = count($tableData);
+            $tableData[$countSetting][0] = $key;
+            $tableData[$countSetting][1] = (string) $datum;
         }
 
         $user = Helpers::array_get($config, 'setting.user', get_current_user());
-        $this->info('运行服务用户 : ' . $user);
-        $this->info('服务守护进程状态 : ' . $this->isDaemonize(SWOOLE_HTTP_SERVER));
-        $this->info('swoole 服务运行版本 : ' . SWOOLE_VERSION);
-        $this->info('php 运行版本 : ' . phpversion());
-        $this->info('czphp 框架运行版本 : ' . app()->getAppVersion());
-        $this->info('服务环境 : ' . environment());
+        $tableData[] = ['运行服务用户', $user];
+        $tableData[] = ['服务守护进程状态', $this->isDaemonize(SWOOLE_HTTP_SERVER) ? '是' : '否'];
+        $tableData[] = ['php 运行版本', phpversion()];
+        $tableData[] = ['swoole 服务运行版本', SWOOLE_VERSION];
+        $tableData[] = ['czphp 框架运行版本', app()->getAppVersion()];
+        $tableData[] = ['服务环境', environment()];
+
+        $this->table(
+            [
+                'NAME', 'VALUE'
+            ],
+            $tableData
+        );
 
         // 注入 swoole
         container()->add('swoole', $this->serverManager()->getServer());
@@ -151,6 +180,39 @@ class HttpServerCommand extends Command implements StatusManagerInterface
     public function stop()
     {
         // TODO: Implement stop() method.
+
+        $config = $this->getConfig(SWOOLE_HTTP_SERVER);
+
+        $pidFile = Helpers::array_get($config, 'setting.pid_file', '');
+        if (file_exists($pidFile)) {
+            $pid = intval(file_get_contents($pidFile));
+            if (! swoole_process::kill($pid, 0)) {
+                return $this->error("服务PID :{$pid} 不存在 ");
+            }
+
+            $this->force ? swoole_process::kill($pid, SIGKILL) : swoole_process::kill($pid);
+
+            // 等待5秒
+            $time = time();
+            while (true) {
+                usleep(1000);
+                if (! swoole_process::kill($pid, 0)) {
+                    if (is_file($pidFile)) {
+                        unlink($pidFile);
+                    }
+                    return $this->alert('服务停止时间: ' . date('Y-m-d H:i:s'));
+                    break;
+                } else {
+                    if (time() - $time > 15) {
+                        return $this->error('服务停止失败 , try : 请尝试强制停止服务');
+                        break;
+                    }
+                }
+            }
+            return $this->error('服务停止失败');
+        } else {
+            return $this->warn('服务PID文件不存在, 请检查是否以守护程序模式运行!');
+        }
     }
 
     public function reload()
