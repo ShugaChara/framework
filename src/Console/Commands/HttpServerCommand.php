@@ -218,11 +218,30 @@ class HttpServerCommand extends Command implements StatusManagerInterface
     public function reload()
     {
         // TODO: Implement reload() method.
+
+        $config = $this->getConfig(SWOOLE_HTTP_SERVER);
+
+        $pidFile = Helpers::array_get($config, 'setting.pid_file', '');
+        if (file_exists($pidFile)) {
+            Helpers::opCacheClear();
+            $pid = file_get_contents($pidFile);
+            if (! swoole_process::kill($pid, 0)) {
+                return $this->error("服务PID :{$pid} 不存在 ");
+            }
+            swoole_process::kill($pid, SIGUSR1);
+            return $this->alert('服务PID: ' . $pid . ' 向所有worker进程发送通知重载服务,命令执行于 ' . date('Y-m-d H:i:s'));
+        } else {
+            return $this->error('服务PID文件不存在, 请检查是否以守护程序模式运行!');
+        }
     }
 
     public function restart()
     {
         // TODO: Implement restart() method.
+
+        $this->stop();
+
+        $this->start();
     }
 }
 
