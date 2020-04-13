@@ -13,7 +13,7 @@ namespace ShugaChara\Framework\Helpers;
 
 use RuntimeException;
 
-class czHelper
+class byermHelper
 {
     /**
      * Check runtime extension conflict
