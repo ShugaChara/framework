@@ -13,6 +13,10 @@ namespace ShugaChara\Framework\Helpers;
 
 use RuntimeException;
 
+/**
+ * Class byermHelper
+ * @package ShugaChara\Framework\Helpers
+ */
 class byermHelper
 {
     /**

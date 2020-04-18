@@ -9,29 +9,17 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-/*
-|--------------------------------------------------------------------------
-| shugachara 应用服务类
-|--------------------------------------------------------------------------
- */
-
-namespace ShugaChara\Framework;
-
-use ShugaChara\Framework\Contracts\AppliccationInterface;
+namespace ShugaChara\Framework\Contracts;
 
 /**
- * Class Application
- * @package ShugaChara\Framework
+ * Interface AppliccationInterface
+ * @package ShugaChara\Framework\Contracts
  */
-class Application implements AppliccationInterface
+interface AppliccationInterface
 {
-    final public function __construct()
-    {
-    }
-    
-    public function run()
-    {
-        // TODO: Implement run() method.
-    }
+    /**
+     * 运行框架
+     * @return mixed
+     */
+    public function run();
 }
-

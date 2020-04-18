@@ -9,29 +9,21 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-/*
-|--------------------------------------------------------------------------
-| shugachara 应用服务类
-|--------------------------------------------------------------------------
- */
+namespace ShugaChara\Framework\Contracts;
 
-namespace ShugaChara\Framework;
-
-use ShugaChara\Framework\Contracts\AppliccationInterface;
+use Exception;
 
 /**
- * Class Application
- * @package ShugaChara\Framework
+ * 抛出异常结果集
+ * Interface ThrowExceptionReturnInterface
+ * @package ShugaChara\Framework\Contracts
  */
-class Application implements AppliccationInterface
+interface ThrowExceptionReturnInterface
 {
-    final public function __construct()
-    {
-    }
-    
-    public function run()
-    {
-        // TODO: Implement run() method.
-    }
+    /**
+     * 返回抛出异常结果集
+     * @param Exception $exception
+     * @return mixed
+     */
+    public static function getReturn(Exception $exception);
 }
-
