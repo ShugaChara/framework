@@ -22,6 +22,7 @@ use ShugaChara\Container\Container;
 use ShugaChara\Framework\Components\Alias;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Helpers\ByermHelper;
+use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
 use ShugaChara\Framework\Traits\Application as ByermApplication;
 
 /**
@@ -64,9 +65,8 @@ class Application implements ApplicationInterface
         // check runtime env
         ByermHelper::checkRuntime();
 
-        // static application
+        // load static application
         static::$application = $this;
-
         Alias::set('application', static::$application);
 
         // set application paths
@@ -92,6 +92,8 @@ class Application implements ApplicationInterface
             throw new Exception($this->getEnvFile() . ' 不存在！请先将 .env.example 文件复制为 .env');
         }
 
+        // 加载配置服务
+        container()->register(new ConfigServiceProvider());
     }
 
     /**
