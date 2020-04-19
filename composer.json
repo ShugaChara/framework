@@ -21,7 +21,7 @@
   "require": {
     "php": ">=7.1.0",
     "ext-swoole": ">=4.4.1",
-    "shugachara/core": "^1.0",
+    "shugachara/core": "~2.0",
     "shugachara/config": "^1.0",
     "shugachara/logs": "^1.0",
     "shugachara/container": "^1.0",

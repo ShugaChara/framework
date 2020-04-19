@@ -25,10 +25,17 @@ use ShugaChara\Framework\Contracts\AppliccationInterface;
  */
 class Application implements AppliccationInterface
 {
+    /**
+     * Application constructor.
+     */
     final public function __construct()
     {
+
     }
-    
+
+    /**
+     * @return mixed|void
+     */
     public function run()
     {
         // TODO: Implement run() method.
