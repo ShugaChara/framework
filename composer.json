@@ -26,7 +26,6 @@
     "shugachara/logs": "^1.0",
     "shugachara/container": "^1.0",
     "shugachara/console": "^1.0",
-    "shugachara/swoole": "^1.0",
     "shugachara/http": "^1.0",
     "shugachara/router": "^1.0",
     "shugachara/middleware": "^1.0",
