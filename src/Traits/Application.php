@@ -20,6 +20,28 @@ use ShugaChara\Framework\Components\Alias;
 trait Application
 {
     /**
+     * 获取应用名称
+     * @return string
+     */
+    public function getAppName(): string
+    {
+        // TODO: Implement getAppName() method.
+
+        return $this->appName;
+    }
+
+    /**
+     * 获取应用版本
+     * @return string
+     */
+    public function getAppVersion(): string
+    {
+        // TODO: Implement getAppVersion() method.
+
+        return $this->appVersion;
+    }
+
+    /**
      * 设置各目录配置
      */
     protected function setPaths()
@@ -45,7 +67,7 @@ trait Application
      * 获取根目录
      * @return string
      */
-    public function getByermPath()
+    public function getByermPath(): string
     {
         return BYERM_PATH;
     }
@@ -55,16 +77,16 @@ trait Application
      */
     private function _setEnvFile()
     {
-        Alias::set('file.env', $this->getByermPath() . '/.env');
+        Alias::set('path.file_env', $this->getByermPath() . '/.env');
     }
 
     /**
      * 获取配置文件
      * @return mixed|void
      */
-    public function getEnvFile()
+    public function getEnvFile(): string
     {
-        return Alias::get('file.env');
+        return Alias::get('path.file_env');
     }
 
     /**
@@ -79,7 +101,7 @@ trait Application
      * 获取配置文件目录
      * @return mixed|void
      */
-    public function getEnvPath()
+    public function getEnvPath(): string
     {
         return Alias::get('path.env');
     }
@@ -96,7 +118,7 @@ trait Application
      * 获取应用目录
      * @return mixed|void
      */
-    public function getAppPath()
+    public function getAppPath(): string
     {
         return Alias::get('path.app');
     }
@@ -113,7 +135,7 @@ trait Application
      * 获取配置目录
      * @return mixed|void
      */
-    public function getConfigPath()
+    public function getConfigPath(): string
     {
         return Alias::get('path.config');
     }
@@ -130,7 +152,7 @@ trait Application
      * 获取路由目录
      * @return mixed|void
      */
-    public function getRouterPath()
+    public function getRouterPath(): string
     {
         return Alias::get('path.router');
     }
@@ -147,8 +169,17 @@ trait Application
      * 获取缓存目录
      * @return mixed|void
      */
-    public function getRuntimePath()
+    public function getRuntimePath(): string
     {
         return Alias::get('path.runtime');
+    }
+
+    /**
+     * 应用是否已启动
+     * @return bool
+     */
+    protected function isRun(): bool
+    {
+        return (bool) $this->isRun;
     }
 }

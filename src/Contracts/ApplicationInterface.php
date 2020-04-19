@@ -18,6 +18,18 @@ namespace ShugaChara\Framework\Contracts;
 interface ApplicationInterface
 {
     /**
+     * 获取应用名称
+     * @return string
+     */
+    public function getAppName(): string;
+
+    /**
+     * 获取应用版本
+     * @return string
+     */
+    public function getAppVersion(): string;
+
+    /**
      * 运行框架
      * @return mixed
      */

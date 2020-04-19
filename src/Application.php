@@ -17,6 +17,8 @@
 
 namespace ShugaChara\Framework;
 
+use Exception;
+use ShugaChara\Container\Container;
 use ShugaChara\Framework\Components\Alias;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Helpers\ByermHelper;
@@ -31,6 +33,30 @@ class Application implements ApplicationInterface
     use ByermApplication;
 
     /**
+     * 应用框架本身 static
+     * @var Application
+     */
+    public static $application;
+
+    /**
+     * 应用框架名称
+     * @var string
+     */
+    protected $appName = 'byerm';
+
+    /**
+     * 应用框架版本
+     * @var string
+     */
+    protected $appVersion = '1.0';
+
+    /**
+     * 应用框架是否启动
+     * @var bool
+     */
+    protected $isRun = false;
+
+    /**
      * Application constructor.
      */
     final public function __construct()
@@ -38,10 +64,40 @@ class Application implements ApplicationInterface
         // check runtime env
         ByermHelper::checkRuntime();
 
-        // 初始化项目路径
+        // static application
+        static::$application = $this;
+
+        Alias::set('application', static::$application);
+
+        // set application paths
         $this->setPaths();
 
+        // load container
+        Alias::set('container', new Container());
+
+        // load initialize
+        $this->handleInitialize();
     }
+
+    /**
+     * 初始化处理器
+     * @throws \ReflectionException
+     */
+    final protected function handleInitialize()
+    {
+        // init application
+        $this->initialize();
+
+        if (! file_exists($this->getEnvFile())) {
+            throw new Exception($this->getEnvFile() . ' 不存在！请先将 .env.example 文件复制为 .env');
+        }
+
+    }
+
+    /**
+     * 初始化 Application
+     */
+    protected function initialize() {}
 
     /**
      * @return mixed|void
