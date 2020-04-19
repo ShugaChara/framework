@@ -17,19 +17,29 @@
 
 namespace ShugaChara\Framework;
 
-use ShugaChara\Framework\Contracts\AppliccationInterface;
+use ShugaChara\Framework\Components\Alias;
+use ShugaChara\Framework\Contracts\ApplicationInterface;
+use ShugaChara\Framework\Helpers\ByermHelper;
+use ShugaChara\Framework\Traits\Application as ByermApplication;
 
 /**
  * Class Application
  * @package ShugaChara\Framework
  */
-class Application implements AppliccationInterface
+class Application implements ApplicationInterface
 {
+    use ByermApplication;
+
     /**
      * Application constructor.
      */
     final public function __construct()
     {
+        // check runtime env
+        ByermHelper::checkRuntime();
+
+        // 初始化项目路径
+        $this->setPaths();
 
     }
 

@@ -14,10 +14,10 @@ namespace ShugaChara\Framework\Helpers;
 use RuntimeException;
 
 /**
- * Class byermHelper
+ * Class ByermHelper
  * @package ShugaChara\Framework\Helpers
  */
-class byermHelper
+class ByermHelper
 {
     /**
      * Check runtime extension conflict

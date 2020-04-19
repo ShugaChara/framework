@@ -12,10 +12,10 @@
 namespace ShugaChara\Framework\Contracts;
 
 /**
- * Interface AppliccationInterface
+ * Interface ApplicationInterface
  * @package ShugaChara\Framework\Contracts
  */
-interface AppliccationInterface
+interface ApplicationInterface
 {
     /**
      * 运行框架
