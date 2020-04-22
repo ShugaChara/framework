@@ -29,13 +29,17 @@ class ConfigServiceProvider implements ServiceProviderInterface
 {
     /**
      * @param Container $container
-     * @return mixed|void
+     * @return bool|mixed
      */
     public function register(Container $container)
     {
         // TODO: Implement register() method.
 
         $fileInfo = $this->getFileInfo(app()->getEnvFile());
+        if (! $fileInfo) {
+            logs()->error('[system] Application configuration file does not exist :' . $fileInfo);
+            return true;
+        }
 
         $envFactory = Dotenv::envFactory([
             new EnvConstAdapter,
@@ -46,42 +50,42 @@ class ConfigServiceProvider implements ServiceProviderInterface
         // 加载.env配置,读取配置方式可以有: $_ENV \ $_SERVER \ getenv() 获取
         Dotenv::create($fileInfo['path'], $fileInfo['name'], $envFactory)->load();
 
-        // 加载具体的.env.N 环境配置
         $fileInfo = $this->getFileInfo(sprintf('%s/%s.%s', app()->getEnvPath(), $fileInfo['name'], environment()));
-        if ($fileInfo) {
-            Dotenv::create($fileInfo['path'], $fileInfo['name'], $envFactory)->load();
+        if (! $fileInfo) {
+            logs()->error('[environment] Application configuration file does not exist :' . $fileInfo);
+            return true;
         }
 
+        // 加载具体的.env.n 环境配置
+        Dotenv::create($fileInfo['path'], $fileInfo['name'], $envFactory)->load();
+
         $container->add('config', new FileConfig());
+
+        $configPath = app()->getConfigPath();
 
         $config = $container->get('config');
 
         $priorityLoadFiles = ['app'];
         // 加载基础配置
         foreach ($priorityLoadFiles as $file) {
-            $config->loadFile(app()->getConfigPath() . '/' . $file . '.php');
+            $config->loadFile($configPath . '/' . $file . '.php');
         }
 
-        // 设置过滤加载配置文件
+        // 设置过滤配置文件
         $config->setFilterFile($priorityLoadFiles);
 
         // 加载应用主配置
         $config->loadConfig($_ENV);
 
         // 加载组件配置
-        $config->loadPath(app()->getConfigPath());
+        $config->loadPath($configPath);
     }
 
-    /**
-     * @param $file_name
-     * @return array|null
-     */
     protected function getFileInfo($file_name)
     {
         if (! file_exists($file_name)) {
             return null;
         }
-
         return [
             'path'      =>      dirname($file_name),
             'name'      =>      basename($file_name),

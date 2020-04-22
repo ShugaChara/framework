@@ -22,8 +22,13 @@ use ShugaChara\Container\Container;
 use ShugaChara\Framework\Components\Alias;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Helpers\ByermHelper;
-use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
 use ShugaChara\Framework\Traits\Application as ByermApplication;
+use ShugaChara\Framework\ServiceProvider\ConsoleServiceProvider;
+use ShugaChara\Framework\ServiceProvider\LogsServiceProvider;
+use ShugaChara\Framework\ServiceProvider\RouterServiceProvider;
+use ShugaChara\Framework\ServiceProvider\DatabaseServiceProvider;
+use ShugaChara\Framework\ServiceProvider\ValidatorServiceProvider;
+use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
 
 /**
  * Class Application
@@ -32,6 +37,16 @@ use ShugaChara\Framework\Traits\Application as ByermApplication;
 class Application implements ApplicationInterface
 {
     use ByermApplication;
+
+    /**
+     * fpm 模式
+     */
+    const MODE_FPM = 'fpm';
+
+    /**
+     * swoole 模式
+     */
+    const MODE_SWOOLE = 'swoole';
 
     /**
      * 应用框架本身 static
@@ -56,6 +71,25 @@ class Application implements ApplicationInterface
      * @var bool
      */
     protected $isRun = false;
+
+    /**
+     * 应用运行模式 [fpm, swoole]
+     * @var string
+     */
+    protected $appMode = self::MODE_SWOOLE;
+
+    /**
+     * 默认服务组件
+     * @var array
+     */
+    protected $defaultServiceProviders = [
+        LogsServiceProvider::class,
+        ConfigServiceProvider::class,
+        ConsoleServiceProvider::class,
+        RouterServiceProvider::class,
+        DatabaseServiceProvider::class,
+        ValidatorServiceProvider::class,
+    ];
 
     /**
      * Application constructor.
@@ -92,8 +126,16 @@ class Application implements ApplicationInterface
             throw new Exception($this->getEnvFile() . ' 不存在！请先将 .env.example 文件复制为 .env');
         }
 
-        // 加载配置服务
-        container()->register(new ConfigServiceProvider());
+        // default service provider register
+        $this->serviceProviderRegister($this->defaultServiceProviders);
+
+        // load app service provider
+        $serviceProviders = array_diff(config()->get('service_providers'), $this->defaultServiceProviders);
+        if ($serviceProviders) {
+            $this->serviceProviderRegister($serviceProviders);
+        }
+
+        date_default_timezone_set(config()->get('APP_TIME_ZONE'));
     }
 
     /**

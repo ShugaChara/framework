@@ -33,6 +33,85 @@ if (! function_exists('container')) {
     }
 }
 
+if (! function_exists('logs')) {
+    /**
+     * 日志服务
+     * @param string $name
+     * @param string $server_name
+     * @return mixed
+     */
+    function logs($name = null)
+    {
+        return container()->get('logs')(($name ?? app()->getAppName()));
+    }
+}
+
+if (! function_exists('config')) {
+    /**
+     * 获取配置服务
+     * @return \ShugaChara\Config\FileConfig
+     */
+    function config()
+    {
+        return container()->get('config');
+    }
+}
+
+if (! function_exists('console')) {
+    /**
+     * 控制台命令服务
+     * @return \ShugaChara\Console\Console
+     */
+    function console()
+    {
+        return container()->get('console');
+    }
+}
+
+if (! function_exists('router')) {
+    /**
+     * 路由服务
+     * @return \ShugaChara\Router\RouteCollection
+     */
+    function router()
+    {
+        return container()->get('router');
+    }
+}
+
+if (! function_exists('routerDispatcher')) {
+    /**
+     * 路由分发服务
+     * @return \ShugaChara\Router\RouteDispatcher
+     */
+    function routerDispatcher()
+    {
+        return container()->get('routerDispatcher');
+    }
+}
+
+if (! function_exists('request')) {
+    /**
+     * Http 请求服务
+     * @return \ShugaChara\Framework\Http\Request
+     */
+    function request()
+    {
+        return container()->get('request');
+    }
+}
+
+if (! function_exists('response')) {
+    /**
+     * Http 响应服务
+     * @return \ShugaChara\Framework\Http\Response
+     */
+    function response()
+    {
+        return container()->get('response');
+    }
+}
+
 /**********************************   应用环境    *******************************/
 
 if (! function_exists('environment')) {

@@ -42,6 +42,28 @@ trait Application
     }
 
     /**
+     * 设置应用运行模式
+     * @param $mode_type
+     */
+    public function setAppMode($mode_type)
+    {
+        $mode_type = strtolower($mode_type);
+
+        if (in_array($mode_type, [static::MODE_SWOOLE, static::MODE_FPM])) {
+            $this->appMode = $mode_type;
+        }
+    }
+
+    /**
+     * 获取应用运行模式
+     * @return string
+     */
+    public function getAppMode(): string
+    {
+        return $this->appMode;
+    }
+
+    /**
      * 设置各目录配置
      */
     protected function setPaths()
@@ -172,6 +194,17 @@ trait Application
     public function getRuntimePath(): string
     {
         return Alias::get('path.runtime');
+    }
+
+    /**
+     * 服务容器注册
+     * @param array $services
+     */
+    public function serviceProviderRegister(array $services)
+    {
+        foreach ($services as $service) {
+            (new $service)->register(container());
+        }
     }
 
     /**
