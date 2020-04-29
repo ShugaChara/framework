@@ -18,6 +18,7 @@ use ShugaChara\Config\FileConfig;
 use ShugaChara\Config\Repositories\Dotenv;
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
+use ShugaChara\Framework\Helpers\ByermHelper;
 
 /**
  * 配置服务
@@ -35,9 +36,9 @@ class ConfigServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        $fileInfo = $this->getFileInfo(app()->getEnvFile());
+        $fileInfo = $this->getFileInfo(ByermHelper::app()->getEnvFile());
         if (! $fileInfo) {
-            logs()->error('[system] Application configuration file does not exist :' . $fileInfo);
+            ByermHelper::logs()->error('[system] Application configuration file does not exist :' . $fileInfo);
             return true;
         }
 
@@ -50,9 +51,9 @@ class ConfigServiceProvider implements ServiceProviderInterface
         // 加载.env配置,读取配置方式可以有: $_ENV \ $_SERVER \ getenv() 获取
         Dotenv::create($fileInfo['path'], $fileInfo['name'], $envFactory)->load();
 
-        $fileInfo = $this->getFileInfo(sprintf('%s/%s.%s', app()->getEnvPath(), $fileInfo['name'], environment()));
+        $fileInfo = $this->getFileInfo(sprintf('%s/%s.%s', ByermHelper::app()->getEnvPath(), $fileInfo['name'], ByermHelper::environment()));
         if (! $fileInfo) {
-            logs()->error('[environment] Application configuration file does not exist :' . $fileInfo);
+            ByermHelper::logs()->error('[environment] Application configuration file does not exist :' . $fileInfo);
             return true;
         }
 
@@ -61,7 +62,7 @@ class ConfigServiceProvider implements ServiceProviderInterface
 
         $container->add('config', new FileConfig());
 
-        $configPath = app()->getConfigPath();
+        $configPath = ByermHelper::app()->getConfigPath();
 
         $config = $container->get('config');
 

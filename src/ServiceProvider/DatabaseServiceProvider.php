@@ -13,6 +13,7 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
+use ShugaChara\Framework\Helpers\ByermHelper;
 use ShugaChara\Framework\Pools\DatabasesPool;
 
 /**
@@ -31,7 +32,7 @@ class DatabaseServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        $databases = config()->get('databases', []);
+        $databases = ByermHelper::config()->get('databases', []);
 
         if ($databases) {
             $container->add('databases', new DatabasesPool($databases));

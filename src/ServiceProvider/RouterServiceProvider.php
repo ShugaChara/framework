@@ -13,6 +13,7 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
+use ShugaChara\Framework\Helpers\ByermHelper;
 use ShugaChara\Framework\Middleware\HttpMiddleware;
 use ShugaChara\Router\RouteCollection;
 use ShugaChara\Router\RouteDispatcher;
@@ -39,21 +40,21 @@ class RouterServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        $router = new RouteCollection(config()->get('APP_CONTROLLER_NAMESPACE', $this->defaultControllerNamespace));
+        $router = new RouteCollection(ByermHelper::config()->get('APP_CONTROLLER_NAMESPACE', $this->defaultControllerNamespace));
 
-        $routerDispatcher = new RouteDispatcher($router, config()->get('middlewares', []));
+        $routerDispatcher = new RouteDispatcher($router, ByermHelper::config()->get('middlewares', []));
 
         // 注册路由
         $container->add('router', $router);
 
         // 注册路由分发器
-        $container->add('routerDispatcher', $routerDispatcher);
+        $container->add('router_dispatcher', $routerDispatcher);
 
         /**
          * 加载默认中间件
          */
         $router->group(['prefix' => ''], function () {
-            foreach (glob(app()->getRouterPath() . '/*.php') as $filename) {
+            foreach (glob(ByermHelper::app()->getRouterPath() . '/*.php') as $filename) {
                 include $filename;
             }
         });

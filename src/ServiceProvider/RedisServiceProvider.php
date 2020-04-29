@@ -13,6 +13,7 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
+use ShugaChara\Framework\Helpers\ByermHelper;
 use ShugaChara\Framework\Pools\RedisPool;
 
 /**
@@ -31,7 +32,7 @@ class RedisServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        $redis = config()->get('redis');
+        $redis = ByermHelper::config()->get('redis');
         if ($redis) {
             $container->add('redis', new RedisPool($redis));
         }

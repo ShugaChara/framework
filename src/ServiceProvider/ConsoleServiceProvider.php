@@ -14,6 +14,7 @@ namespace ShugaChara\Framework\ServiceProvider;
 use ShugaChara\Console\Console;
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
+use ShugaChara\Framework\Helpers\ByermHelper;
 
 /**
  * 控制台服务
@@ -33,7 +34,7 @@ class ConsoleServiceProvider implements ServiceProviderInterface
 
         $consoleApplication = new Console();
 
-        if ($commands = config()->get('console')) {
+        if ($commands = ByermHelper::config()->get('console')) {
             foreach ($commands as $key => $command) {
                 $consoleApplication->add(new $command['name']($key));
             }

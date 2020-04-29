@@ -55,13 +55,13 @@ class Alias implements AliasInterface
 
     /**
      * @param string $alias
-     * @return mixed|void
+     * @return mixed
      */
     public static function get(string $alias)
     {
         // TODO: Implement get() method.
 
-        return ArrayHelper::get(static::$alias, static::alias($alias), '');
+        return ArrayHelper::get(static::$alias, static::alias($alias), null);
     }
 
     /**

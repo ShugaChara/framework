@@ -13,6 +13,7 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
+use ShugaChara\Framework\Helpers\ByermHelper;
 use ShugaChara\Validation\Validator;
 
 /**
@@ -28,7 +29,7 @@ class ValidatorServiceProvider implements ServiceProviderInterface
         // TODO: Implement register() method.
 
         $container->add('validator', Validator::getInstance()->boot(
-            app()->getByermPath() . '/lang',
+            ByermHelper::app()->getBasePath() . '/lang',
             'zh'
         ));
     }

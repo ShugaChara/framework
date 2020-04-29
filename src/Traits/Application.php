@@ -12,6 +12,7 @@
 namespace ShugaChara\Framework\Traits;
 
 use ShugaChara\Framework\Components\Alias;
+use ShugaChara\Framework\Helpers\ByermHelper;
 
 /**
  * Trait Application
@@ -68,28 +69,30 @@ trait Application
      */
     protected function setPaths()
     {
-        $this->_setByermPath();
+        $this->_setBasePath();
         $this->_setEnvFile();
         $this->_setEnvPath();
         $this->_setConfigPath();
         $this->_setAppPath();
         $this->_setRouterPath();
         $this->_setRuntimePath();
+
+        Alias::set('paths', static::$paths);
     }
 
     /**
      * 设置根目录
      */
-    private function _setByermPath()
+    private function _setBasePath()
     {
-        Alias::set('path.base', $this->getByermPath());
+        static::$paths['base'] = $this->getBasePath();
     }
 
     /**
      * 获取根目录
      * @return string
      */
-    public function getByermPath(): string
+    public function getBasePath(): string
     {
         return BYERM_PATH;
     }
@@ -99,7 +102,7 @@ trait Application
      */
     private function _setEnvFile()
     {
-        Alias::set('path.file_env', $this->getByermPath() . '/.env');
+        static::$paths['file_env'] = $this->getBasePath() . '/.env';
     }
 
     /**
@@ -108,7 +111,7 @@ trait Application
      */
     public function getEnvFile(): string
     {
-        return Alias::get('path.file_env');
+        return static::$paths['file_env'];
     }
 
     /**
@@ -116,7 +119,7 @@ trait Application
      */
     private function _setEnvPath()
     {
-        Alias::set('path.env', $this->getByermPath() . '/env');
+        static::$paths['env'] = $this->getBasePath() . '/env';
     }
 
     /**
@@ -125,7 +128,7 @@ trait Application
      */
     public function getEnvPath(): string
     {
-        return Alias::get('path.env');
+        return static::$paths['env'];
     }
 
     /**
@@ -133,7 +136,7 @@ trait Application
      */
     private function _setAppPath()
     {
-        Alias::set('path.app', $this->getByermPath() . '/app');
+        static::$paths['app'] = $this->getBasePath() . '/app';
     }
 
     /**
@@ -142,7 +145,7 @@ trait Application
      */
     public function getAppPath(): string
     {
-        return Alias::get('path.app');
+        return static::$paths['app'];
     }
 
     /**
@@ -150,7 +153,7 @@ trait Application
      */
     private function _setConfigPath()
     {
-        Alias::set('path.config', $this->getByermPath() . '/config');
+        static::$paths['config'] = $this->getBasePath() . '/config';
     }
 
     /**
@@ -159,7 +162,7 @@ trait Application
      */
     public function getConfigPath(): string
     {
-        return Alias::get('path.config');
+        return static::$paths['config'];
     }
 
     /**
@@ -167,7 +170,7 @@ trait Application
      */
     private function _setRouterPath()
     {
-        Alias::set('path.router', $this->getByermPath() . '/router');
+        static::$paths['router'] = $this->getBasePath() . '/router';
     }
 
     /**
@@ -176,7 +179,7 @@ trait Application
      */
     public function getRouterPath(): string
     {
-        return Alias::get('path.router');
+        return static::$paths['router'];
     }
 
     /**
@@ -184,7 +187,7 @@ trait Application
      */
     private function _setRuntimePath()
     {
-        Alias::set('path.runtime', $this->getByermPath() . '/runtime');
+        static::$paths['runtime'] = $this->getBasePath() . '/runtime';
     }
 
     /**
@@ -193,7 +196,7 @@ trait Application
      */
     public function getRuntimePath(): string
     {
-        return Alias::get('path.runtime');
+        return static::$paths['runtime'];
     }
 
     /**
@@ -203,8 +206,29 @@ trait Application
     public function serviceProviderRegister(array $services)
     {
         foreach ($services as $service) {
-            (new $service)->register(container());
+            (new $service)->register(ByermHelper::container());
         }
+    }
+
+    /**
+     * 注册默认系统别名
+     */
+    public function defaultSystemAlias()
+    {
+        Alias::set('env', [
+            //  当前应用环境
+            'current'       =>  ByermHelper::environment(),
+            //  是否调试环境模式
+            'is_debug'      =>  ByermHelper::config()->get('APP_DEBUG') === 'true' ? true : false,
+            //  是否本地环境
+            'is_local'      =>  ByermHelper::environment() == C_ENVIRONMENT_LOCAL,
+            //  是否测试环境
+            'is_dev'        =>  ByermHelper::environment() == C_ENVIRONMENT_DEV,
+            // 是否预发布环境
+            'is_prerelease' =>  ByermHelper::environment() == C_ENVIRONMENT_PRERELEASE,
+            // 是否生产环境
+            'is_prod'       =>  ByermHelper::environment() == C_ENVIRONMENT_PROD,
+        ]);
     }
 
     /**

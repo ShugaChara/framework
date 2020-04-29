@@ -14,6 +14,7 @@ namespace ShugaChara\Framework\ServiceProvider;
 use Monolog\Handler\RotatingFileHandler;
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
+use ShugaChara\Framework\Helpers\ByermHelper;
 use ShugaChara\Logs\Logger;
 
 /**
@@ -37,7 +38,7 @@ class LogsServiceProvider implements ServiceProviderInterface
         $container->add('logs', function () {
             return function ($key, $level = Logger::DEBUG) {
                 if (! isset($this->logs[$key])) {
-                    $logHandler = new RotatingFileHandler(app()->getRuntimePath() . '/logs/' . $key . '.log', 30, $level);
+                    $logHandler = new RotatingFileHandler(ByermHelper::app()->getRuntimePath() . '/logs/' . $key . '.log', 30, $level);
                     $this->logs[$key] = new Logger($key, [$logHandler]);
                 }
 
