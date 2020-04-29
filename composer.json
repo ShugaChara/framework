@@ -1,7 +1,7 @@
 {
   "name": "shugachara/framework",
   "type": "library",
-  "description": "基于Swoole扩展开发的一套高性能Web API框架",
+  "description": "基于 Swoole 扩展开发的一套高性能 WebAPI 框架",
   "keywords" : [
     "swoole",
     "framework",

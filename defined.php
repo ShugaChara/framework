@@ -12,8 +12,12 @@
 // Check phar env
 defined('IN_PHAR') or define('IN_PHAR', false);
 
+// execute mode
+defined('EXECUTE_MODE_FPM') or define('EXECUTE_MODE_FPM', 'fpm');
+defined('EXECUTE_MODE_SWOOLE') or define('EXECUTE_MODE_SWOOLE', 'swoole');
+
 // environment
-defined('C_ENVIRONMENT_LOCAL') or define('C_ENVIRONMENT_LOCAL', 'local');
-defined('C_ENVIRONMENT_DEV') or define('C_ENVIRONMENT_DEV', 'dev');
-defined('C_ENVIRONMENT_PRERELEASE') or define('C_ENVIRONMENT_PRERELEASE', 'prerelease');
-defined('C_ENVIRONMENT_PROD') or define('C_ENVIRONMENT_PROD', 'prod');
+defined('ENVIRONMENT_LOCAL') or define('ENVIRONMENT_LOCAL', 'local');
+defined('ENVIRONMENT_DEV') or define('ENVIRONMENT_DEV', 'dev');
+defined('ENVIRONMENT_PRERELEASE') or define('ENVIRONMENT_PRERELEASE', 'prerelease');
+defined('ENVIRONMENT_PROD') or define('ENVIRONMENT_PROD', 'prod');

@@ -16,13 +16,15 @@ use ShugaChara\Core\Utils\Helper\ArrayHelper;
 use ShugaChara\Http\Message\Response;
 
 /**
- * Class CodeApi
+ * Class StatusCode
  * @method static $this getInstance(...$args)
  * @package ShugaChara\Framework\Tools
  */
-class CodeApi
+class StatusCode
 {
     use Singleton;
+
+    const UNKNOWN_STATUS_CODE_MSG =  'Unknown status code';
 
     /**
      * 业务自定义API状态码
@@ -45,13 +47,22 @@ class CodeApi
     public function getCodeMessage($status)
     {
         if (! isset(static::$statusTexts[$status])) {
-            return [ Response::HTTP_OK, 'Unknown status code' ];
+            return [
+                Response::HTTP_OK,
+                static::UNKNOWN_STATUS_CODE_MSG
+            ];
         }
 
         if (is_array(static::$statusTexts[$status])) {
-            return [ ArrayHelper::get(static::$statusTexts[$status], 1, Response::HTTP_OK), static::$statusTexts[$status][0] ];
+            return [
+                ArrayHelper::get(static::$statusTexts[$status], 1, Response::HTTP_OK),
+                static::$statusTexts[$status][0]
+            ];
         }
 
-        return [ Response::HTTP_OK, static::$statusTexts[$status] ];
+        return [
+            Response::HTTP_OK,
+            static::$statusTexts[$status]
+        ];
     }
 }
