@@ -18,6 +18,24 @@ namespace ShugaChara\Framework\Traits;
 trait Application
 {
     /**
+     * 获取应用根目录
+     * @return mixed
+     */
+    public function getRootDirectory()
+    {
+        return $this->rootDirectory;
+    }
+
+    /**
+     * 获取应用.env配置文件路径
+     * @return mixed
+     */
+    public function getEnvFilePath()
+    {
+        return $this->envFilePath;
+    }
+
+    /**
      * 设置应用运行模式
      * @param $modeType
      * @return $this

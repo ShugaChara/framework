@@ -54,4 +54,32 @@ class FHelper
             }
         }
     }
+
+    /**
+     * 获取当前应用环境
+     * @return string
+     */
+    public static function environment()
+    {
+        return trim(getenv('APP_ENV'));
+    }
+
+    /**
+     * 获取配置服务
+     * @return \ShugaChara\Config\FileConfig
+     */
+    public static function c()
+    {
+        return container()->get('c');
+    }
+
+    /**
+     * 日志服务
+     * @param null $name    文件名
+     * @return \ShugaChara\Logs\Logger
+     */
+    public static function logs($name = null)
+    {
+        return container()->get('logs')(($name ?? static::app()->getAppName()));
+    }
 }

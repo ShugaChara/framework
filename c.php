@@ -9,26 +9,7 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-use ShugaChara\Framework\Components\Alias;
-
-if (! function_exists('container')) {
-    /**
-     * 获取容器服务
-     * @return \ShugaChara\Container\Container
-     */
-    function container()
-    {
-        return Alias::get('container');
-    }
-}
-
-if (! function_exists('app')) {
-    /**
-     * 获取应用 Application
-     * @return \ShugaChara\Framework\Application
-     */
-    function app()
-    {
-        return container()->get('application');
-    }
-}
+return [
+    // 应用环境
+    'APP_ENV'   =>  'prod',
+];
