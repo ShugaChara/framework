@@ -11,40 +11,27 @@
 
 namespace ShugaChara\Framework\ServiceProvider;
 
-use Monolog\Handler\RotatingFileHandler;
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
 use ShugaChara\Framework\Helpers\FHelper;
-use ShugaChara\Logs\Logger;
+use ShugaChara\Validation\Validator;
 
 /**
- * 日志服务
+ * 验证服务
  *
- * Class LogsServiceProvider
+ * Class ValidatorServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
-class LogsServiceProvider implements ServiceProviderInterface
+class ValidatorServiceProvider implements ServiceProviderInterface
 {
-    private $logs = [];
-
-    /**
-     * @param Container $container
-     * @return mixed|void
-     */
     public function register(Container $container)
     {
         // TODO: Implement register() method.
 
-        $container->add('logs', function () {
-            return function ($key, $level = Logger::DEBUG) {
-                if (! isset($this->logs[$key])) {
-                    $logHandler = new RotatingFileHandler(FHelper::c()->get('logs.path') . $key . FHelper::c()->get('logs.ext'), FHelper::c()->get('logs.maxFiles'), $level);
-                    $this->logs[$key] = new Logger($key, [$logHandler]);
-                }
-
-                return $this->logs[$key];
-            };
-        });
+        $container->add('validator', Validator::getInstance()->boot(
+            FHelper::c()->get('validator.lang_path'),
+            FHelper::c()->get('validator.lang')
+        ));
     }
 }
 

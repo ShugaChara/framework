@@ -27,15 +27,6 @@ trait Application
     }
 
     /**
-     * 获取应用.env配置文件路径
-     * @return mixed
-     */
-    public function getEnvFilePath()
-    {
-        return $this->envFilePath;
-    }
-
-    /**
      * 设置应用运行模式
      * @param $modeType
      * @return $this
@@ -58,6 +49,17 @@ trait Application
     public function getAppMode(): string
     {
         return $this->appMode;
+    }
+
+    /**
+     * 服务容器注册
+     * @param array $services
+     */
+    public function serviceProviderRegister(array $services)
+    {
+        foreach ($services as $service) {
+            (new $service)->register(container());
+        }
     }
 
     /**

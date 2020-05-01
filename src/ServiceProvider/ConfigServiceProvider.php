@@ -11,12 +11,7 @@
 
 namespace ShugaChara\Framework\ServiceProvider;
 
-use Exception;
-use Dotenv\Environment\Adapter\EnvConstAdapter;
-use Dotenv\Environment\Adapter\PutenvAdapter;
-use Dotenv\Environment\Adapter\ServerConstAdapter;
 use ShugaChara\Config\FileConfig;
-use ShugaChara\Config\Repositories\Dotenv;
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
 
@@ -36,20 +31,6 @@ class ConfigServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        $fileInfo = $this->getFileInfo(app()->getEnvFilePath());
-        if (is_null($fileInfo)) {
-            throw new Exception('[system] Application configuration file does not exist :' . $fileInfo);
-        }
-
-        $envFactory = Dotenv::envFactory([
-            new EnvConstAdapter,
-            new PutenvAdapter,
-            new ServerConstAdapter
-        ]);
-
-        // 加载.env配置,读取配置方式可以有: $_ENV \ $_SERVER \ getenv() 获取
-        Dotenv::create($fileInfo['path'], $fileInfo['name'], $envFactory)->load();
-
         // 将配置服务注册到容器
         $container->add('c', new FileConfig());
 
@@ -63,25 +44,6 @@ class ConfigServiceProvider implements ServiceProviderInterface
         ) {
             $container->get('c')->loadFile($file);
         }
-
-        // 加载应用主配置
-        $container->get('c')->loadConfig($_ENV);
-    }
-
-    /**
-     * 获取文件基础信息
-     * @param $file_name
-     * @return array|null
-     */
-    protected function getFileInfo($file_name)
-    {
-        if (! file_exists($file_name)) {
-            return null;
-        }
-        return [
-            'path'      =>      dirname($file_name),
-            'name'      =>      basename($file_name),
-        ];
     }
 }
 

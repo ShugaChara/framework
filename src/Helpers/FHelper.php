@@ -56,12 +56,29 @@ class FHelper
     }
 
     /**
-     * 获取当前应用环境
-     * @return string
+     * 获取文件基础信息
+     * @param $file_name
+     * @return array|null
      */
-    public static function environment()
+    public static function getFileBaseInfo($file_name)
     {
-        return trim(getenv('APP_ENV'));
+        if (! file_exists($file_name)) {
+            return null;
+        }
+
+        return [
+            'path'      =>      dirname($file_name),
+            'name'      =>      basename($file_name),
+        ];
+    }
+
+    /**
+     * 获取应用 Application
+     * @return \ShugaChara\Framework\Application
+     */
+    public static function app()
+    {
+        return container()->get('application');
     }
 
     /**
@@ -80,6 +97,80 @@ class FHelper
      */
     public static function logs($name = null)
     {
-        return container()->get('logs')(($name ?? static::app()->getAppName()));
+        return container()->get('logs')(($name ?? FHelper::c()->get('app_name')));
+    }
+
+    /**
+     * 控制台命令服务
+     * @return \ShugaChara\Console\Console
+     */
+    public static function console()
+    {
+        return container()->get('console');
+    }
+
+    /**
+     * 获取数据库连接服务对象
+     * @param string $drive     库驱动名称
+     * @return \ShugaChara\Databases\DB|\ShugaChara\Databases\Capsule|\Illuminate\Database\MySqlConnection
+     */
+    public static function db($drive = 'default')
+    {
+        return container()->get('databases')->getConnection($drive);
+    }
+
+    /**
+     * 获取 Redis 服务
+     * @param string $drive     库驱动名称
+     * @return \Predis\Client
+     */
+    public static function redis($drive = 'default')
+    {
+        return container()->get('redis')->getConnection($drive);
+    }
+
+    /**
+     * 路由服务
+     * @return \ShugaChara\Router\RouteCollection
+     */
+    public static function router()
+    {
+        return container()->get('router');
+    }
+
+    /**
+     * 路由分发服务
+     * @return \ShugaChara\Router\RouteDispatcher
+     */
+    public static function routerDispatcher()
+    {
+        return container()->get('router_dispatcher');
+    }
+
+    /**
+     * Http 请求服务
+     * @return \ShugaChara\Framework\Http\Request
+     */
+    public static function request()
+    {
+        return container()->get('request');
+    }
+
+    /**
+     * Http 响应服务
+     * @return \ShugaChara\Framework\Http\Response
+     */
+    public static function response()
+    {
+        return container()->get('response');
+    }
+
+    /**
+     * 获取数据验证类
+     * @return \ShugaChara\Validation\Validator
+     */
+    public static function validator()
+    {
+        return container()->get('validator');
     }
 }

@@ -17,14 +17,22 @@
 
 namespace ShugaChara\Framework;
 
+use Psr\Http\Message\ServerRequestInterface;
+use ShugaChara\Framework\Http\Request;
+use Throwable;
 use Exception;
+use ErrorException;
 use ShugaChara\Container\Container;
 use ShugaChara\Framework\Components\Alias;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
+use ShugaChara\Framework\Exceptions\DebugLogsException;
+use ShugaChara\Framework\Exceptions\ResponseException;
 use ShugaChara\Framework\Helpers\FHelper;
+use ShugaChara\Framework\Http\Response;
 use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
 use ShugaChara\Framework\Traits\Application as ApplicationTraits;
 use function container;
+use ShugaChara\Http\Exceptions\HttpException;
 
 /**
  * Class Application
@@ -47,10 +55,16 @@ abstract class Application implements ApplicationInterface
     protected $rootDirectory;
 
     /**
-     * .env 配置文件路径
+     * 应用名称
      * @var string
      */
-    protected $envFilePath;
+    protected $appName = 'framework';
+
+    /**
+     * 应用版本
+     * @var string
+     */
+    protected $appVersion = 'v1.0.0';
 
     /**
      * 应用运行模式
@@ -65,6 +79,26 @@ abstract class Application implements ApplicationInterface
     protected $isExecute = false;
 
     /**
+     * @return mixed|void
+     */
+    public function getAppName()
+    {
+        // TODO: Implement getAppName() method.
+
+        return $this->appName;
+    }
+
+    /**
+     * @return mixed|void
+     */
+    public function getAppVersion()
+    {
+        // TODO: Implement getAppVersion() method.
+
+        return $this->appVersion;
+    }
+
+    /**
      * Application constructor.
      * @throws Exception
      */
@@ -75,12 +109,9 @@ abstract class Application implements ApplicationInterface
 
         // set root directory
         $this->setRootDirectory();
-        if ($this->rootDirectory[strlen($this->rootDirectory) - 1] != '/') {
-            $this->rootDirectory .= '/';
+        if ($this->rootDirectory[strlen($this->rootDirectory) - 1] == '/') {
+            $this->rootDirectory = rtrim($this->rootDirectory, '/');
         }
-
-        // set c .env file path
-        $this->setEnvFilePath();
 
         // load static application
         static::$application = $this;
@@ -90,6 +121,9 @@ abstract class Application implements ApplicationInterface
 
         // container add aplication
         container()->add('application', static::$application);
+
+        // register c (Configuration Center)
+        container()->register(new ConfigServiceProvider());
 
         // load initialize
         $this->handleInitialize();
@@ -107,8 +141,17 @@ abstract class Application implements ApplicationInterface
             throw new Exception('Please configure the application root directory first.');
         }
 
-        // register c (Configuration Center)
-        container()->register(new ConfigServiceProvider());
+        // load service providers
+        $this->serviceProviderRegister(FHelper::c()->get('service_providers'));
+
+        // set timezone
+        date_default_timezone_set(FHelper::c()->get('timezone', 'UTC'));
+
+        // register response
+        container()->add('response', new Response());
+
+        // register exception
+        $this->registerExceptionHandler();
     }
 
     /**
@@ -118,16 +161,99 @@ abstract class Application implements ApplicationInterface
     abstract protected function setRootDirectory();
 
     /**
-     * 设置应用.env配置文件 (设置 $this->envFilePath)
-     * @return mixed
-     */
-    abstract protected function setEnvFilePath();
-
-    /**
      * 框架前置操作
      * @return mixed
      */
     abstract public function initialize();
+
+    /**
+     * 注册错误处理
+     */
+    protected function registerExceptionHandler()
+    {
+        $level = FHelper::c()->get('error_reporting');
+        error_reporting($level);
+
+        set_exception_handler([$this, 'handleException']);
+
+        set_error_handler(function ($level, $message, $file, $line) {
+            throw new ErrorException($message, 0, $level, $file, $line);
+        }, $level);
+    }
+
+    /**
+     * 错误处理
+     *
+     * @param $e
+     * @return Response
+     * @throws FatalThrowableErro
+     */
+    public function handleException($e)
+    {
+        if (!$e instanceof Exception) {
+            $e = new ErrorException($e);
+        }
+
+        try {
+            $trace = DebugLogsException::getReturn($e);
+        } catch (Exception $exception) {
+            $trace = [
+                'original' => explode("\n", $e->getTraceAsString()),
+                'handler'  => explode("\n", $exception->getTraceAsString()),
+            ];
+        }
+
+        FHelper::logs()->error($e->getMessage(), $trace);
+
+        $status = ($e instanceof HttpException) ? $e->getStatusCode() : $e->getCode();
+
+        if (! array_key_exists($status, Response::$statusTexts)) {
+            $status = Response::HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        $resposne = FHelper::response()->api(ResponseException::getReturn($e), $status);
+        if (! $this->isExecute()) {
+            return $this->handleResponse($resposne);
+        }
+
+        return $resposne;
+    }
+
+    /**
+     * 请求处理
+     *
+     * @param ServerRequestInterface $request
+     * @return Response|\Symfony\Component\HttpFoundation\Response
+     * @throws Exception
+     */
+    public function handleRequest(ServerRequestInterface $request)
+    {
+        try {
+            container()->add('request', $request);
+
+            if ((! (($response = FHelper::routerDispatcher()->dispatch($request)) instanceof Response))) {
+                return FHelper::response()->json($response);
+            }
+
+            return $response;
+
+        } catch (Exception $exception) {
+            return $this->handleException($exception);
+        } catch (Throwable $exception) {
+            return $this->handleException(new ErrorException($exception));
+        }
+    }
+
+    /**
+     * 响应处理
+     *
+     * @param $response
+     * @return mixed
+     */
+    public function handleResponse($response)
+    {
+        return $response->send();
+    }
 
     /**
      * @return mixed|void
@@ -135,6 +261,13 @@ abstract class Application implements ApplicationInterface
     final public function execute()
     {
         // TODO: Implement run() method.
+
+        $this->isExecute = true;
+
+        $request = Request::createServerRequestFromGlobals();
+        $response = $this->handleRequest($request);
+        $this->handleResponse($response);
+        exit(1);
     }
 }
 

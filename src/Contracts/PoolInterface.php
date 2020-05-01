@@ -12,26 +12,14 @@
 namespace ShugaChara\Framework\Contracts;
 
 /**
- * Interface ApplicationInterface
+ * Interface PoolInterface
  * @package ShugaChara\Framework\Contracts
  */
-interface ApplicationInterface
+interface PoolInterface
 {
     /**
-     * get app name
+     * 初始化连接池
      * @return mixed
      */
-    public function getAppName();
-
-    /**
-     * get app version
-     * @return mixed
-     */
-    public function getAppVersion();
-
-    /**
-     * run app
-     * @return mixed
-     */
-    public function execute();
+    public function initPool();
 }

@@ -11,22 +11,19 @@
 
 namespace ShugaChara\Framework\ServiceProvider;
 
-use Monolog\Handler\RotatingFileHandler;
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
 use ShugaChara\Framework\Helpers\FHelper;
-use ShugaChara\Logs\Logger;
+use ShugaChara\Framework\Pools\DatabasesPool;
 
 /**
- * 日志服务
+ * DB服务
  *
- * Class LogsServiceProvider
+ * Class DatabaseServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
-class LogsServiceProvider implements ServiceProviderInterface
+class DatabaseServiceProvider implements ServiceProviderInterface
 {
-    private $logs = [];
-
     /**
      * @param Container $container
      * @return mixed|void
@@ -35,16 +32,9 @@ class LogsServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        $container->add('logs', function () {
-            return function ($key, $level = Logger::DEBUG) {
-                if (! isset($this->logs[$key])) {
-                    $logHandler = new RotatingFileHandler(FHelper::c()->get('logs.path') . $key . FHelper::c()->get('logs.ext'), FHelper::c()->get('logs.maxFiles'), $level);
-                    $this->logs[$key] = new Logger($key, [$logHandler]);
-                }
-
-                return $this->logs[$key];
-            };
-        });
+        if ($databases = FHelper::c()->get('databases')) {
+            $container->add('databases', new DatabasesPool($databases));
+        }
     }
 }
 

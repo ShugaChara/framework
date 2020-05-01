@@ -11,27 +11,19 @@
 
 namespace ShugaChara\Framework\Contracts;
 
+use Exception;
+
 /**
- * Interface ApplicationInterface
+ * 抛出异常结果集
+ * Interface ThrowExceptionReturnInterface
  * @package ShugaChara\Framework\Contracts
  */
-interface ApplicationInterface
+interface ThrowExceptionReturnInterface
 {
     /**
-     * get app name
+     * 返回抛出异常结果集
+     * @param Exception $exception
      * @return mixed
      */
-    public function getAppName();
-
-    /**
-     * get app version
-     * @return mixed
-     */
-    public function getAppVersion();
-
-    /**
-     * run app
-     * @return mixed
-     */
-    public function execute();
+    public static function getReturn(Exception $exception);
 }

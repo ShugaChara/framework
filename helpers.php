@@ -21,14 +21,3 @@ if (! function_exists('container')) {
         return Alias::get('container');
     }
 }
-
-if (! function_exists('app')) {
-    /**
-     * 获取应用 Application
-     * @return \ShugaChara\Framework\Application
-     */
-    function app()
-    {
-        return container()->get('application');
-    }
-}
