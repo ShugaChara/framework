@@ -264,10 +264,15 @@ abstract class Application implements ApplicationInterface
 
         $this->isExecute = true;
 
-        $request = Request::createServerRequestFromGlobals();
-        $response = $this->handleRequest($request);
-        $this->handleResponse($response);
-        exit(1);
+        switch ($this->getAppMode()) {
+            case EXECUTE_MODE_SWOOLE:
+                break;
+            default:
+                $request = Request::createServerRequestFromGlobals();
+                $response = $this->handleRequest($request);
+                $this->handleResponse($response);
+                exit(1);
+        }
     }
 }
 
