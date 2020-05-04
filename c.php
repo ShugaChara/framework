@@ -11,12 +11,17 @@
 
 use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Framework\Tools\StatusCode;
+use ShugaChara\Framework\Swoole\MainSwooleEvents;
+use ShugaChara\Framework\Middlewares\DispatchMiddleware;
 use ShugaChara\Framework\ServiceProvider\LogsServiceProvider;
 use ShugaChara\Framework\ServiceProvider\ConsoleServiceProvider;
 use ShugaChara\Framework\ServiceProvider\CacheServiceProvider;
 use ShugaChara\Framework\ServiceProvider\RouterServiceProvider;
 use ShugaChara\Framework\ServiceProvider\DatabaseServiceProvider;
 use ShugaChara\Framework\ServiceProvider\ValidatorServiceProvider;
+use ShugaChara\Framework\Console\Commands\ApplicationCommand;
+use ShugaChara\Framework\Console\Commands\HttpServerCommand;
+use ShugaChara\Swoole\Server;
 
 return [
     // 应用名称
@@ -32,7 +37,9 @@ return [
     'controller_namespace'  =>  '\\App\\Http\\Controllers\\',
 
     // 应用中间件
-    'middlewares'   =>  [],
+    'middlewares'   =>  [
+        'dispatch'      =>  DispatchMiddleware::class,
+    ],
 
     // 接口状态码类
     'apicode'       =>  StatusCode::class,
@@ -56,7 +63,14 @@ return [
     ],
 
     // 命令行脚本
-    'console'   =>  [],
+    'console'   =>  [
+        'application' => [
+            'name'  =>  ApplicationCommand::class
+        ],
+        'http'  =>  [
+            'name'  =>  HttpServerCommand::class
+        ],
+    ],
 
     // 数据库配置
     'databases' =>  [],
@@ -88,4 +102,24 @@ return [
         // 所使用的语言包
         'lang'      =>      'zh',
     ],
+
+    // Swoole 配置
+    'swoole'    =>  [
+        // 主事件监听类
+        'main_events'   =>  MainSwooleEvents::class,
+        'http' => [
+            'host' => '127.0.0.1',
+            'port' => 9002,
+            'setting' => [
+                'worker_num' => 8,
+                'task_worker_num' => 8,
+                'task_tmpdir' => FHelper::app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/task',
+                'log_file' => FHelper::app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '.log',
+                'pid_file' => FHelper::app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '.pid',
+                'daemonize' => false,
+                'backlog' => 128,
+                'open_cpu_affinity' => true,
+            ]
+        ],
+    ]
 ];

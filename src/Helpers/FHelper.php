@@ -12,6 +12,8 @@
 namespace ShugaChara\Framework\Helpers;
 
 use RuntimeException;
+use ShugaChara\Framework\Swoole\Server;
+use ShugaChara\Swoole\EventsRegister;
 
 /**
  * Class FHelper
@@ -172,5 +174,23 @@ class FHelper
     public static function validator()
     {
         return container()->get('validator');
+    }
+
+    /**
+     * 获取 Swoole 服务
+     * @return Server
+     */
+    public static function swoole(): Server
+    {
+        return container()->get('swoole')->getServer();
+    }
+
+    /**
+     * 获取 Swoole 事件分发器
+     * @return EventsRegister
+     */
+    public static function swooleEventDispatcher(): EventsRegister
+    {
+        return container()->get('swoole')->getEventsRegister();
     }
 }

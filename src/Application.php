@@ -18,10 +18,13 @@
 namespace ShugaChara\Framework;
 
 use Psr\Http\Message\ServerRequestInterface;
+use ReflectionClass;
+use ShugaChara\Framework\Contracts\MainSwooleEventsInterface;
 use ShugaChara\Framework\Http\Request;
 use Throwable;
 use Exception;
 use ErrorException;
+use ShugaChara\Http\Exceptions\HttpException;
 use ShugaChara\Container\Container;
 use ShugaChara\Framework\Components\Alias;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
@@ -32,7 +35,6 @@ use ShugaChara\Framework\Http\Response;
 use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
 use ShugaChara\Framework\Traits\Application as ApplicationTraits;
 use function container;
-use ShugaChara\Http\Exceptions\HttpException;
 
 /**
  * Class Application
@@ -150,6 +152,27 @@ abstract class Application implements ApplicationInterface
         // register response
         container()->add('response', new Response());
 
+        // swoole main event
+        if ($this->getAppMode() == EXECUTE_MODE_SWOOLE) {
+            $swooleMainEventsClass = FHelper::c()->get('swoole.main_events');
+            if (class_exists($swooleMainEventsClass)) {
+                try {
+                    $refSwooleMainEvents = new ReflectionClass($swooleMainEventsClass);
+                    if(! $refSwooleMainEvents->implementsInterface(MainSwooleEventsInterface::class)){
+                        throw new Exception('global file for MainSwooleEventsInterface is not compatible for ' . $swooleMainEventsClass);
+                    }
+                    unset($refSwooleMainEvents);
+                } catch (Throwable $throwable){
+                    throw new Exception($throwable->getMessage());
+                }
+            } else {
+                throw new Exception("global events file missing!\n");
+            }
+
+            // init app handle
+            (new $swooleMainEventsClass())->initialize();
+        }
+
         // register exception
         $this->registerExceptionHandler();
     }
@@ -266,13 +289,15 @@ abstract class Application implements ApplicationInterface
 
         switch ($this->getAppMode()) {
             case EXECUTE_MODE_SWOOLE:
+                FHelper::console()->run();
                 break;
             default:
                 $request = Request::createServerRequestFromGlobals();
                 $response = $this->handleRequest($request);
                 $this->handleResponse($response);
-                exit(1);
         }
+
+        exit(1);
     }
 }
 

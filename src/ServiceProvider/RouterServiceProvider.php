@@ -47,7 +47,7 @@ class RouterServiceProvider implements ServiceProviderInterface
         /**
          * 加载路由
          */
-        $router->group(['prefix' => ''], function () {
+        $router->group(['prefix' => '', 'middleware' => 'dispatch'], function () {
             foreach (glob(FHelper::c()->get('router.path') . '*' . FHelper::c()->get('router.ext')) as $filename) {
                 include $filename;
             }

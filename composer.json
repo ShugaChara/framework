@@ -32,7 +32,8 @@
     "shugachara/databases": "^1.0",
     "shugachara/redis": "^1.0",
     "shugachara/validation": "^1.0",
-    "shugachara/migrations": "^1.0"
+    "shugachara/migrations": "^1.0",
+    "shugachara/swoole": "dev-master"
   },
   "require-dev": {},
   "autoload": {

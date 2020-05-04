@@ -13,7 +13,6 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
-use ShugaChara\Framework\Helpers\ByermHelper;
 use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Framework\Pools\RedisPool;
 
