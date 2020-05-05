@@ -18,8 +18,6 @@
 namespace ShugaChara\Framework;
 
 use Psr\Http\Message\ServerRequestInterface;
-use ReflectionClass;
-use ShugaChara\Framework\Contracts\MainSwooleEventsInterface;
 use ShugaChara\Framework\Http\Request;
 use Throwable;
 use Exception;
@@ -151,27 +149,6 @@ abstract class Application implements ApplicationInterface
 
         // register response
         container()->add('response', new Response());
-
-        // swoole main event
-        if ($this->getAppMode() == EXECUTE_MODE_SWOOLE) {
-            $swooleMainEventsClass = FHelper::c()->get('swoole.main_events');
-            if (class_exists($swooleMainEventsClass)) {
-                try {
-                    $refSwooleMainEvents = new ReflectionClass($swooleMainEventsClass);
-                    if(! $refSwooleMainEvents->implementsInterface(MainSwooleEventsInterface::class)){
-                        throw new Exception('global file for MainSwooleEventsInterface is not compatible for ' . $swooleMainEventsClass);
-                    }
-                    unset($refSwooleMainEvents);
-                } catch (Throwable $throwable){
-                    throw new Exception($throwable->getMessage());
-                }
-            } else {
-                throw new Exception("global events file missing!\n");
-            }
-
-            // init app handle
-            (new $swooleMainEventsClass())->initialize();
-        }
 
         // register exception
         $this->registerExceptionHandler();

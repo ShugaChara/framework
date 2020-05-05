@@ -113,8 +113,14 @@ class HttpServerCommand extends Command implements StatusManagerInterface
             $this->getServerName()
         );
 
+        // 注入 Swoole 服务
+        container()->add('swoole', $this->getServer());
+
+        // 注入 Swoole 命令管理通道
+        container()->add('swoole_command_channel', $this);
+
         // hook 全局 mainSwooleServerEventsCreate 事件
-        // ...
+        $this->handleMainSwooleServerEventsCreate();
 
         // pid 进程文件
         $pidFile = $this->getSwooleSettingPidFile();
@@ -166,9 +172,6 @@ class HttpServerCommand extends Command implements StatusManagerInterface
             ],
             $tableData
         );
-
-        // 注入 Swoole 服务
-        container()->add('swoole', $this->getServer());
 
         // 注册回调事件
         $this->getServer()->start();

@@ -41,7 +41,7 @@ class Server extends SwooleServer
             $this->getEventsRegister()->on(
                 $server,
                 EventsRegister::onRequest,
-                function (swoole_http_request $swooleRequest, swoole_http_response $swooleResponse) {
+                function (swoole_http_request $swooleRequest, swoole_http_response $swooleResponse) use ($server) {
                     // 转接 Swoole request 对象
                     $request = SwooleServerRequest::createServerRequestFromSwoole($swooleRequest);
                     $response = FHelper::app()->handleRequest($request);

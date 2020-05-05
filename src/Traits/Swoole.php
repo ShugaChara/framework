@@ -12,10 +12,13 @@
 namespace ShugaChara\Framework\Traits;
 
 use Exception;
+use ReflectionClass;
 use ShugaChara\Core\Utils\Helper\ArrayHelper;
+use ShugaChara\Framework\Contracts\MainSwooleEventsInterface;
 use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Framework\Swoole\Server;
 use ShugaChara\Swoole\SwooleHelper;
+use Throwable;
 
 /**
  * Trait Swoole
@@ -153,5 +156,37 @@ trait Swoole
     protected function getSwooleSettingPidFile()
      {
          return ArrayHelper::get($this->getConfig(), 'setting.pid_file', FHelper::app()->getRootDirectory() . '/tmp/' . str_replace(' ', '-', $this->getServerName()) . '.pid');
+     }
+
+    /**
+     * 处理全局 mainSwooleServerEventsCreate 事件
+     */
+     protected function handleMainSwooleServerEventsCreate()
+     {
+         $swooleMainEventsClass = FHelper::c()->get('swoole.main_events');
+         if (class_exists($swooleMainEventsClass)) {
+             try {
+                 $refSwooleMainEvents = new ReflectionClass($swooleMainEventsClass);
+                 if(! $refSwooleMainEvents->implementsInterface(MainSwooleEventsInterface::class)){
+                     throw new Exception('global file for MainSwooleEventsInterface is not compatible for ' . $swooleMainEventsClass);
+                 }
+                 unset($refSwooleMainEvents);
+             } catch (Throwable $throwable){
+                 throw new Exception($throwable->getMessage());
+             }
+         } else {
+             throw new Exception("global events file missing!\n");
+         }
+
+         $class = new $swooleMainEventsClass();
+
+         // init swoole handle
+         $class->initialize();
+
+         // init swoole event handle
+         $class->mainSwooleServerEventsCreate(
+             $this->getServer()->getEventsRegister(),
+             $this->getServer()->getServer()
+         );
      }
 }

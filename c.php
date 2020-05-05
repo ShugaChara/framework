@@ -73,12 +73,30 @@ return [
     ],
 
     // 数据库配置
-    'databases' =>  [],
+    'databases' =>  [
+        'default' => [
+            'driver'    =>  'mysql',
+            'host'      =>  '127.0.0.1',
+            'port'      =>  3306,
+            'username'  =>  '',
+            'password'  =>  '',
+            'database'  =>  '',
+            'charset'   =>  'utf8mb4',
+            'prefix'    =>  ''
+        ],
+    ],
 
     // 缓存配置
     'cache'     =>  [
         'redis'     =>      [
-
+            'default'       =>      [
+                'scheme'        =>   'tcp',
+                'host'          =>   '127.0.0.1',
+                'database'      =>   0,
+                'password'      =>   '',
+                'port'          =>   6379,
+                'time_out'      =>   5,
+            ],
         ]
     ],
 
