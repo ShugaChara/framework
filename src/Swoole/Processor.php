@@ -9,11 +9,16 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-// Check phar env
-defined('IN_PHAR') or define('IN_PHAR', false);
+namespace ShugaChara\Framework\Swoole;
 
-// environment
-defined('ENVIRONMENT_LOCAL') or define('ENVIRONMENT_LOCAL', 'local');
-defined('ENVIRONMENT_DEV') or define('ENVIRONMENT_DEV', 'dev');
-defined('ENVIRONMENT_PRERELEASE') or define('ENVIRONMENT_PRERELEASE', 'prerelease');
-defined('ENVIRONMENT_PROD') or define('ENVIRONMENT_PROD', 'prod');
+use ShugaChara\Swoole\Manager\Processor as SwooleProcessorManager;
+
+/**
+ * Class Processor
+ * @package ShugaChara\Framework\Swoole
+ */
+class Processor extends SwooleProcessorManager
+{
+
+}
+

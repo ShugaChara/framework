@@ -18,7 +18,7 @@
 namespace ShugaChara\Framework;
 
 use Psr\Http\Message\ServerRequestInterface;
-use ShugaChara\Framework\Http\Request;
+use ShugaChara\Framework\Swoole\Server;
 use Throwable;
 use Exception;
 use ErrorException;
@@ -67,10 +67,16 @@ abstract class Application implements ApplicationInterface
     protected $appVersion = 'v1.0.0';
 
     /**
-     * 应用运行模式
-     * @var string
+     * 命令行参数
+     * @var
      */
-    protected $appMode = EXECUTE_MODE_SWOOLE;
+    protected $argv = [];
+
+    /**
+     * 服务对象
+     * @var Server
+     */
+    protected $server;
 
     /**
      * 应用框架是否运行
@@ -100,9 +106,10 @@ abstract class Application implements ApplicationInterface
 
     /**
      * Application constructor.
+     * @param $argv
      * @throws Exception
      */
-    final public function __construct()
+    final public function __construct($argv)
     {
         // check runtime env
         FHelper::checkRuntime();
@@ -115,6 +122,9 @@ abstract class Application implements ApplicationInterface
 
         // load static application
         static::$application = $this;
+
+        // set argv
+        $this->setArgv($argv);
 
         // load container
         Alias::set('container', new Container());
@@ -190,8 +200,14 @@ abstract class Application implements ApplicationInterface
      */
     public function handleException($e)
     {
+        // 异常捕获转换
         if (!$e instanceof Exception) {
             $e = new ErrorException($e);
+        }
+
+        // 抛出没有创建request的异常
+        if (! container()->has('request')) {
+            throw new Exception($e);
         }
 
         try {
@@ -264,15 +280,7 @@ abstract class Application implements ApplicationInterface
 
         $this->isExecute = true;
 
-        switch ($this->getAppMode()) {
-            case EXECUTE_MODE_SWOOLE:
-                FHelper::console()->run();
-                break;
-            default:
-                $request = Request::createServerRequestFromGlobals();
-                $response = $this->handleRequest($request);
-                $this->handleResponse($response);
-        }
+        FHelper::console()->run();
 
         exit(1);
     }

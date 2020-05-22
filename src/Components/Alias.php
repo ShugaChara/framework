@@ -86,7 +86,7 @@ class Alias implements AliasInterface
     }
 
     /**
-     * 生成别名
+     * 生成别名 (注意：设置别名必须全小写)
      * @param string $alias
      * @return string
      */

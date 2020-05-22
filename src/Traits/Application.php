@@ -11,6 +11,9 @@
 
 namespace ShugaChara\Framework\Traits;
 
+use ShugaChara\Core\Utils\Helper\ArrayHelper;
+use ShugaChara\Framework\Components\Alias;
+
 /**
  * Trait Application
  * @package ShugaChara\Framework\Traits
@@ -27,28 +30,31 @@ trait Application
     }
 
     /**
-     * 设置应用运行模式
-     * @param $modeType
-     * @return $this
+     * 设置命令行参数
+     * @param $argv
      */
-    public function setAppMode($modeType)
+    protected function setArgv($argv)
     {
-        $modeType = strtolower($modeType);
+        $this->argv['exec'] = ArrayHelper::get($argv, 0);
+        $this->argv = [
+            'exec'  =>  ArrayHelper::get($argv, 0),
+            'name'  =>  ArrayHelper::get($argv, 1),
+        ];
 
-        if (in_array($modeType, [EXECUTE_MODE_FPM, EXECUTE_MODE_SWOOLE])) {
-            $this->appMode = $modeType;
-        }
+        unset($argv[0], $argv[1]);
 
-        return $this;
+        $this->argv['param'] = array_values($argv);
+
+        Alias::set('argv', $this->argv);
     }
 
     /**
-     * 获取应用运行模式
-     * @return string
+     * 获取命令行参数
+     * @return mixed
      */
-    public function getAppMode(): string
+    public function getArgv()
     {
-        return $this->appMode;
+        return Alias::get('argv');
     }
 
     /**

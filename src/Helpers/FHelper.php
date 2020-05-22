@@ -12,8 +12,8 @@
 namespace ShugaChara\Framework\Helpers;
 
 use RuntimeException;
-use Swoole\Server as SwooleServer;
 use ShugaChara\Swoole\EventsRegister;
+use swoole_server;
 
 /**
  * Class FHelper
@@ -99,7 +99,7 @@ class FHelper
      */
     public static function logs($name = null)
     {
-        return container()->get('logs')(($name ?? FHelper::c()->get('app_name')));
+        return container()->get('logs')(($name ?? static::c()->get('app_name')));
     }
 
     /**
@@ -178,9 +178,9 @@ class FHelper
 
     /**
      * 获取 Swoole 服务
-     * @return SwooleServer
+     * @return swoole_server
      */
-    public static function swoole(): SwooleServer
+    public static function swoole(): swoole_server
     {
         return container()->get('swoole')->getServer();
     }
@@ -189,17 +189,8 @@ class FHelper
      * 获取 Swoole 事件分发器
      * @return EventsRegister
      */
-    public static function swooleEventDispatcher(): EventsRegister
+    function swooleEventsDispatcher(): EventsRegister
     {
         return container()->get('swoole')->getEventsRegister();
-    }
-
-    /**
-     * 获取 Swoole 命令管理通道
-     * @return mixed
-     */
-    public static function swooleCommandChannel()
-    {
-        return container()->get('swoole_command_channel');
     }
 }

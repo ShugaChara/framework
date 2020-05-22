@@ -83,7 +83,7 @@ abstract class ControllerAbstract
      */
     final public function validator(): Validator
     {
-        return FHelper::validator();
+        return validator();
     }
 
     /**

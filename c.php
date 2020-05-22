@@ -9,7 +9,6 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Framework\Tools\StatusCode;
 use ShugaChara\Framework\Swoole\MainSwooleEvents;
 use ShugaChara\Framework\Middlewares\DispatchMiddleware;
@@ -21,7 +20,10 @@ use ShugaChara\Framework\ServiceProvider\DatabaseServiceProvider;
 use ShugaChara\Framework\ServiceProvider\ValidatorServiceProvider;
 use ShugaChara\Framework\Console\Commands\ApplicationCommand;
 use ShugaChara\Framework\Console\Commands\HttpServerCommand;
+use ShugaChara\Framework\Console\Commands\ProcessorCommand;
+use ShugaChara\Framework\Swoole\Processor\BaseProcess;
 use ShugaChara\Swoole\Server;
+use ShugaChara\Framework\Helpers\FHelper;
 
 return [
     // 应用名称
@@ -66,6 +68,9 @@ return [
     'console'   =>  [
         'application' => [
             'name'  =>  ApplicationCommand::class
+        ],
+        'processor' =>  [
+            'name'  =>  ProcessorCommand::class
         ],
         'http'  =>  [
             'name'  =>  HttpServerCommand::class
@@ -121,10 +126,21 @@ return [
         'lang'      =>      'zh',
     ],
 
+    // 进程配置
+    'processor' =>  [
+        'base' => [
+            'process' => BaseProcess::class,
+            'options' => [],
+        ],
+    ],
+
     // Swoole 配置
     'swoole'    =>  [
         // 主事件监听类
         'main_events'   =>  MainSwooleEvents::class,
+        'processor' =>  [
+            'pid_path'  =>  FHelper::app()->getRootDirectory() . '/processes',
+        ],
         'http' => [
             'host' => '127.0.0.1',
             'port' => 9002,

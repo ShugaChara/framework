@@ -27,26 +27,51 @@ use Throwable;
 trait Swoole
 {
     /**
+     * 服务对象
      * @var Server
      */
     protected $server;
 
     /**
+     * 服务名称
      * @var
      */
     protected $serverName;
 
     /**
-     * swoole 服务管理器对象
-     * @return Server
+     * 服务配置
+     * @var
      */
-    protected function getServer(): Server
+    protected $serverConfig;
+
+    /**
+     * 设置服务名称
+     * @param $server_name
+     */
+    public function setServerName($server_name)
     {
-        if (! $this->server instanceof Server) {
-            $this->server = new Server();
+        if (in_array($server_name, [
+            Server::SWOOLE_HTTP_SERVER,
+            Server::SWOOLE_WEBSOCKET_SERVER,
+            Server::SWOOLE_SERVER
+        ])) {
+            return $this->serverName = $server_name;
         }
 
-        return $this->server;
+        throw new Exception('没有找到' . $server_name . '服务');
+    }
+
+    /**
+     * 获取服务名称
+     * @return mixed
+     */
+    public function getServerName()
+    {
+        if (! $this->serverName) {
+            throw new Exception('请先设置 Swoole 服务名称');
+        }
+
+        return $this->serverName;
     }
 
     /**
@@ -54,31 +79,30 @@ trait Swoole
      * @return array
      * @throws Exception
      */
-    protected function getConfig(): array
+    public function getServerConfig($key = null, $default = null)
     {
-        return FHelper::c()->get('swoole.' . $this->getServerName(), []);
-    }
+        if (! $this->serverConfig) {
+            if (! ($serverConfig = FHelper::c()->get('swoole.' . $this->getServerName(), []))) {
+                throw new Exception('请完成 swoole 配置才能启动服务');
+            }
 
-    /**
-     * 设置服务名称
-     * @param $serverName
-     */
-    protected function setServerName($serverName)
-    {
-        $this->serverName = $serverName;
-    }
-
-    /**
-     * 获取服务名称
-     * @return mixed
-     */
-    protected function getServerName()
-    {
-        if (! $this->serverName) {
-            throw new Exception('请先设置 Swoole 服务名称');
+            $this->serverConfig = $serverConfig;
         }
 
-        return $this->serverName;
+        return ArrayHelper::get($this->serverConfig, $key, $default);
+    }
+
+    /**
+     * swoole 服务管理器对象
+     * @return Server
+     */
+    public function getServer(): Server
+    {
+        if (! $this->server instanceof Server) {
+            $this->server = new Server();
+        }
+
+        return $this->server;
     }
 
     /**
@@ -94,9 +118,9 @@ trait Swoole
      * 是否守护进程模式
      * @return bool
      */
-    protected function isDaemonize(): bool
+    public function isDaemonize(): bool
     {
-        return (bool) ArrayHelper::get($this->getConfig(), 'setting.daemonize', false);
+        return (bool) $this->getServerConfig('setting.daemonize', false);
     }
 
     /**
@@ -104,7 +128,7 @@ trait Swoole
      * @param $server_name
      * @return string
      */
-    protected function getMasterProcessName()
+    public function getMasterProcessName()
     {
         return $this->getServerName() . ' master';
     }
@@ -155,7 +179,7 @@ trait Swoole
      */
     protected function getSwooleSettingPidFile()
      {
-         return ArrayHelper::get($this->getConfig(), 'setting.pid_file', FHelper::app()->getRootDirectory() . '/tmp/' . str_replace(' ', '-', $this->getServerName()) . '.pid');
+         return $this->getServerConfig('setting.pid_file', FHelper::app()->getRootDirectory() . '/tmp/' . str_replace(' ', '-', $this->getServerName()) . '.pid');
      }
 
     /**
@@ -168,14 +192,14 @@ trait Swoole
              try {
                  $refSwooleMainEvents = new ReflectionClass($swooleMainEventsClass);
                  if(! $refSwooleMainEvents->implementsInterface(MainSwooleEventsInterface::class)){
-                     throw new Exception('global file for MainSwooleEventsInterface is not compatible for ' . $swooleMainEventsClass);
+                     throw new Exception('MainSwooleEventsInterface 的全局文件不兼容 ' . $swooleMainEventsClass);
                  }
                  unset($refSwooleMainEvents);
              } catch (Throwable $throwable){
                  throw new Exception($throwable->getMessage());
              }
          } else {
-             throw new Exception("global events file missing!\n");
+             throw new Exception('全局事件文件丢失');
          }
 
          $class = new $swooleMainEventsClass();
