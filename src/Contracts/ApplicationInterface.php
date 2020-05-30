@@ -18,18 +18,6 @@ namespace ShugaChara\Framework\Contracts;
 interface ApplicationInterface
 {
     /**
-     * get app name
-     * @return mixed
-     */
-    public function getAppName();
-
-    /**
-     * get app version
-     * @return mixed
-     */
-    public function getAppVersion();
-
-    /**
      * run app
      * @return mixed
      */

@@ -11,14 +11,13 @@
 
 /*
 |--------------------------------------------------------------------------
-| shugachara Response 响应类
+| shugachara Response
 |--------------------------------------------------------------------------
  */
 
 namespace ShugaChara\Framework\Http;
 
 use ShugaChara\Core\Utils\Helper\ArrayHelper;
-use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Framework\Tools\StatusCode;
 use ShugaChara\Http\Response as HttpResponse;
 
@@ -29,7 +28,7 @@ use ShugaChara\Http\Response as HttpResponse;
 class Response extends HttpResponse
 {
     /**
-     * Api Json格式响应
+     * Api json format response
      *
      * @param null  $data
      * @param int   $status
@@ -40,10 +39,10 @@ class Response extends HttpResponse
     {
         $status = (int) $status;
 
-        $startResponseTime = ArrayHelper::get(FHelper::request()->getServerParams(), 'REQUEST_TIME_FLOAT', 0) ? : ArrayHelper::get($_SERVER, 'REQUEST_TIME_FLOAT', 0);
+        $startResponseTime = ArrayHelper::get(fn()->request()->getServerParams(), 'REQUEST_TIME_FLOAT', 0) ? : ArrayHelper::get($_SERVER, 'REQUEST_TIME_FLOAT', 0);
         $responseTime = microtime(true) - $startResponseTime;
 
-        $StatusCode = FHelper::c()->get('apicode') ? : StatusCode::class;
+        $StatusCode = fn()->c()->get('apicode') ? : StatusCode::class;
         list($httpCode, $message) = $StatusCode::getInstance()->getCodeMessage($status);
 
         return $this->json(

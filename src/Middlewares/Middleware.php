@@ -9,20 +9,21 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-namespace ShugaChara\Framework\Swoole\Processor;
+/*
+|--------------------------------------------------------------------------
+| shugachara Middleware distributor
+|--------------------------------------------------------------------------
+ */
 
-use ShugaChara\Swoole\Contracts\ProcessorAbstract;
-use swoole_process;
+namespace ShugaChara\Framework\Middlewares;
+
+use ShugaChara\Middleware\Middleware as FrameworkMiddleware;
 
 /**
- * Class BaseProcess
- * @package ShugaChara\Framework\Swoole\Processor
+ * Class Middleware
+ * @package ShugaChara\Framework\Middlewares
  */
-class BaseProcess extends ProcessorAbstract
+abstract class Middleware extends FrameworkMiddleware
 {
-    public function handle(swoole_process $process)
-    {
-        // TODO: Implement handle() method.
 
-    }
 }

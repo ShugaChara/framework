@@ -13,14 +13,12 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
-use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Framework\Middleware\HttpMiddleware;
 use ShugaChara\Router\RouteCollection;
 use ShugaChara\Router\RouteDispatcher;
 
 /**
- * 路由服务
- *
+ * Routing service
  * Class RouterServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
@@ -34,21 +32,19 @@ class RouterServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        $router = new RouteCollection(FHelper::c()->get('controller_namespace'));
+        $router = new RouteCollection(fn()->c()->get('controller_namespace'));
 
-        $routerDispatcher = new RouteDispatcher($router, FHelper::c()->get('middlewares'));
+        $routerDispatcher = new RouteDispatcher($router, fn()->c()->get('middlewares'));
 
-        // 注册路由
+        // Register route
         $container->add('router', $router);
 
-        // 注册路由分发器
+        // Register route distributor
         $container->add('router_dispatcher', $routerDispatcher);
 
-        /**
-         * 加载路由
-         */
+        // Load route
         $router->group(['prefix' => '', 'middleware' => 'dispatch'], function () {
-            foreach (glob(FHelper::c()->get('router.path') . '*' . FHelper::c()->get('router.ext')) as $filename) {
+            foreach (glob(fn()->c()->get('router.path') . '*' . fn()->c()->get('router.ext')) as $filename) {
                 include $filename;
             }
         });

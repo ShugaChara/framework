@@ -13,12 +13,10 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
-use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Framework\Pools\DatabasesPool;
 
 /**
- * DB服务
- *
+ * Database service
  * Class DatabaseServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
@@ -32,7 +30,7 @@ class DatabaseServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        if ($databases = FHelper::c()->get('databases')) {
+        if ($databases = fn()->c()->get('databases')) {
             $container->add('databases', new DatabasesPool($databases));
         }
     }

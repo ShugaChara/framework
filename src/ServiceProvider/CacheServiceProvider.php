@@ -13,11 +13,10 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
-use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Framework\Pools\RedisPool;
 
 /**
- * 缓存服务
+ * Cache service
  * Class CacheServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
@@ -32,7 +31,7 @@ class CacheServiceProvider implements ServiceProviderInterface
         // TODO: Implement register() method.
 
         // Redis Cache
-        if ($redis = FHelper::c()->get('cache.redis')) {
+        if ($redis = fn()->c()->get('cache.redis')) {
             $container->add('redis', new RedisPool($redis));
         }
     }

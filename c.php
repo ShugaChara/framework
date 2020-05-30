@@ -9,8 +9,7 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-use ShugaChara\Framework\Tools\StatusCode;
-use ShugaChara\Framework\Swoole\MainSwooleEvents;
+use ShugaChara\Framework\Swoole\Server;
 use ShugaChara\Framework\Middlewares\DispatchMiddleware;
 use ShugaChara\Framework\ServiceProvider\LogsServiceProvider;
 use ShugaChara\Framework\ServiceProvider\ConsoleServiceProvider;
@@ -18,66 +17,77 @@ use ShugaChara\Framework\ServiceProvider\CacheServiceProvider;
 use ShugaChara\Framework\ServiceProvider\RouterServiceProvider;
 use ShugaChara\Framework\ServiceProvider\DatabaseServiceProvider;
 use ShugaChara\Framework\ServiceProvider\ValidatorServiceProvider;
+use ShugaChara\Framework\Tools\StatusCode;
+use ShugaChara\Framework\Swoole\MainSwooleEvents;
 use ShugaChara\Framework\Console\Commands\ApplicationCommand;
 use ShugaChara\Framework\Console\Commands\HttpServerCommand;
-use ShugaChara\Framework\Console\Commands\ProcessorCommand;
-use ShugaChara\Framework\Swoole\Processor\BaseProcess;
-use ShugaChara\Swoole\Server;
-use ShugaChara\Framework\Helpers\FHelper;
 
 return [
-    // 应用名称
+    // Application Name
     'app_name'  =>  'framework',
 
-    // 错误级别
-    'error_reporting'   =>  E_ALL,
+    // Application version
+    'app_version'   =>  'v1.0.0',
 
-    // 是否调试模式
+    // Whether to debug mode
     'is_debug'  =>  true,
 
-    // 控制器命名空间
+    // Error level
+    'error_reporting'   =>  E_ALL,
+
+    // Time zone
+    'timezone'  =>  'PRC',
+
+    // Interface status code
+    'apicode'   =>  StatusCode::class,
+
+    // Controller namespace
     'controller_namespace'  =>  '\\App\\Http\\Controllers\\',
 
-    // 应用中间件
+    // Application middleware
     'middlewares'   =>  [
         'dispatch'      =>  DispatchMiddleware::class,
     ],
 
-    // 接口状态码类
-    'apicode'       =>  StatusCode::class,
+    // Application services
+    'service_providers' =>  [
+        LogsServiceProvider::class,
+        ConsoleServiceProvider::class,
+        CacheServiceProvider::class,
+        RouterServiceProvider::class,
+        DatabaseServiceProvider::class,
+        ValidatorServiceProvider::class,
+    ],
 
-    // 路由配置
+    // Routing configuration
     'router'    =>  [
-        //  存放目录路径
-        'path'      =>  FHelper::app()->getRootDirectory() . '/router/',
-        //  路由文件后缀
+        //  Directory path
+        'path'      =>  fn()->app()->getRootDirectory() . '/router/',
+        //  Routing file suffix
         'ext'       =>  '.php',
     ],
 
-    // 日志配置
+    // Log configuration
     'logs'      =>  [
-        //  存放目录路径
-        'path'      =>  FHelper::app()->getRootDirectory() . '/runtime/logs/',
-        //  最大文件数量
+        //  Directory path
+        'path'      =>  fn()->app()->getRootDirectory() . '/runtime/logs/',
+        //  Maximum number of files
         'maxFiles'  =>  30,
-        //  日志文件后缀
+        //  Log file suffix
         'ext'       =>  '.log',
     ],
 
-    // 命令行脚本
+    // Command line script
     'console'   =>  [
         'application' => [
             'name'  =>  ApplicationCommand::class
         ],
-        'processor' =>  [
-            'name'  =>  ProcessorCommand::class
-        ],
-        'http'  =>  [
+        'httpserver' => [
             'name'  =>  HttpServerCommand::class
         ],
     ],
 
-    // 数据库配置
+    // Database configuration
     'databases' =>  [
         'default' => [
             'driver'    =>  'mysql',
@@ -91,7 +101,7 @@ return [
         ],
     ],
 
-    // 缓存配置
+    // Cache configuration
     'cache'     =>  [
         'redis'     =>      [
             'default'       =>      [
@@ -105,41 +115,12 @@ return [
         ]
     ],
 
-    // 应用服务
-    'service_providers' =>  [
-        LogsServiceProvider::class,
-        ConsoleServiceProvider::class,
-        CacheServiceProvider::class,
-        RouterServiceProvider::class,
-        DatabaseServiceProvider::class,
-        ValidatorServiceProvider::class,
-    ],
-
-    // 时区
-    'timezone'  =>  'PRC',
-
-    // 验证配置
-    'validator' =>  [
-        // 语言包存放目录路径
-        'lang_path' =>      'data/lang',
-        // 所使用的语言包
-        'lang'      =>      'zh',
-    ],
-
-    // 进程配置
-    'processor' =>  [
-        'base' => [
-            'process' => BaseProcess::class,
-            'options' => [],
-        ],
-    ],
-
-    // Swoole 配置
+    // Swoole configuration
     'swoole'    =>  [
-        // 主事件监听类
+        // Main event monitoring class
         'main_events'   =>  MainSwooleEvents::class,
         'processor' =>  [
-            'pid_path'  =>  FHelper::app()->getRootDirectory() . '/processes',
+            'pid_path'  =>  fn()->app()->getRootDirectory() . '/processes',
         ],
         'http' => [
             'host' => '127.0.0.1',
@@ -147,9 +128,9 @@ return [
             'setting' => [
                 'worker_num' => 8,
                 'task_worker_num' => 8,
-                'task_tmpdir' => FHelper::app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/task',
-                'log_file' => FHelper::app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '.log',
-                'pid_file' => FHelper::app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '.pid',
+                'task_tmpdir' => fn()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/task',
+                'log_file' => fn()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '.log',
+                'pid_file' => fn()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '.pid',
                 'daemonize' => false,
                 'backlog' => 128,
                 'open_cpu_affinity' => true,

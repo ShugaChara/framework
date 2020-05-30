@@ -11,24 +11,22 @@
 
 /*
 |--------------------------------------------------------------------------
-| shugachara 应用服务类
+| shugachara Application Service
 |--------------------------------------------------------------------------
  */
 
 namespace ShugaChara\Framework;
 
-use Psr\Http\Message\ServerRequestInterface;
-use ShugaChara\Framework\Swoole\Server;
-use Throwable;
 use Exception;
+use Throwable;
 use ErrorException;
+use Psr\Http\Message\ServerRequestInterface;
 use ShugaChara\Http\Exceptions\HttpException;
 use ShugaChara\Container\Container;
 use ShugaChara\Framework\Components\Alias;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Exceptions\DebugLogsException;
 use ShugaChara\Framework\Exceptions\ResponseException;
-use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Framework\Http\Response;
 use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
 use ShugaChara\Framework\Traits\Application as ApplicationTraits;
@@ -43,76 +41,31 @@ abstract class Application implements ApplicationInterface
     use ApplicationTraits;
 
     /**
-     * 应用框架本身 static
+     * application static
      * @var Application
      */
     public static $application;
 
     /**
-     * 应用根目录
+     * Application root
      * @var string
      */
     protected $rootDirectory;
 
     /**
-     * 应用名称
-     * @var string
-     */
-    protected $appName = 'framework';
-
-    /**
-     * 应用版本
-     * @var string
-     */
-    protected $appVersion = 'v1.0.0';
-
-    /**
-     * 命令行参数
-     * @var
-     */
-    protected $argv = [];
-
-    /**
-     * 服务对象
-     * @var Server
-     */
-    protected $server;
-
-    /**
-     * 应用框架是否运行
+     * Whether the application framework is running
      * @var bool
      */
     protected $isExecute = false;
 
     /**
-     * @return mixed|void
-     */
-    public function getAppName()
-    {
-        // TODO: Implement getAppName() method.
-
-        return $this->appName;
-    }
-
-    /**
-     * @return mixed|void
-     */
-    public function getAppVersion()
-    {
-        // TODO: Implement getAppVersion() method.
-
-        return $this->appVersion;
-    }
-
-    /**
      * Application constructor.
      * @param $argv
-     * @throws Exception
      */
     final public function __construct($argv)
     {
         // check runtime env
-        FHelper::checkRuntime();
+        fn()->checkRuntime();
 
         // set root directory
         $this->setRootDirectory();
@@ -120,14 +73,14 @@ abstract class Application implements ApplicationInterface
             $this->rootDirectory = rtrim($this->rootDirectory, '/');
         }
 
-        // load static application
-        static::$application = $this;
-
         // set argv
-        $this->setArgv($argv);
+        Alias::set('argv', $argv);
 
         // load container
         Alias::set('container', new Container());
+
+        // load static application
+        static::$application = $this;
 
         // container add aplication
         container()->add('application', static::$application);
@@ -140,7 +93,7 @@ abstract class Application implements ApplicationInterface
     }
 
     /**
-     * 初始化处理器 Application
+     * Initialize the processor Application
      */
     final protected function handleInitialize()
     {
@@ -152,10 +105,10 @@ abstract class Application implements ApplicationInterface
         }
 
         // load service providers
-        $this->serviceProviderRegister(FHelper::c()->get('service_providers'));
+        $this->registerServiceProviders(fn()->c()->get('service_providers'));
 
         // set timezone
-        date_default_timezone_set(FHelper::c()->get('timezone', 'UTC'));
+        date_default_timezone_set(fn()->c()->get('timezone', 'PRC'));
 
         // register response
         container()->add('response', new Response());
@@ -165,23 +118,11 @@ abstract class Application implements ApplicationInterface
     }
 
     /**
-     * 设置应用根目录 (设置 $this->rootDirectory)
-     * @return mixed
-     */
-    abstract protected function setRootDirectory();
-
-    /**
-     * 框架前置操作
-     * @return mixed
-     */
-    abstract public function initialize();
-
-    /**
-     * 注册错误处理
+     * Registration error handling
      */
     protected function registerExceptionHandler()
     {
-        $level = FHelper::c()->get('error_reporting');
+        $level = fn()->c()->get('error_reporting');
         error_reporting($level);
 
         set_exception_handler([$this, 'handleException']);
@@ -192,20 +133,19 @@ abstract class Application implements ApplicationInterface
     }
 
     /**
-     * 错误处理
-     *
+     * Error handling
      * @param $e
      * @return Response
      * @throws FatalThrowableErro
      */
     public function handleException($e)
     {
-        // 异常捕获转换
+        // Exception catch conversion
         if (!$e instanceof Exception) {
             $e = new ErrorException($e);
         }
 
-        // 抛出没有创建request的异常
+        // Throws an exception that does not create a request
         if (! container()->has('request')) {
             throw new Exception($e);
         }
@@ -219,7 +159,7 @@ abstract class Application implements ApplicationInterface
             ];
         }
 
-        FHelper::logs()->error($e->getMessage(), $trace);
+        fn()->logs()->error($e->getMessage(), $trace);
 
         $status = ($e instanceof HttpException) ? $e->getStatusCode() : $e->getCode();
 
@@ -227,7 +167,7 @@ abstract class Application implements ApplicationInterface
             $status = Response::HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        $resposne = FHelper::response()->api(ResponseException::getReturn($e), $status);
+        $resposne = fn()->response()->api(ResponseException::getReturn($e), $status);
         if (! $this->isExecute()) {
             return $this->handleResponse($resposne);
         }
@@ -236,8 +176,7 @@ abstract class Application implements ApplicationInterface
     }
 
     /**
-     * 请求处理
-     *
+     * Request processing
      * @param ServerRequestInterface $request
      * @return Response|\Symfony\Component\HttpFoundation\Response
      * @throws Exception
@@ -247,8 +186,8 @@ abstract class Application implements ApplicationInterface
         try {
             container()->add('request', $request);
 
-            if ((! (($response = FHelper::routerDispatcher()->dispatch($request)) instanceof Response))) {
-                return FHelper::response()->json($response);
+            if ((! (($response = fn()->routerDispatcher()->dispatch($request)) instanceof Response))) {
+                return fn()->response()->json($response);
             }
 
             return $response;
@@ -261,8 +200,7 @@ abstract class Application implements ApplicationInterface
     }
 
     /**
-     * 响应处理
-     *
+     * Response processing
      * @param $response
      * @return mixed
      */
@@ -272,15 +210,29 @@ abstract class Application implements ApplicationInterface
     }
 
     /**
+     * Set application root directory
+     * @return mixed
+     */
+    abstract protected function setRootDirectory();
+
+    /**
+     * Frame pre-operation
+     * @return mixed
+     */
+    abstract public function initialize();
+
+    /**
      * @return mixed|void
      */
-    final public function execute()
+    public function execute()
     {
-        // TODO: Implement run() method.
+        // TODO: Implement execute() method.
 
         $this->isExecute = true;
 
-        FHelper::console()->run();
+        if (Alias::get('argv')) {
+            fn()->console()->run();
+        }
 
         exit(1);
     }

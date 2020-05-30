@@ -12,7 +12,7 @@
 namespace ShugaChara\Framework\Contracts;
 
 /**
- * 状态管理器
+ * State manager
  *
  * Interface StatusManagerInterface
  * @package ShugaChara\Framework\Contracts
@@ -20,32 +20,32 @@ namespace ShugaChara\Framework\Contracts;
 interface StatusManagerInterface
 {
     /**
-     * 状态详情
+     * Status details
      */
     const STATUS_NAME = 'status';
 
     /**
-     * 启动
+     * Status start
      */
     const START_NAME = 'start';
 
     /**
-     * 停止
+     * Status stop
      */
     const STOP_NAME = 'stop';
 
     /**
-     * 平滑加载
+     * Smooth loading
      */
     const RELOAD_NAME = 'reload';
 
     /**
-     * 重启
+     * Reboot
      */
     const RESTART_NAME = 'restart';
 
     /**
-     * 状态类型
+     * Status type
      * @var array
      */
     const STATUS_TYPES = [
@@ -57,31 +57,31 @@ interface StatusManagerInterface
     ];
 
     /**
-     * 状态详情
+     * Status details
      * @return mixed
      */
     public function status();
 
     /**
-     * 启动
+     * Status start
      * @return mixed
      */
     public function start();
 
     /**
-     * 停止
+     * Status stop
      * @return mixed
      */
     public function stop();
 
     /**
-     * 平滑加载
+     * Smooth loading
      * @return mixed
      */
     public function reload();
 
     /**
-     * 重启
+     * Reboot
      * @return mixed
      */
     public function restart();

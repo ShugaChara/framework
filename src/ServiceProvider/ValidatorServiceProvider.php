@@ -13,12 +13,10 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
-use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Validation\Validator;
 
 /**
- * 验证服务
- *
+ * Data verification service
  * Class ValidatorServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
@@ -29,8 +27,8 @@ class ValidatorServiceProvider implements ServiceProviderInterface
         // TODO: Implement register() method.
 
         $container->add('validator', Validator::getInstance()->boot(
-            FHelper::c()->get('validator.lang_path'),
-            FHelper::c()->get('validator.lang')
+            fn()->c()->get('validator.lang_path'),
+            fn()->c()->get('validator.lang')
         ));
     }
 }

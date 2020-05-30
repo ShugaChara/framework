@@ -16,8 +16,7 @@ use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
 
 /**
- * 配置服务
- *
+ * Configuration service
  * Class ConfigServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */

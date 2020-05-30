@@ -19,7 +19,6 @@ namespace ShugaChara\Framework\Middlewares;
 
 use Psr\Http\Message\ServerRequestInterface;
 use ShugaChara\Middleware\Contracts\DelegateInterface;
-use ShugaChara\Middleware\Middleware;
 
 class DispatchMiddleware extends Middleware
 {

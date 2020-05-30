@@ -10,10 +10,22 @@
 // +----------------------------------------------------------------------
 
 use ShugaChara\Framework\Components\Alias;
+use ShugaChara\Framework\Helpers\FHelper;
+
+if (! function_exists('fn')) {
+    /**
+     * Get the FHelper method package
+     * @return FHelper
+     */
+    function fn()
+    {
+        return FHelper::getInstance();
+    }
+}
 
 if (! function_exists('container')) {
     /**
-     * 获取容器服务
+     * Get container service
      * @return \ShugaChara\Container\Container
      */
     function container()
@@ -21,3 +33,5 @@ if (! function_exists('container')) {
         return Alias::get('container');
     }
 }
+
+

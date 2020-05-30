@@ -1,4 +1,4 @@
-# Web API Framework
+# Swoole WebAPI Framework
 
 [![GitHub release](https://img.shields.io/github/release/shugachara/framework.svg)](https://github.com/shugachara/framework/releases)
 [![PHP version](https://img.shields.io/badge/php-%3E%207-orange.svg)](https://github.com/php/php-src)
@@ -6,7 +6,7 @@
 
 ## 说明
 
-基于Swoole扩展开发的一套高性能API框架 (支持 php-fpm / swoole 模式)
+基于 Swoole 扩展开发的一套高性能 WebApi 框架 (支持 php-fpm / swoole 模式)
 
 ## 包地址
 

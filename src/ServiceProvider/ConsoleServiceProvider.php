@@ -14,11 +14,9 @@ namespace ShugaChara\Framework\ServiceProvider;
 use ShugaChara\Console\Console;
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
-use ShugaChara\Framework\Helpers\FHelper;
 
 /**
- * 控制台服务
- *
+ * Console service
  * Class ConsoleServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
@@ -34,7 +32,7 @@ class ConsoleServiceProvider implements ServiceProviderInterface
 
         $consoleApplication = new Console();
 
-        if ($commands = FHelper::c()->get('console')) {
+        if ($commands = fn()->c()->get('console')) {
             foreach ($commands as $key => $command) {
                 $consoleApplication->add(new $command['name']($key));
             }

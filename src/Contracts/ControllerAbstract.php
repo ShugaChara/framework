@@ -11,13 +11,12 @@
 
 namespace ShugaChara\Framework\Contracts;
 
-use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Framework\Http\Request;
 use ShugaChara\Framework\Http\Response;
 use ShugaChara\Validation\Validator;
 
 /**
- * 控制器抽象类
+ * Controller abstract class
  *
  * Class ControllerAbstract
  * @package ShugaChara\Framework\Contracts
@@ -39,15 +38,15 @@ abstract class ControllerAbstract
      */
     final public function __construct()
     {
-        $this->request = FHelper::request();
+        $this->request = fn()->request();
 
-        $this->response = FHelper::response();
+        $this->response = fn()->response();
 
         $this->initialize();
     }
 
     /**
-     * 获取Request请求对象
+     * Get Request object
      * @return Request
      */
     final public function request(): Request
@@ -56,7 +55,7 @@ abstract class ControllerAbstract
     }
 
     /**
-     * 获取Response响应对象
+     * Get Response object
      * @return Response
      */
     final public function response(): Response
@@ -65,7 +64,7 @@ abstract class ControllerAbstract
     }
 
     /**
-     * Api Json格式响应
+     * Api Json format response
      *
      * @param null  $data
      * @param int   $status
@@ -78,16 +77,16 @@ abstract class ControllerAbstract
     }
 
     /**
-     * 数据验证
+     * data verification
      * @return \Illuminate\Contracts\Validation\Factory|\Illuminate\Contracts\Validation\Validator|\Runner\Validator\Validator|\ShugaChara\Validation\Validator
      */
     final public function validator(): Validator
     {
-        return validator();
+        return fn()->validator();
     }
 
     /**
-     * 初始化数据方法,相当于__construct使用,为了框架的管理,所有禁止了构造函数的重写,该方法伪构造替代
+     * The initialization data method is equivalent to the use of __construct. For the management of the framework, all rewriting of the constructor is prohibited, and this method is pseudo-constructed instead
      */
     public function initialize() {}
 }

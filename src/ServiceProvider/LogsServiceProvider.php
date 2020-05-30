@@ -18,13 +18,15 @@ use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Logs\Logger;
 
 /**
- * 日志服务
- *
+ * Logs service
  * Class LogsServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
 class LogsServiceProvider implements ServiceProviderInterface
 {
+    /**
+     * @var array
+     */
     private $logs = [];
 
     /**
@@ -38,7 +40,11 @@ class LogsServiceProvider implements ServiceProviderInterface
         $container->add('logs', function () {
             return function ($key, $level = Logger::DEBUG) {
                 if (! isset($this->logs[$key])) {
-                    $logHandler = new RotatingFileHandler(FHelper::c()->get('logs.path') . $key . FHelper::c()->get('logs.ext'), FHelper::c()->get('logs.maxFiles'), $level);
+                    $logHandler = new RotatingFileHandler(
+                        fn()->c()->get('logs.path') . $key . fn()->c()->get('logs.ext'),
+                        fn()->c()->get('logs.maxFiles'),
+                        $level
+                    );
                     $this->logs[$key] = new Logger($key, [$logHandler]);
                 }
 

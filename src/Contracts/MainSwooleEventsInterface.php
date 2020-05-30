@@ -21,13 +21,13 @@ use swoole_server;
 interface MainSwooleEventsInterface
 {
     /**
-     * 初始化操作
+     * Initialize operation
      * @return mixed
      */
     public function initialize();
 
     /**
-     * hook 全局的 mainSwooleServerEventsCreate 事件
+     * Hook global mainSwooleServerEventsCreate event
      * @param EventsRegister $register
      * @param swoole_server  $swoole_server
      * @return mixed

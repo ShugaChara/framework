@@ -12,22 +12,26 @@
 namespace ShugaChara\Framework\Helpers;
 
 use RuntimeException;
-use ShugaChara\Swoole\EventsRegister;
-use swoole_server;
+use ShugaChara\Core\Traits\Singleton;
+use ShugaChara\Framework\Contracts\BaseServerCommandAbstract;
+use ShugaChara\Framework\Swoole\Server;
 
 /**
  * Class FHelper
+ * @method static $this getInstance(...$args)
  * @package ShugaChara\Framework\Helpers
  */
 class FHelper
 {
+    use Singleton;
+
     /**
      * Check runtime extension conflict
      *
      * @param string $minPhp
      * @param string $minSwoole
      */
-    public static function checkRuntime(string $minPhp = '7.1', string $minSwoole = '4.4.1'): void
+    public function checkRuntime(string $minPhp = '7.1', string $minSwoole = '4.4.1'): void
     {
         if (version_compare(PHP_VERSION, $minPhp, '<')) {
             throw new RuntimeException('Run the server requires PHP version > ' . $minPhp . '! current is ' . PHP_VERSION);
@@ -58,11 +62,11 @@ class FHelper
     }
 
     /**
-     * 获取文件基础信息
+     * Get basic file information
      * @param $file_name
      * @return array|null
      */
-    public static function getFileBaseInfo($file_name)
+    public function getFileBaseInfo($file_name)
     {
         if (! file_exists($file_name)) {
             return null;
@@ -75,122 +79,131 @@ class FHelper
     }
 
     /**
-     * 获取应用 Application
+     * Get the Application
      * @return \ShugaChara\Framework\Application
      */
-    public static function app()
+    public function app()
     {
         return container()->get('application');
     }
 
     /**
-     * 获取配置服务
+     * Configuration service
      * @return \ShugaChara\Config\FileConfig
      */
-    public static function c()
+    public function c()
     {
         return container()->get('c');
     }
 
     /**
-     * 日志服务
-     * @param null $name    文件名
+     * Logs service
+     * @param null $name    filename
      * @return \ShugaChara\Logs\Logger
      */
-    public static function logs($name = null)
+    public function logs($name = null)
     {
         return container()->get('logs')(($name ?? static::c()->get('app_name')));
     }
 
     /**
-     * 控制台命令服务
+     * Console service
      * @return \ShugaChara\Console\Console
      */
-    public static function console()
+    public function console()
     {
         return container()->get('console');
     }
 
     /**
-     * 获取数据库连接服务对象
-     * @param string $drive     库驱动名称
+     * Get database connection service object
+     * @param string $drive     Library driver name
      * @return \ShugaChara\Databases\DB|\ShugaChara\Databases\Capsule|\Illuminate\Database\MySqlConnection
      */
-    public static function db($drive = 'default')
+    public function db($drive = 'default')
     {
         return container()->get('databases')->getConnection($drive);
     }
 
     /**
-     * 获取 Redis 服务
-     * @param string $drive     库驱动名称
+     * Redis service
+     * @param string $drive     Library driver name
      * @return \Predis\Client
      */
-    public static function redis($drive = 'default')
+    public function redis($drive = 'default')
     {
         return container()->get('redis')->getConnection($drive);
     }
 
     /**
-     * 路由服务
+     * Routing service
      * @return \ShugaChara\Router\RouteCollection
      */
-    public static function router()
+    public function router()
     {
         return container()->get('router');
     }
 
     /**
-     * 路由分发服务
+     * Routing distribution service
      * @return \ShugaChara\Router\RouteDispatcher
      */
-    public static function routerDispatcher()
+    public function routerDispatcher()
     {
         return container()->get('router_dispatcher');
     }
 
     /**
-     * Http 请求服务
+     * Http request service
      * @return \ShugaChara\Framework\Http\Request
      */
-    public static function request()
+    public function request()
     {
         return container()->get('request');
     }
 
     /**
-     * Http 响应服务
+     * Http response service
      * @return \ShugaChara\Framework\Http\Response
      */
-    public static function response()
+    public function response()
     {
         return container()->get('response');
     }
 
     /**
-     * 获取数据验证类
+     * Data verification service
      * @return \ShugaChara\Validation\Validator
      */
-    public static function validator()
+    public function validator()
     {
         return container()->get('validator');
     }
 
     /**
-     * 获取 Swoole 服务
-     * @return swoole_server
+     * Get server channel
+     * @return BaseServerCommandAbstract
      */
-    public static function swoole(): swoole_server
+    public function serverChannel()
     {
-        return container()->get('swoole')->getServer();
+        return container()->get('server_channel');
     }
 
     /**
-     * 获取 Swoole 事件分发器
-     * @return EventsRegister
+     * Get service object
+     * @return Server
      */
-    function swooleEventsDispatcher(): EventsRegister
+    public function server()
     {
-        return container()->get('swoole')->getEventsRegister();
+        return $this->serverChannel()->getServer();
+    }
+
+    /**
+     * Get swoole server
+     * @return \swoole_server
+     */
+    public function swoole()
+    {
+        return $this->server()->getServer();
     }
 }

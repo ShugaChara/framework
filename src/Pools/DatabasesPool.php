@@ -27,17 +27,21 @@ class DatabasesPool implements PoolInterface
     private $capsule;
 
     /**
-     * DB 配置项
+     * DB Configuration item
      * @var array
      */
     protected $config = [];
 
     /**
-     * DB连接
+     * DB connection
      * @var array
      */
     protected $connections = [];
 
+    /**
+     * DatabasesPool constructor.
+     * @param array $config
+     */
     public function __construct(array $config)
     {
         if (! ($this->capsule instanceof DB)) {
@@ -48,7 +52,7 @@ class DatabasesPool implements PoolInterface
     }
 
     /**
-     * 获取连接
+     * Get connected
      * @param $name
      * @return mixed
      */

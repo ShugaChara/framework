@@ -11,9 +11,3 @@
 
 // Check phar env
 defined('IN_PHAR') or define('IN_PHAR', false);
-
-// environment
-defined('ENVIRONMENT_LOCAL') or define('ENVIRONMENT_LOCAL', 'local');
-defined('ENVIRONMENT_DEV') or define('ENVIRONMENT_DEV', 'dev');
-defined('ENVIRONMENT_PRERELEASE') or define('ENVIRONMENT_PRERELEASE', 'prerelease');
-defined('ENVIRONMENT_PROD') or define('ENVIRONMENT_PROD', 'prod');

@@ -23,20 +23,19 @@ use ShugaChara\Redis\Redis;
 class RedisPool implements PoolInterface
 {
     /**
-     * 配置
+     * configuration
      * @var array
      */
     protected $config;
 
     /**
-     * 连接
+     * connection
      * @var array
      */
     protected $connections = [];
 
     /**
-     * Cache constructor.
-     *
+     * RedisPool constructor.
      * @param array $config
      */
     public function __construct(array $config)
@@ -45,8 +44,7 @@ class RedisPool implements PoolInterface
     }
 
     /**
-     * 获取连接
-     *
+     * Get connected
      * @param $name
      * @return mixed
      * @throws Exception

@@ -16,7 +16,7 @@ use ShugaChara\Swoole\EventsRegister;
 use swoole_server;
 
 /**
- * Swoole 主服务事件监听对象
+ * Swoole main service event monitoring object
  *
  * Class MainSwooleEvents
  * @package ShugaChara\Framework\Swoole
@@ -29,7 +29,7 @@ class MainSwooleEvents implements MainSwooleEventsInterface
     }
 
     /**
-     * hook 全局的 mainSwooleServerEventsCreate 事件
+     * Hook global mainSwooleServerEventsCreate event
      * @param EventsRegister $register
      * @param swoole_server  $swoole_server
      * @return mixed|void
