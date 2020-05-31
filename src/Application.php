@@ -18,6 +18,7 @@
 namespace ShugaChara\Framework;
 
 use Exception;
+use ShugaChara\Framework\Http\Request;
 use Throwable;
 use ErrorException;
 use Psr\Http\Message\ServerRequestInterface;
@@ -60,9 +61,9 @@ abstract class Application implements ApplicationInterface
 
     /**
      * Application constructor.
-     * @param $argv
+     * @param array $argv
      */
-    final public function __construct($argv)
+    final public function __construct($argv = [])
     {
         // check runtime env
         fn()->checkRuntime();
@@ -230,9 +231,15 @@ abstract class Application implements ApplicationInterface
 
         $this->isExecute = true;
 
+        // swoole server
         if (Alias::get('argv')) {
             fn()->console()->run();
         }
+
+        // php-fpm
+        $request = Request::createServerRequestFromGlobals();
+        $response = $this->handleRequest($request);
+        $this->handleResponse($response);
 
         exit(1);
     }

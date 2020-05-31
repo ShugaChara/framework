@@ -432,6 +432,16 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         // init swoole handle
         $class->initialize();
 
+        // Register main swoole events
+        $classFunctions = get_class_methods($class);
+        foreach ($classFunctions as $event) {
+            if ('on' != substr($event, 0, 2)) {
+                continue;
+            }
+
+            $this->getServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$class, $event]);
+        }
+
         // init swoole event handle
         $class->mainSwooleServerEventsCreate(
             $this->getServer()->getEventsRegister(),

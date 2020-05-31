@@ -1,7 +1,7 @@
 {
   "name": "shugachara/framework",
   "type": "library",
-  "description": "基于 Swoole 扩展开发的一套高性能 WebApi 框架",
+  "description": "基于 Swoole 扩展开发的一套高性能 WebApi 框架 (兼容php-fpm)",
   "keywords" : [
     "swoole",
     "framework",
@@ -9,7 +9,8 @@
     "api",
     "shugachara",
     "web",
-    "coroutine"
+    "coroutine",
+    "php-fpm"
   ],
   "license" : "Apache-2.0",
   "authors": [

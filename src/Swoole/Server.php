@@ -17,9 +17,11 @@
 
 namespace ShugaChara\Framework\Swoole;
 
+use ShugaChara\Core\Utils\Helper\ArrayHelper;
 use ShugaChara\Framework\Contracts\PoolInterface;
 use ShugaChara\Http\SwooleServerRequest;
 use ShugaChara\Swoole\EventsRegister;
+use ShugaChara\Swoole\Manager\Table;
 use ShugaChara\Swoole\Manager\Timer;
 use ShugaChara\Swoole\Server as SwooleServer;
 use ShugaChara\Swoole\SwooleHelper;
@@ -42,9 +44,22 @@ class Server extends SwooleServer
     public function registerDefaultCallback(swoole_server $server, $server_name)
     {
         if (in_array($server_name, [static::SWOOLE_HTTP_SERVER, static::SWOOLE_WEBSOCKET_SERVER])) {
-            // Registration request event
-            $this->getEventsRegister()->on(
-                $server,
+            Table::addTable('fd', [
+                'fd'    =>  ['type' => Table::TYPE_INT, 'size' => 4],
+                'reactor_id'    =>  ['type' => Table::TYPE_INT, 'size' => 4],
+            ], 5);
+            $this->getServer()->table = Table::getTable('fd');
+
+            // Register connect event
+            $this->getEventsRegister()->addEvent(
+                EventsRegister::onConnect,
+                function (swoole_server $server, int $fd, int $reactorId) {
+                    $server->table->set('fd', ['fd' => $fd, 'reactor_id' => $reactorId]);
+                }
+            );
+
+            // Register request event
+            $this->getEventsRegister()->addEvent(
                 EventsRegister::onRequest,
                 function (swoole_http_request $swooleRequest, swoole_http_response $swooleResponse) use ($server) {
                     // Transfer Swoole request object
@@ -103,11 +118,27 @@ class Server extends SwooleServer
                 }
             );
 
-            // Register onTask event
-            $this->getEventsRegister()->addEvent(EventsRegister::onTask, function (swoole_server $serv, int $task_id, int $src_worker_id, mixed $data) {
-                // ...To be filled
-            });
+            // Register the default onTask event
+            $this->getEventsRegister()->addEvent(EventsRegister::onTask, function (swoole_server $serv, int $task_id, int $src_worker_id, mixed $data) {});
         }
+    }
+
+    /**
+     * Get connected file descriptor
+     * @return int
+     */
+    public function getFd(): int
+    {
+        return (int) ArrayHelper::get($this->getServer()->table->get('fd'), 'fd', 0);
+    }
+
+    /**
+     * Get reactor thread ID of the connection
+     * @return int
+     */
+    public function getReactorId(): int
+    {
+        return (int) ArrayHelper::get($this->getServer()->table->get('fd'), 'reactor_id', 0);
     }
 }
 

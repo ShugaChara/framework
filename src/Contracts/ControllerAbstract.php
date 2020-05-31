@@ -38,10 +38,13 @@ abstract class ControllerAbstract
      */
     final public function __construct()
     {
+        // Set request
         $this->request = fn()->request();
 
+        // Set response
         $this->response = fn()->response();
 
+        // initialize controller
         $this->initialize();
     }
 

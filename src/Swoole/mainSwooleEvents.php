@@ -23,6 +23,10 @@ use swoole_server;
  */
 class MainSwooleEvents implements MainSwooleEventsInterface
 {
+    /**
+     * Initialize action
+     * @return mixed|void
+     */
     public function initialize()
     {
         // TODO: Implement initialize() method.

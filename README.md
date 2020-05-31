@@ -1,4 +1,4 @@
-# Swoole WebAPI Framework
+# Swoole WebAPI Framework  (兼容php-fpm)
 
 [![GitHub release](https://img.shields.io/github/release/shugachara/framework.svg)](https://github.com/shugachara/framework/releases)
 [![PHP version](https://img.shields.io/badge/php-%3E%207-orange.svg)](https://github.com/php/php-src)
