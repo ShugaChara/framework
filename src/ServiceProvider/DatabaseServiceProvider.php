@@ -30,7 +30,7 @@ class DatabaseServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        if ($databases = fn()->c()->get('databases')) {
+        if ($databases = fnc()->c()->get('databases')) {
             $container->add('databases', new DatabasesPool($databases));
         }
     }

@@ -14,14 +14,14 @@ namespace ShugaChara\Framework\Contracts;
 use Exception;
 
 /**
- * 抛出异常结果集
+ * Throw exception result set
  * Interface ThrowExceptionReturnInterface
  * @package ShugaChara\Framework\Contracts
  */
 interface ThrowExceptionReturnInterface
 {
     /**
-     * 返回抛出异常结果集
+     * Return the result set that throws an exception
      * @param Exception $exception
      * @return mixed
      */

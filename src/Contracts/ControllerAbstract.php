@@ -39,10 +39,10 @@ abstract class ControllerAbstract
     final public function __construct()
     {
         // Set request
-        $this->request = fn()->request();
+        $this->request = fnc()->request();
 
         // Set response
-        $this->response = fn()->response();
+        $this->response = fnc()->response();
 
         // initialize controller
         $this->initialize();
@@ -85,7 +85,7 @@ abstract class ControllerAbstract
      */
     final public function validator(): Validator
     {
-        return fn()->validator();
+        return fnc()->validator();
     }
 
     /**

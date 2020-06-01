@@ -23,7 +23,7 @@ trait Application
      */
     public function getName()
     {
-        return fn()->c()->get('app_name', '');
+        return fnc()->c()->get('app_name', '');
     }
 
     /**
@@ -32,7 +32,7 @@ trait Application
      */
     public function getVersion()
     {
-        return fn()->c()->get('app_version', 'v1.0.0');
+        return fnc()->c()->get('app_version', 'v1.0.0');
     }
 
     /**

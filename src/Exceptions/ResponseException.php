@@ -15,7 +15,7 @@ use Exception;
 use ShugaChara\Framework\Contracts\ThrowExceptionReturnInterface;
 
 /**
- * 用于接口response响应错误
+ * Used for interface response error
  * Class ResponseException
  * @package ShugaChara\Framework\Exceptions
  */
@@ -29,7 +29,7 @@ class ResponseException implements ThrowExceptionReturnInterface
     {
         // TODO: Implement getReturn() method.
 
-        return (fn()->c()->get('is_debug') == 'true') ?
+        return (fnc()->c()->get('is_debug') == 'true') ?
             DebugLogsException::getReturn($exception)
             : null;
     }

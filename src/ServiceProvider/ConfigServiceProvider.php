@@ -30,10 +30,10 @@ class ConfigServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        // 将配置服务注册到容器
+        // Register the configuration service to the container
         $container->add('c', new FileConfig());
 
-        // 加载基础配置
+        // Load basic configuration
         foreach (
             [
                 dirname(dirname(__DIR__)) . '/c.php'

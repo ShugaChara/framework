@@ -18,7 +18,6 @@
 namespace ShugaChara\Framework;
 
 use Exception;
-use ShugaChara\Framework\Http\Request;
 use Throwable;
 use ErrorException;
 use Psr\Http\Message\ServerRequestInterface;
@@ -28,6 +27,7 @@ use ShugaChara\Framework\Components\Alias;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Exceptions\DebugLogsException;
 use ShugaChara\Framework\Exceptions\ResponseException;
+use ShugaChara\Framework\Http\Request;
 use ShugaChara\Framework\Http\Response;
 use ShugaChara\Framework\ServiceProvider\ConfigServiceProvider;
 use ShugaChara\Framework\Traits\Application as ApplicationTraits;
@@ -66,7 +66,7 @@ abstract class Application implements ApplicationInterface
     final public function __construct($argv = [])
     {
         // check runtime env
-        fn()->checkRuntime();
+        fnc()->checkRuntime();
 
         // set root directory
         $this->setRootDirectory();
@@ -106,10 +106,10 @@ abstract class Application implements ApplicationInterface
         }
 
         // load service providers
-        $this->registerServiceProviders(fn()->c()->get('service_providers'));
+        $this->registerServiceProviders(fnc()->c()->get('service_providers'));
 
         // set timezone
-        date_default_timezone_set(fn()->c()->get('timezone', 'PRC'));
+        date_default_timezone_set(fnc()->c()->get('timezone', 'PRC'));
 
         // register response
         container()->add('response', new Response());
@@ -123,7 +123,7 @@ abstract class Application implements ApplicationInterface
      */
     protected function registerExceptionHandler()
     {
-        $level = fn()->c()->get('error_reporting');
+        $level = fnc()->c()->get('error_reporting');
         error_reporting($level);
 
         set_exception_handler([$this, 'handleException']);
@@ -160,7 +160,7 @@ abstract class Application implements ApplicationInterface
             ];
         }
 
-        fn()->logs()->error($e->getMessage(), $trace);
+        fnc()->logs()->error($e->getMessage(), $trace);
 
         $status = ($e instanceof HttpException) ? $e->getStatusCode() : $e->getCode();
 
@@ -168,7 +168,7 @@ abstract class Application implements ApplicationInterface
             $status = Response::HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        $resposne = fn()->response()->api(ResponseException::getReturn($e), $status);
+        $resposne = fnc()->response()->api(ResponseException::getReturn($e), $status);
         if (! $this->isExecute()) {
             return $this->handleResponse($resposne);
         }
@@ -187,8 +187,8 @@ abstract class Application implements ApplicationInterface
         try {
             container()->add('request', $request);
 
-            if ((! (($response = fn()->routerDispatcher()->dispatch($request)) instanceof Response))) {
-                return fn()->response()->json($response);
+            if ((! (($response = fnc()->routerDispatcher()->dispatch($request)) instanceof Response))) {
+                return fnc()->response()->json($response);
             }
 
             return $response;
@@ -233,7 +233,7 @@ abstract class Application implements ApplicationInterface
 
         // swoole server
         if (Alias::get('argv')) {
-            fn()->console()->run();
+            fnc()->console()->run();
         }
 
         // php-fpm

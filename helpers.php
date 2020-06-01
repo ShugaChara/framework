@@ -17,7 +17,7 @@ if (! function_exists('fn')) {
      * Get the FHelper method package
      * @return FHelper
      */
-    function fn()
+    function fnc()
     {
         return FHelper::getInstance();
     }

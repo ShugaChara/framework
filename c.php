@@ -62,7 +62,7 @@ return [
     // Routing configuration
     'router'    =>  [
         //  Directory path
-        'path'      =>  fn()->app()->getRootDirectory() . '/router/',
+        'path'      =>  fnc()->app()->getRootDirectory() . '/router/',
         //  Routing file suffix
         'ext'       =>  '.php',
     ],
@@ -70,7 +70,7 @@ return [
     // Log configuration
     'logs'      =>  [
         //  Directory path
-        'path'      =>  fn()->app()->getRootDirectory() . '/runtime/logs/',
+        'path'      =>  fnc()->app()->getRootDirectory() . '/runtime/logs/',
         //  Maximum number of files
         'maxFiles'  =>  30,
         //  Log file suffix
@@ -120,7 +120,7 @@ return [
         // Main event monitoring class
         'main_events'   =>  MainSwooleEvents::class,
         'processor' =>  [
-            'pid_path'  =>  fn()->app()->getRootDirectory() . '/processes',
+            'pid_path'  =>  fnc()->app()->getRootDirectory() . '/processes',
         ],
         'http' => [
             'host' => '127.0.0.1',
@@ -128,12 +128,13 @@ return [
             'setting' => [
                 'worker_num' => 8,
                 'task_worker_num' => 8,
-                'task_tmpdir' => fn()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/task',
-                'log_file' => fn()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '.log',
-                'pid_file' => fn()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '.pid',
+                'task_tmpdir' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/task',
+                'log_file' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '.log',
+                'pid_file' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '.pid',
                 'daemonize' => false,
                 'backlog' => 128,
                 'open_cpu_affinity' => true,
+                'dispatch_mode' => 2
             ]
         ],
     ]

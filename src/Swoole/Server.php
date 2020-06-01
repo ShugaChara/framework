@@ -17,11 +17,9 @@
 
 namespace ShugaChara\Framework\Swoole;
 
-use ShugaChara\Core\Utils\Helper\ArrayHelper;
 use ShugaChara\Framework\Contracts\PoolInterface;
 use ShugaChara\Http\SwooleServerRequest;
 use ShugaChara\Swoole\EventsRegister;
-use ShugaChara\Swoole\Manager\Table;
 use ShugaChara\Swoole\Manager\Timer;
 use ShugaChara\Swoole\Server as SwooleServer;
 use ShugaChara\Swoole\SwooleHelper;
@@ -37,6 +35,18 @@ use swoole_websocket_server;
 class Server extends SwooleServer
 {
     /**
+     * connected file descriptor
+     * @var int
+     */
+    protected $fd = 0;
+
+    /**
+     * reactor thread ID of the connection
+     * @var int
+     */
+    protected $reactorId = 0;
+
+    /**
      * Register the default callback
      * @param swoole_server $server
      * @param               $server_name
@@ -44,17 +54,12 @@ class Server extends SwooleServer
     public function registerDefaultCallback(swoole_server $server, $server_name)
     {
         if (in_array($server_name, [static::SWOOLE_HTTP_SERVER, static::SWOOLE_WEBSOCKET_SERVER])) {
-            Table::addTable('fd', [
-                'fd'    =>  ['type' => Table::TYPE_INT, 'size' => 4],
-                'reactor_id'    =>  ['type' => Table::TYPE_INT, 'size' => 4],
-            ], 5);
-            $this->getServer()->table = Table::getTable('fd');
-
             // Register connect event
             $this->getEventsRegister()->addEvent(
                 EventsRegister::onConnect,
                 function (swoole_server $server, int $fd, int $reactorId) {
-                    $server->table->set('fd', ['fd' => $fd, 'reactor_id' => $reactorId]);
+                    $this->setFd($fd);
+                    $this->setReactorId($reactorId);
                 }
             );
 
@@ -64,7 +69,7 @@ class Server extends SwooleServer
                 function (swoole_http_request $swooleRequest, swoole_http_response $swooleResponse) use ($server) {
                     // Transfer Swoole request object
                     $request = SwooleServerRequest::createServerRequestFromSwoole($swooleRequest);
-                    $response = fn()->app()->handleRequest($request);
+                    $response = fnc()->app()->handleRequest($request);
                     foreach ($response->getHeaders() as $key => $header) {
                         $swooleResponse->header($key, $response->getHeaderLine($key));
                     }
@@ -96,7 +101,7 @@ class Server extends SwooleServer
                 EventsRegister::onWorkerStart,
                 function (swoole_server $server, $workerId) use ($server_name) {
                     if(PHP_OS != 'Darwin'){
-                        if( ($workerId < fn()->c()->get('swoole.' . $server_name . '.setting.worker_num')) && $workerId >= 0){
+                        if( ($workerId < fnc()->c()->get('swoole.' . $server_name . '.setting.worker_num')) && $workerId >= 0){
                             SwooleHelper::setProcessRename(("{$server_name}.Worker.{$workerId}"));
                         }
                     }
@@ -124,12 +129,30 @@ class Server extends SwooleServer
     }
 
     /**
+     * Set connected file descriptor
+     * @param $fd
+     */
+    public function setFd($fd)
+    {
+        $this->fd = $fd;
+    }
+
+    /**
      * Get connected file descriptor
      * @return int
      */
     public function getFd(): int
     {
-        return (int) ArrayHelper::get($this->getServer()->table->get('fd'), 'fd', 0);
+        return $this->fd;
+    }
+
+    /**
+     * Set reactor thread ID of the connection
+     * @param $fd
+     */
+    public function setReactorId($reactorId)
+    {
+        $this->reactorId = $reactorId;
     }
 
     /**
@@ -138,7 +161,7 @@ class Server extends SwooleServer
      */
     public function getReactorId(): int
     {
-        return (int) ArrayHelper::get($this->getServer()->table->get('fd'), 'reactor_id', 0);
+        return $this->reactorId;
     }
 }
 

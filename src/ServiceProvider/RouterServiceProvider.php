@@ -32,9 +32,9 @@ class RouterServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        $router = new RouteCollection(fn()->c()->get('controller_namespace'));
+        $router = new RouteCollection(fnc()->c()->get('controller_namespace'));
 
-        $routerDispatcher = new RouteDispatcher($router, fn()->c()->get('middlewares'));
+        $routerDispatcher = new RouteDispatcher($router, fnc()->c()->get('middlewares'));
 
         // Register route
         $container->add('router', $router);
@@ -44,7 +44,7 @@ class RouterServiceProvider implements ServiceProviderInterface
 
         // Load route
         $router->group(['prefix' => '', 'middleware' => 'dispatch'], function () {
-            foreach (glob(fn()->c()->get('router.path') . '*' . fn()->c()->get('router.ext')) as $filename) {
+            foreach (glob(fnc()->c()->get('router.path') . '*' . fnc()->c()->get('router.ext')) as $filename) {
                 include $filename;
             }
         });

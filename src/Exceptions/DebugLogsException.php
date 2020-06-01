@@ -15,7 +15,7 @@ use Exception;
 use ShugaChara\Framework\Contracts\ThrowExceptionReturnInterface;
 
 /**
- * 用于错误日志记录(不作为接口response响应)
+ * Used for error logging (not as an interface response)
  * Class DebugLogsException
  * @package ShugaChara\Framework\Exceptions
  */

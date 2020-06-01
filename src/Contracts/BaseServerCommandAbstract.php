@@ -149,7 +149,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
             $swooleGetLocalIp .= 'ip@' . $eth . $val . ', ';
         }
 
-        $this->info(fn()->app()->getLogo());
+        $this->info(fnc()->app()->getLogo());
 
         $tableData = [
             [
@@ -174,7 +174,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
 
         $tableData[] = ['Running service user', $this->getServerConfig('setting.user', get_current_user())];
         $tableData[] = ['Service daemon status', $this->isDaemonize($this->getServerName()) ? 'YES' : 'NO'];
-        $tableData[] = ['Framework running version', fn()->app()->getVersion()];
+        $tableData[] = ['Framework running version', fnc()->app()->getVersion()];
         $tableData[] = ['PHP running version', phpversion()];
         $tableData[] = ['Swoole service running version', SWOOLE_VERSION];
 
@@ -307,7 +307,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     public function getServerConfig($key = null, $default = null)
     {
         if (! $this->serverConfig) {
-            if (! ($serverConfig = fn()->c()->get('swoole.' . $this->getServerName(), []))) {
+            if (! ($serverConfig = fnc()->c()->get('swoole.' . $this->getServerName(), []))) {
                 throw new Exception('Please complete the swoole configuration to start the service');
             }
 
@@ -336,7 +336,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
      */
     protected function setDaemonize(bool $value)
     {
-        fn()->c()->set('swoole.' . $this->getServerName() . '.setting.daemonize', $value);
+        fnc()->c()->set('swoole.' . $this->getServerName() . '.setting.daemonize', $value);
     }
 
     /**
@@ -364,7 +364,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
      */
     protected function getSwooleSettingPidFile()
     {
-        return $this->getServerConfig('setting.pid_file', fn()->app()->getRootDirectory() . '/tmp/' . str_replace(' ', '-', $this->getServerName()) . '.pid');
+        return $this->getServerConfig('setting.pid_file', fnc()->app()->getRootDirectory() . '/tmp/' . str_replace(' ', '-', $this->getServerName()) . '.pid');
     }
 
     /**
@@ -412,7 +412,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
      */
     protected function handleMainSwooleServerEventsCreate()
     {
-        $swooleMainEventsClass = fn()->c()->get('swoole.main_events');
+        $swooleMainEventsClass = fnc()->c()->get('swoole.main_events');
         if (class_exists($swooleMainEventsClass)) {
             try {
                 $refSwooleMainEvents = new ReflectionClass($swooleMainEventsClass);

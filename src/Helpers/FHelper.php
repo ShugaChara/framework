@@ -46,12 +46,12 @@ class FHelper
         }
 
         $conflicts = [
-            'blackfire',
             'xdebug',
-            'uopz',
+            'phptrace',
+            'aop',
+            'molten',
             'xhprof',
-            'zend',
-            'trace',
+            'phalcon',
         ];
 
         foreach ($conflicts as $ext) {
