@@ -36,6 +36,9 @@
     "shugachara/migrations": "^1.0",
     "shugachara/swoole": "dev-master"
   },
+  "conflict": {
+    "ext-xhprof": "*"
+  },
   "require-dev": {},
   "autoload": {
     "psr-4": {

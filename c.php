@@ -121,6 +121,16 @@ return [
         'main_events'   =>  MainSwooleEvents::class,
         'processor' =>  [
             'pid_path'  =>  fnc()->app()->getRootDirectory() . '/processes',
+            'list' => [],
+        ],
+        'listeners' => [
+            /*[
+                'host'  =>  '127.0.0.1',
+                'port'  =>  9999,
+                'sock_type' =>  SWOOLE_SOCK_TCP,
+                'setting'   =>  [],
+                'events'    =>  BaseListener::class,
+            ]*/
         ],
         'http' => [
             'host' => '127.0.0.1',

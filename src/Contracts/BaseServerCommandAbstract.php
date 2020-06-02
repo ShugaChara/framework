@@ -130,6 +130,12 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
             $this->getServerName()
         );
 
+        // Loading process
+        $this->getServer()->loadProcessor();
+
+        // Loading listener
+        $this->getServer()->loadListener();
+
         // Hook global mainSwooleServerEventsCreate event
         $this->handleMainSwooleServerEventsCreate();
 

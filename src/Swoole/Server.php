@@ -17,6 +17,7 @@
 
 namespace ShugaChara\Framework\Swoole;
 
+use ShugaChara\Framework\Contracts\ListenersAbstract;
 use ShugaChara\Framework\Contracts\PoolInterface;
 use ShugaChara\Http\SwooleServerRequest;
 use ShugaChara\Swoole\EventsRegister;
@@ -162,6 +163,68 @@ class Server extends SwooleServer
     public function getReactorId(): int
     {
         return $this->reactorId;
+    }
+
+    /**
+     * Loading process
+     */
+    public function loadProcessor()
+    {
+        $processes = fnc()->c()->get('swoole.processor.list', []);
+        foreach ($processes as $process) {
+            $this->getServer()->addProcess(
+                (new $process($this->getName() . ' process'))->getProcess()
+            );
+        }
+    }
+
+    /**
+     * Loading listener
+     */
+    public function loadListener()
+    {
+        $listeners = fnc()->c()->get('swoole.listeners', []);
+        foreach ($listeners as $listener) {
+            $port = $this->getServer()->addListener(
+                $listener['host'],
+                $listener['port'],
+                $listener['sock_type']
+            );
+
+            // Override the main server's settings
+            if (isset($listener['setting'])) {
+                $port->set($listener['setting']);
+            }
+
+            // Listen event registration
+            if (isset($listener['events']) && class_exists($listener['events'])) {
+                $eventsClass = new $listener['events']($port);
+                if ($eventsClass instanceof ListenersAbstract) {
+                    // Register listener events
+                    $classFunctions = get_class_methods($eventsClass);
+                    foreach ($classFunctions as $event) {
+                        if ('on' != substr($event, 0, 2)) {
+                            continue;
+                        }
+
+                        $eventsClass->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$eventsClass, $event]);
+                    }
+
+                    $events = $eventsClass->getEventsRegister()->allEvent();
+                    foreach ($events as $event => $callback){
+                        $eventsClass->getEventsRegister()->on(
+                            $eventsClass->getServerPort(),
+                            $event,
+                            function (...$args) use ($callback) {
+                                foreach ($callback as $item) {
+                                    call_user_func($item, ...$args);
+                                }
+                            }
+                        );
+                    }
+                }
+            }
+        }
     }
 }
 
