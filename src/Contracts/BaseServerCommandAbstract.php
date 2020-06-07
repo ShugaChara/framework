@@ -191,6 +191,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
 
         $tableData[] = ['Running service user', $this->getServerConfig('setting.user', get_current_user())];
         $tableData[] = ['Service daemon status', $this->isDaemonize($this->getServerName()) ? 'YES' : 'NO'];
+        $tableData[] = ['Framework running name', fnc()->app()->getName()];
         $tableData[] = ['Framework running version', fnc()->app()->getVersion()];
         $tableData[] = ['PHP running version', phpversion()];
         $tableData[] = ['Swoole service running version', SWOOLE_VERSION];
@@ -486,7 +487,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
                 default:
                     $sockType = 'sock_type:' . $listener['sock_type'];
             }
-            
+
             $this->line(PHP_EOL . sprintf('<info>SUCCESS</info> <info> ></info> <question>Listen</question> : <info>%s://%s:%s</info>', $sockType, $listener['host'], $listener['port']) . PHP_EOL);
         }
     }

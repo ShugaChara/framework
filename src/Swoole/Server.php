@@ -170,7 +170,7 @@ class Server extends SwooleServer
      */
     public function loadProcessor()
     {
-        $processes = fnc()->c()->get('swoole.processor.list', []);
+        $processes = fnc()->c()->get('swoole.processor.swoole_list', []);
         foreach ($processes as $process) {
             $this->getServer()->addProcess(
                 (new $process($this->getName() . ' process'))->getProcess()
@@ -225,6 +225,30 @@ class Server extends SwooleServer
                 }
             }
         }
+    }
+
+    /**
+     * Get process pid path
+     * @return mixed|null
+     */
+    public function getProcessPidPath()
+    {
+        $pid_path = fnc()->c()->get('swoole.processor.pid_path');
+        if (! file_exists($pid_path)) {
+            mkdir($pid_path, 0755, true);
+        }
+
+        return $pid_path;
+    }
+
+    /**
+     * Get process pid file
+     * @param $process_name
+     * @return string
+     */
+    public function getProcessPidFile($process_name)
+    {
+        return $this->getProcessPidPath() . '/' . $process_name . '.pid';
     }
 }
 

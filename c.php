@@ -121,7 +121,8 @@ return [
         'main_events'   =>  MainSwooleEvents::class,
         'processor' =>  [
             'pid_path'  =>  fnc()->app()->getRootDirectory() . '/processes',
-            'list' => [],
+            'swoole_list' => [],
+            'fpm_list'    => []
         ],
         'listeners' => [
             /*[
