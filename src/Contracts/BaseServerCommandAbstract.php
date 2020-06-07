@@ -16,6 +16,7 @@ use ShugaChara\Core\Utils\Helper\PhpHelper;
 use Throwable;
 use ReflectionClass;
 use swoole_process;
+use swoole_server;
 use ShugaChara\Core\Utils\Helper\ArrayHelper;
 use ShugaChara\Framework\Console\Command;
 use ShugaChara\Framework\Swoole\Server;
@@ -130,6 +131,16 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
             $this->getServerName()
         );
 
+        // Register current events
+        $selfEvents = get_class_methods($this);
+        foreach ($selfEvents as $event) {
+            if ('on' != substr($event, 0, 2)) {
+                continue;
+            }
+
+            $this->getServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$this, $event]);
+        }
+
         // Loading process
         $this->getServer()->loadProcessor();
 
@@ -146,7 +157,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         }
 
         // Main process naming
-        SwooleHelper::setProcessRename($this->getMasterProcessName($this->getServerName()));
+        SwooleHelper::setProcessRename($this->getMasterProcessName());
 
         // Get the IP addresses of all network interfaces of the current machine
         $swooleGetLocalIp = '';
@@ -294,7 +305,8 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
 
     /**
      * Get service name
-     * @return mixed
+     * @return string
+     * @throws Exception
      */
     public function getServerName()
     {
@@ -453,5 +465,52 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
             $this->getServer()->getEventsRegister(),
             $this->getServer()->getServer()
         );
+    }
+
+    /**
+     * This function is called back in the main thread of the master process (master) after startup
+     * @param swoole_server $server
+     * @throws Exception
+     */
+    public function onStart(swoole_server $server)
+    {
+        $listeners = fnc()->c()->get('swoole.listeners', []);
+        foreach ($listeners as $listener) {
+            switch ($listener['sock_type']) {
+                case SWOOLE_SOCK_UDP:
+                    $sockType = 'udp';
+                    break;
+                case SWOOLE_SOCK_TCP:
+                    $sockType = 'tcp';
+                    break;
+                default:
+                    $sockType = 'sock_type:' . $listener['sock_type'];
+            }
+            
+            $this->line(PHP_EOL . sprintf('<info>SUCCESS</info> <info> ></info> <question>Listen</question> : <info>%s://%s:%s</info>', $sockType, $listener['host'], $listener['port']) . PHP_EOL);
+        }
+    }
+
+    /**
+     * This event is triggered when the management process starts
+     * @param swoole_server $server
+     * @throws Exception
+     */
+    public function onManagerStart(swoole_server $server)
+    {
+        SwooleHelper::setProcessRename($this->getServerName() . ' manager');
+        $this->line(PHP_EOL . sprintf('<info>SUCCESS</info> Server <question>Manager</question> [<info>%s</info>] is started', $server->manager_pid) . PHP_EOL);
+    }
+
+    /**
+     * This event occurs when the Worker process/Task process starts, and the objects created here can be used during the process life cycle
+     * @param swoole_server $server
+     * @param               $workerId
+     */
+    public function onWorkerStart(swoole_server $server, $workerId)
+    {
+        $worker_name = $server->taskworker ? 'task' : 'worker';
+        SwooleHelper::setProcessRename($this->getServerName() . ' ' . $worker_name);
+        $this->line(PHP_EOL . sprintf('<info>SUCCESS</info> Server <comment>%s</comment> [<info>%s</info>] is started [<info>%s</info>]', ucfirst($worker_name), $server->worker_pid, $workerId) . PHP_EOL);
     }
 }

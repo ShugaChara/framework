@@ -9,10 +9,11 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
+use Swoole\Coroutine;
 use ShugaChara\Framework\Components\Alias;
 use ShugaChara\Framework\Helpers\FHelper;
 
-if (! function_exists('fn')) {
+if (! function_exists('fnc')) {
     /**
      * Get the FHelper method package
      * @return FHelper
@@ -34,4 +35,15 @@ if (! function_exists('container')) {
     }
 }
 
+if (! function_exists('sgo')) {
+    /**
+     * Swoole coroutine shortname
+     * @param callable $func
+     * @param mixed    ...$params
+     */
+    function sgo(callable $func, ... $params)
+    {
+        return Coroutine::create($func, ... $params);
+    }
+}
 
