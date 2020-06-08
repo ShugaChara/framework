@@ -17,6 +17,7 @@
 
 namespace ShugaChara\Framework\Swoole;
 
+use ShugaChara\Core\Utils\Helper\ArrayHelper;
 use ShugaChara\Framework\Contracts\ListenersAbstract;
 use ShugaChara\Framework\Contracts\PoolInterface;
 use ShugaChara\Http\SwooleServerRequest;
@@ -24,6 +25,7 @@ use ShugaChara\Swoole\EventsRegister;
 use ShugaChara\Swoole\Manager\Timer;
 use ShugaChara\Swoole\Server as SwooleServer;
 use ShugaChara\Swoole\SwooleHelper;
+use ShugaChara\Swoole\Tools\SwooleListenRestart;
 use swoole_http_request;
 use swoole_http_response;
 use swoole_server;
@@ -125,7 +127,9 @@ class Server extends SwooleServer
             );
 
             // Register the default onTask event
-            $this->getEventsRegister()->addEvent(EventsRegister::onTask, function (swoole_server $serv, int $task_id, int $src_worker_id, mixed $data) {});
+            $this->getEventsRegister()->addEvent(EventsRegister::onTask, function (swoole_server $serv, int $task_id, int $src_worker_id, $data) {
+                $this->taskDispatcher(new Task($serv, $task_id, $src_worker_id, $data));
+            });
         }
     }
 
@@ -176,6 +180,8 @@ class Server extends SwooleServer
                 (new $process($this->getName() . ' process'))->getProcess()
             );
         }
+
+        $this->swooleHotReload();
     }
 
     /**
@@ -228,6 +234,19 @@ class Server extends SwooleServer
     }
 
     /**
+     * TaskDispatcher
+     * @param Task $task
+     */
+    public function taskDispatcher(Task $task)
+    {
+        $taskDispatcherClass = fnc()->c()->get('swoole.task.dispatcher_class');
+        $taskDispatcherClassInstance = class_exists($taskDispatcherClass) ? $taskDispatcherClass::getInstance() : null;
+        if ($taskDispatcherClassInstance) {
+            $taskDispatcherClassInstance->new($task);
+        }
+    }
+
+    /**
      * Get process pid path
      * @return mixed|null
      */
@@ -249,6 +268,29 @@ class Server extends SwooleServer
     public function getProcessPidFile($process_name)
     {
         return $this->getProcessPidPath() . '/' . $process_name . '.pid';
+    }
+
+    /**
+     * Service hot update/hot restart
+     */
+    protected function swooleHotReload()
+    {
+        $hotreload = fnc()->c()->get('swoole.hotreload');
+        if (ArrayHelper::get($hotreload, 'status', false)) {
+            $swooleListenRestart = new SwooleListenRestart(ArrayHelper::get($hotreload, 'name', 'HotReload'));
+            $swooleListenRestart->setConfig([
+                'monitorDir'     =>    ArrayHelper::get($hotreload, 'monitorDir', fnc()->app()->getRootDirectory()),
+                'monitorExt'     =>    ArrayHelper::get($hotreload, 'monitorExt', ['php']),
+                'disableInotify' =>    ArrayHelper::get($hotreload, 'disableInotify', false),
+            ]);
+
+            $swooleListenRestart->restartSwooleServer(function () {
+                // 重启操作
+                fnc()->serverChannel()->reload();
+            });
+
+            $this->getServer()->addProcess($swooleListenRestart->getProcess());
+        }
     }
 }
 

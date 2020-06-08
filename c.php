@@ -19,6 +19,7 @@ use ShugaChara\Framework\ServiceProvider\DatabaseServiceProvider;
 use ShugaChara\Framework\ServiceProvider\ValidatorServiceProvider;
 use ShugaChara\Framework\Tools\StatusCode;
 use ShugaChara\Framework\Swoole\MainSwooleEvents;
+use ShugaChara\Framework\Swoole\TaskDispatcher;
 use ShugaChara\Framework\Console\Commands\ApplicationCommand;
 use ShugaChara\Framework\Console\Commands\HttpServerCommand;
 
@@ -119,6 +120,22 @@ return [
     'swoole'    =>  [
         // Main event monitoring class
         'main_events'   =>  MainSwooleEvents::class,
+        // Hot update/restart configuration
+        'hotreload'     =>  [
+            //  Startup state
+            'status'        =>  false,
+            //  Process name
+            'name'          =>  'HotReload',
+            //  Designated directory
+            'monitorDir'    =>  fnc()->app()->getRootDirectory(),
+            //  File extension
+            'monitorExt'    =>  ['php'],
+            //  Whether to open inotify
+            'disableInotify'=>  false,
+        ],
+        'task'  =>  [
+            'dispatcher_class'  =>  TaskDispatcher::class
+        ],
         'processor' =>  [
             'pid_path'  =>  fnc()->app()->getRootDirectory() . '/processes',
             'swoole_list' => [],
