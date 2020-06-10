@@ -164,7 +164,7 @@ class ProcessorCommand extends Command implements StatusManagerInterface
             $info[1]
         ];
 
-        $this->table(
+        $this->getIO()->table(
             [
                 'NAME', 'CLASS', 'STATUS', 'PID'
             ],
@@ -182,10 +182,10 @@ class ProcessorCommand extends Command implements StatusManagerInterface
 
         $pid = $this->process->getProcessor()->start();
         file_put_contents($this->pid_file, $pid);
-        $this->info(sprintf('process <info>%s</info> PID: <info>%s</info>', $this->process_name, $pid));
-        $this->info(sprintf('PID: <info>%s</info>', $this->pid_file));
+        $this->getIO()->success(sprintf('process <info>%s</info> PID: <info>%s</info>', $this->process_name, $pid));
+        $this->getIO()->success(sprintf('PID: <info>%s</info>', $this->pid_file));
         $this->process->getProcessor()->wait(true, function ($ret) {
-            $this->info(sprintf('process: %s. PID: %s exit. code: %s. signal: %s', $this->process_name, $ret['pid'], $ret['code'], $ret['signal']));
+            $this->getIO()->success(sprintf('process: %s. PID: %s exit. code: %s. signal: %s', $this->process_name, $ret['pid'], $ret['code'], $ret['signal']));
         });
     }
 
@@ -198,7 +198,7 @@ class ProcessorCommand extends Command implements StatusManagerInterface
 
         $pid = (int) file_get_contents($this->pid_file);
         if ($this->process->getProcessor()->kill($pid, SIGTERM)) {
-            $this->info(sprintf('process %s PID %s is killed', $this->process_name, $pid));
+            $this->getIO()->success(sprintf('process %s PID %s is killed', $this->process_name, $pid));
         }
     }
 
@@ -232,7 +232,7 @@ class ProcessorCommand extends Command implements StatusManagerInterface
             $rows[] = $this->getProcessInfo($name);
         }
 
-        $this->table(
+        $this->getIO()->table(
             [
                 'PROCESS', 'PID', 'STATUS', 'START AT', 'RUNTIME'
             ],

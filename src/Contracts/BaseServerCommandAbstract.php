@@ -13,6 +13,7 @@ namespace ShugaChara\Framework\Contracts;
 
 use Exception;
 use ShugaChara\Core\Utils\Helper\PhpHelper;
+use Symfony\Component\Console\Helper\TableSeparator;
 use Throwable;
 use ReflectionClass;
 use swoole_process;
@@ -105,7 +106,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         // Get server status info
         $this->getSwooleServerStatusInfo();
 
-        return $this->info($this->getServerName() . ' service started' . PHP_EOL);
+        return $this->getIO()->success($this->getServerName() . ' service started');
     }
 
     /**
@@ -166,44 +167,57 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
             $swooleGetLocalIp .= 'ip@' . $eth . $val . ', ';
         }
 
-        $this->info(fnc()->app()->getLogo());
+        if ($appLogo = fnc()->app()->getLogo()) {
+            $this->getIO()->text('<info>' . fnc()->app()->getLogo() . '</info>');
+        }
+
+        $tableSeparator = new TableSeparator();
+
+        $this->getTable()->setHeaders(['NAME', 'VALUE']);
 
         $tableData = [
+            $tableSeparator,
             [
-                'Main service name', $this->getServerName()
+                '<info>Main service name</info>', '<comment>' . $this->getServerName() . '</comment>'
             ],
+            $tableSeparator,
             [
-                'Service monitoring address', $this->getServerConfig('host', '0.0.0.0')
+                '<info>Service monitoring address</info>', '<comment>' . $this->getServerConfig('host', '0.0.0.0') . '</comment>'
             ],
+            $tableSeparator,
             [
-                'Service listening port', $this->getServerConfig('port')
+                '<info>Service listening port</info>', '<comment>' . $this->getServerConfig('port') . '</comment>'
             ],
+            $tableSeparator,
             [
-                'IP addresses of all network interfaces of the current machine', $swooleGetLocalIp
+                '<info>IP addresses of all network interfaces of the current machine</info>', '<comment>' . $swooleGetLocalIp . '</comment>'
             ],
+            $tableSeparator,
         ];
 
         foreach ($this->getServerConfig('setting', []) as $key => $datum) {
             $countSetting = count($tableData);
-            $tableData[$countSetting][0] = $key;
-            $tableData[$countSetting][1] = (string) $datum;
+            $tableData[$countSetting][0] = '<info>' . $key . '</info>';
+            $tableData[$countSetting][1] = '<comment>' . (string) $datum . '</comment>';
+            $tableData[] = $tableSeparator;
         }
 
-        $tableData[] = ['Running service user', $this->getServerConfig('setting.user', get_current_user())];
-        $tableData[] = ['Service daemon status', $this->isDaemonize($this->getServerName()) ? 'YES' : 'NO'];
-        $tableData[] = ['Framework running name', fnc()->app()->getName()];
-        $tableData[] = ['Framework running version', fnc()->app()->getVersion()];
-        $tableData[] = ['PHP running version', phpversion()];
-        $tableData[] = ['Swoole service running version', SWOOLE_VERSION];
+        $tableData[] = ['<info>Running service user</info>', '<comment>' . $this->getServerConfig('setting.user', get_current_user()) . '</comment>'];
+        $tableData[] = $tableSeparator;
+        $tableData[] = ['<info>Service daemon status</info>', '<comment>' . ($this->isDaemonize($this->getServerName()) ? 'YES' : 'NO') . '</comment>'];
+        $tableData[] = $tableSeparator;
+        $tableData[] = ['<info>Framework running name</info>', '<comment>' . fnc()->app()->getName() . '</comment>'];
+        $tableData[] = $tableSeparator;
+        $tableData[] = ['<info>Framework running version</info>', '<comment>' . fnc()->app()->getVersion() . '</comment>'];
+        $tableData[] = $tableSeparator;
+        $tableData[] = ['<info>PHP running version</info>','<comment>' .  phpversion() . '</comment>'];
+        $tableData[] = $tableSeparator;
+        $tableData[] = ['<info>Swoole service running version</info>', '<comment>' . SWOOLE_VERSION . '</comment>'];
+        $tableData[] = $tableSeparator;
 
-        $this->table(
-            [
-                'NAME', 'VALUE'
-            ],
-            $tableData
-        );
+        $this->getTable()->addRows($tableData);
 
-        $this->info(PHP_EOL);
+        $this->getTable()->setStyle('borderless')->render();
 
         // Register callback event
         $this->getServer()->start();
@@ -235,7 +249,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
                     if (is_file($pidFile)) {
                         unlink($pidFile);
                     }
-                    return $this->info('Service stop time : ' . date('Y-m-d H:i:s') . PHP_EOL);
+                    return $this->getIO()->success('Service stop time : ' . date('Y-m-d H:i:s'));
                     break;
                 } else {
                     if (time() - $time > 15) {
@@ -268,7 +282,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
                 throw new Exception("Service PID : {$pid} does not exist ");
             }
             swoole_process::kill($pid, SIGUSR1);
-            return $this->info('Service PID: ' . $pid . ' send notification overload service to all worker processes, the command is executed on ' . date('Y-m-d H:i:s') . PHP_EOL);
+            return $this->getIO()->success('Service PID: ' . $pid . ' send notification overload service to all worker processes, the command is executed on ' . date('Y-m-d H:i:s') . PHP_EOL);
         }
 
         throw new Exception('Service PID file does not exist, please check if it is running in daemon mode!');
@@ -284,6 +298,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         // TODO: Implement restart() method.
 
         $this->stop();
+
         $this->start();
     }
 
@@ -421,7 +436,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
             $rows[$key] = array_combine($headers, $value);
         }
 
-        $this->table($headers, $rows);
+        $this->getIO()->table($headers, $rows);
 
         unset($table, $headers, $output);
     }
@@ -488,7 +503,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
                     $sockType = 'sock_type:' . $listener['sock_type'];
             }
 
-            $this->line(PHP_EOL . sprintf('<info>SUCCESS</info> <info> ></info> <question>Listen</question> : <info>%s://%s:%s</info>', $sockType, $listener['host'], $listener['port']) . PHP_EOL);
+            $this->getIO()->title(sprintf('Listen : %s://%s:%s', $sockType, $listener['host'], $listener['port']));
         }
     }
 
@@ -500,7 +515,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     public function onManagerStart(swoole_server $server)
     {
         SwooleHelper::setProcessRename($this->getServerName() . ' manager');
-        $this->line(PHP_EOL . sprintf('<info>SUCCESS</info> Server <question>Manager</question> [<info>%s</info>] is started', $server->manager_pid) . PHP_EOL);
+        $this->getIO()->success(sprintf('Server Manager [%s] is started', $server->manager_pid));
     }
 
     /**
@@ -512,6 +527,6 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     {
         $worker_name = $server->taskworker ? 'task' : 'worker';
         SwooleHelper::setProcessRename($this->getServerName() . ' ' . $worker_name);
-        $this->line(PHP_EOL . sprintf('<info>SUCCESS</info> Server <comment>%s</comment> [<info>%s</info>] is started [<info>%s</info>]', ucfirst($worker_name), $server->worker_pid, $workerId) . PHP_EOL);
+        $this->getIO()->title(sprintf('Server %s [%s] is started [%s]', ucfirst($worker_name), $server->worker_pid, $workerId));
     }
 }
