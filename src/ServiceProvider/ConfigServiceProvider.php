@@ -16,7 +16,7 @@ use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
 
 /**
- * Configuration service
+ * 配置服务
  * Class ConfigServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
@@ -30,10 +30,10 @@ class ConfigServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        // Register the configuration service to the container
+        // 配置服务注册到容器
         $container->add('c', new FileConfig());
 
-        // Load basic configuration
+        // 加载基本配置
         foreach (
             [
                 dirname(dirname(__DIR__)) . '/c.php'

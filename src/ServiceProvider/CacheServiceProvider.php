@@ -16,7 +16,7 @@ use ShugaChara\Container\Contracts\ServiceProviderInterface;
 use ShugaChara\Framework\Pools\RedisPool;
 
 /**
- * Cache service
+ * 缓存服务
  * Class CacheServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */

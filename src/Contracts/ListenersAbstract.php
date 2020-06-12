@@ -26,7 +26,7 @@ abstract class ListenersAbstract
     private $serverPort;
 
     /**
-     * Swoole event registration
+     * Swoole 事件注册
      * @var EventsRegister
      */
     private $eventsRegister;
@@ -43,7 +43,7 @@ abstract class ListenersAbstract
     }
 
     /**
-     * Get Swoole registration event
+     * 获取 Swoole 注册事件
      *
      * @return EventsRegister
      */
@@ -53,7 +53,7 @@ abstract class ListenersAbstract
     }
 
     /**
-     * Get Swoole\Server\Port
+     * 获取 Swoole\Server\Port
      * @return Port
      */
     public function getServerPort()

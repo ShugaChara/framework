@@ -13,14 +13,13 @@ namespace ShugaChara\Framework\Contracts;
 
 use Exception;
 use ShugaChara\Core\Utils\Helper\PhpHelper;
-use Symfony\Component\Console\Helper\TableSeparator;
+use ShugaChara\Framework\Traits\Swoole;
+use ShugaChara\Framework\Traits\SwooleCommand;
 use Throwable;
 use ReflectionClass;
 use swoole_process;
 use swoole_server;
-use ShugaChara\Core\Utils\Helper\ArrayHelper;
 use ShugaChara\Framework\Console\Command;
-use ShugaChara\Framework\Swoole\Server;
 use ShugaChara\Swoole\SwooleHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -32,23 +31,7 @@ use Symfony\Component\Console\Input\InputOption;
  */
 abstract class BaseServerCommandAbstract extends Command implements StatusManagerInterface
 {
-    /**
-     * Server object
-     * @var
-     */
-    protected $server;
-
-    /**
-     * Server name
-     * @var
-     */
-    protected $serverName;
-
-    /**
-     * Server config
-     * @var
-     */
-    protected $serverConfig;
+    use Swoole, SwooleCommand;
 
     /**
      * Console configure
@@ -62,7 +45,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     }
 
     /**
-     * Init service
+     * 初始化服务
      * @param                $server_name
      * @param InputInterface $input
      * @return int
@@ -70,19 +53,19 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
      */
     protected function initServer($server_name, InputInterface $input)
     {
-        // Register server command line channel
+        // 注册服务器命令行通道
         container()->add('server_channel', $this);
 
-        // Set server name
+        // 设置服务名称
         $this->setServerName($server_name);
 
         $status = strtolower($input->getArgument('status')) ? : static::STATUS_NAME;
         $daemon = $input->hasParameterOption(['--daemon', '-d'], true) ? true : false;
         if (! in_array($status, self::STATUS_TYPES)) {
-            throw new Exception($status . ' | the service status is undefined, please check the command via --help');
+            throw new Exception($status . ' 服务状态未定义，请通过 --help 检查命令');
         }
 
-        // Service daemon
+        // 设置服务守护进程
         if ($daemon) {
             $this->setDaemonize($daemon);
         }
@@ -91,7 +74,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     }
 
     /**
-     * Get service status
+     * 获取服务状态
      * @return mixed|void
      * @throws Exception
      */
@@ -100,17 +83,17 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         // TODO: Implement status() method.
 
         if (! $this->getServerStatus()) {
-            throw new Exception($this->getServerName() . ' service not started');
+            throw new Exception($this->getServerConfigName() . ' 服务未启动');
         }
 
-        // Get server status info
+        // 获取服务状态详情
         $this->getSwooleServerStatusInfo();
 
-        return $this->getIO()->success($this->getServerName() . ' service started');
+        return $this->writelnBlock($this->getServerConfigName() . ' 服务已启动');
     }
 
     /**
-     * Service start
+     * 服务启动
      * @return mixed|void
      * @throws Exception
      */
@@ -118,113 +101,54 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     {
         // TODO: Implement start() method.
 
-        // Create server
-        $this->getServer()->createServer(
+        // 创建服务
+        $this->getSwooleServer()->createServer(
             $this->getServerName(),
             $this->getServerConfig('port'),
             $this->getServerConfig('host', '0.0.0.0'),
             $this->getServerConfig('setting', [])
         );
 
-        // Register the default callback event
-        $this->getServer()->registerDefaultCallback(
-            $this->getServer()->getServer(),
+        // 注册默认的回调事件
+        $this->getSwooleServer()->registerDefaultCallback(
+            $this->getSwooleServer()->getServer(),
             $this->getServerName()
         );
 
-        // Register current events
+        // 注册当前类回调事件
         $selfEvents = get_class_methods($this);
         foreach ($selfEvents as $event) {
             if ('on' != substr($event, 0, 2)) {
                 continue;
             }
 
-            $this->getServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$this, $event]);
+            $this->getSwooleServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$this, $event]);
         }
 
-        // Loading process
-        $this->getServer()->loadProcessor();
+        // 加载进程
+        $this->getSwooleServer()->loadProcessor();
 
-        // Loading listener
-        $this->getServer()->loadListener();
+        // 加载监听
+        $this->getSwooleServer()->loadListener();
 
-        // Hook global mainSwooleServerEventsCreate event
+        // 注册全局 Hook mainSwooleServerEventsCreate 事件
         $this->handleMainSwooleServerEventsCreate();
 
-        // Pid process file
-        $pidFile = $this->getSwooleSettingPidFile();
-        if (! file_exists($dir = dirname($pidFile))) {
-            mkdir($dir, 0755, true);
-        }
+        // 进程 PID 文件
+        $this->createSwooleSettingPidDir();
 
-        // Main process naming
+        // 设置主进程名称
         SwooleHelper::setProcessRename($this->getMasterProcessName());
 
-        // Get the IP addresses of all network interfaces of the current machine
-        $swooleGetLocalIp = '';
-        $ips = swoole_get_local_ip();
-        foreach ($ips as $eth => $val){
-            $swooleGetLocalIp .= 'ip@' . $eth . $val . ', ';
-        }
+        // 打印服务信息
+        $this->serverInfo();
 
-        if ($appLogo = fnc()->app()->getLogo()) {
-            $this->getIO()->text('<info>' . fnc()->app()->getLogo() . '</info>');
-        }
-
-        $tableSeparator = new TableSeparator();
-
-        $this->getTable()->setHeaders(['NAME', 'VALUE']);
-
-        $tableData = [
-            $tableSeparator,
-            [
-                '<info>Main service name</info>', '<comment>' . $this->getServerName() . '</comment>'
-            ],
-            $tableSeparator,
-            [
-                '<info>Service monitoring address</info>', '<comment>' . $this->getServerConfig('host', '0.0.0.0') . '</comment>'
-            ],
-            $tableSeparator,
-            [
-                '<info>Service listening port</info>', '<comment>' . $this->getServerConfig('port') . '</comment>'
-            ],
-            $tableSeparator,
-            [
-                '<info>IP addresses of all network interfaces of the current machine</info>', '<comment>' . $swooleGetLocalIp . '</comment>'
-            ],
-            $tableSeparator,
-        ];
-
-        foreach ($this->getServerConfig('setting', []) as $key => $datum) {
-            $countSetting = count($tableData);
-            $tableData[$countSetting][0] = '<info>' . $key . '</info>';
-            $tableData[$countSetting][1] = '<comment>' . (string) $datum . '</comment>';
-            $tableData[] = $tableSeparator;
-        }
-
-        $tableData[] = ['<info>Running service user</info>', '<comment>' . $this->getServerConfig('setting.user', get_current_user()) . '</comment>'];
-        $tableData[] = $tableSeparator;
-        $tableData[] = ['<info>Service daemon status</info>', '<comment>' . ($this->isDaemonize($this->getServerName()) ? 'YES' : 'NO') . '</comment>'];
-        $tableData[] = $tableSeparator;
-        $tableData[] = ['<info>Framework running name</info>', '<comment>' . fnc()->app()->getName() . '</comment>'];
-        $tableData[] = $tableSeparator;
-        $tableData[] = ['<info>Framework running version</info>', '<comment>' . fnc()->app()->getVersion() . '</comment>'];
-        $tableData[] = $tableSeparator;
-        $tableData[] = ['<info>PHP running version</info>','<comment>' .  phpversion() . '</comment>'];
-        $tableData[] = $tableSeparator;
-        $tableData[] = ['<info>Swoole service running version</info>', '<comment>' . SWOOLE_VERSION . '</comment>'];
-        $tableData[] = $tableSeparator;
-
-        $this->getTable()->addRows($tableData);
-
-        $this->getTable()->setStyle('borderless')->render();
-
-        // Register callback event
-        $this->getServer()->start();
+        // 服务启动
+        $this->getSwooleServer()->start();
     }
 
     /**
-     * Service stop
+     * 服务停止
      * @return mixed|void
      * @throws Exception
      */
@@ -236,7 +160,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         if (file_exists($pidFile)) {
             $pid = intval(file_get_contents($pidFile));
             if (! swoole_process::kill($pid, 0)) {
-                throw new Exception("Service PID : {$pid} does not exist ");
+                throw new Exception("服务 PID : {$pid} 不存在 ");
             }
 
             swoole_process::kill($pid);
@@ -249,24 +173,24 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
                     if (is_file($pidFile)) {
                         unlink($pidFile);
                     }
-                    return $this->getIO()->success('Service stop time : ' . date('Y-m-d H:i:s'));
+                    return $this->writelnBlock('服务停止时间 : ' . date('Y-m-d H:i:s'));
                     break;
                 } else {
                     if (time() - $time > 15) {
-                        throw new Exception('Service stop failed , try : please try to force stop the service');
+                        throw new Exception('服务停止失败 , 异常：请尝试强制停止服务或kill进程');
                         break;
                     }
                 }
             }
 
-            throw new Exception('Service stop failed');
+            throw new Exception('服务停止失败');
         }
 
-        throw new Exception('Service PID file does not exist, please check if it is running in daemon mode!');
+        throw new Exception('服务PID文件不存在，请检查它是否在守护程序模式下运行！');
     }
 
     /**
-     * Service reload
+     * 服务平滑加载
      * @return mixed|void
      * @throws Exception
      */
@@ -279,17 +203,18 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
             PhpHelper::opCacheClear();
             $pid = file_get_contents($pidFile);
             if (! swoole_process::kill($pid, 0)) {
-                throw new Exception("Service PID : {$pid} does not exist ");
+                throw new Exception("服务 PID : {$pid} 不存在");
             }
             swoole_process::kill($pid, SIGUSR1);
-            return $this->getIO()->success('Service PID: ' . $pid . ' send notification overload service to all worker processes, the command is executed on ' . date('Y-m-d H:i:s') . PHP_EOL);
+            $this->writelnBlock('服务 PID: ' . $pid . ' 正在向所有工作进程发送平滑加载通知服务, 于 ' . date('Y-m-d H:i:s') . ' 完成加载');
+            return ;
         }
 
-        throw new Exception('Service PID file does not exist, please check if it is running in daemon mode!');
+        throw new Exception('服务PID文件不存在，请检查它是否在守护程序模式下运行！');
     }
 
     /**
-     * Service restart
+     * 服务重启
      * @return mixed|void
      * @throws Exception
      */
@@ -303,113 +228,14 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     }
 
     /**
-     * Set service name
-     * @param $server_name
-     */
-    public function setServerName($server_name)
-    {
-        if (in_array($server_name, [
-            Server::SWOOLE_HTTP_SERVER,
-            Server::SWOOLE_WEBSOCKET_SERVER,
-            Server::SWOOLE_SERVER
-        ])) {
-            return $this->serverName = $server_name;
-        }
-
-        throw new Exception('Could not find it ' . $server_name . ' service');
-    }
-
-    /**
-     * Get service name
-     * @return string
-     * @throws Exception
-     */
-    public function getServerName()
-    {
-        if (! $this->serverName) {
-            throw new Exception('Please set Swoole service name first');
-        }
-
-        return $this->serverName;
-    }
-
-    /**
-     * Get Swoole configuration
-     * @return array
-     * @throws Exception
-     */
-    public function getServerConfig($key = null, $default = null)
-    {
-        if (! $this->serverConfig) {
-            if (! ($serverConfig = fnc()->c()->get('swoole.' . $this->getServerName(), []))) {
-                throw new Exception('Please complete the swoole configuration to start the service');
-            }
-
-            $this->serverConfig = $serverConfig;
-        }
-
-        return ArrayHelper::get($this->serverConfig, $key, $default);
-    }
-
-    /**
-     * Swoole service manager object
-     * @return Server
-     */
-    public function getServer(): Server
-    {
-        if (! $this->server instanceof Server) {
-            $this->server = new Server();
-        }
-
-        return $this->server;
-    }
-
-    /**
-     * Set up the swoole daemon
-     * @param bool $value
-     */
-    protected function setDaemonize(bool $value)
-    {
-        fnc()->c()->set('swoole.' . $this->getServerName() . '.setting.daemonize', $value);
-    }
-
-    /**
-     * Whether daemon mode
-     * @return bool
-     */
-    public function isDaemonize(): bool
-    {
-        return (bool) $this->getServerConfig('setting.daemonize', false);
-    }
-
-    /**
-     * Get the main process name
-     * @param $server_name
-     * @return string
-     */
-    public function getMasterProcessName()
-    {
-        return $this->getServerName() . ' master';
-    }
-
-    /**
-     * Get Swoole configuration pid_file file
-     * @return string
-     */
-    protected function getSwooleSettingPidFile()
-    {
-        return $this->getServerConfig('setting.pid_file', fnc()->app()->getRootDirectory() . '/tmp/' . str_replace(' ', '-', $this->getServerName()) . '.pid');
-    }
-
-    /**
-     * Get service running status
+     * 获取服务运行状态
      * @return bool
      */
     protected function getServerStatus()
     {
         $pidFile = $this->getSwooleSettingPidFile();
         if (file_exists($pidFile)) {
-            // Send a signal to the process, success indicates that it is in a running state
+            // 向进程发送信号，成功表示它处于运行状态
             return posix_kill(intval(file_get_contents($pidFile)), 0);
         }
 
@@ -421,16 +247,15 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     }
 
     /**
-     * Get Swoole service status information
+     * 获取Swoole服务状态信息
      */
     protected function getSwooleServerStatusInfo()
     {
-        exec("ps axu | grep '{$this->getServerName()}' | grep -v grep", $output);
+        exec("ps axu | grep '{$this->getServerConfigName()}' | grep -v grep", $output);
 
-        // list all process
-        $rows = SwooleHelper::getAllProcess($this->getServerName());
+        // 进程列表
+        $rows = SwooleHelper::getAllProcess($this->getServerConfigName());
 
-        // combine
         $headers = ['USER', 'PID', 'RSS', 'STAT', 'START', 'COMMAND'];
         foreach ($rows as $key => $value) {
             $rows[$key] = array_combine($headers, $value);
@@ -442,7 +267,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     }
 
     /**
-     * Handle the global mainSwooleServerEventsCreate event
+     * 处理全局 mainSwooleServerEventsCreate 事件
      */
     protected function handleMainSwooleServerEventsCreate()
     {
@@ -451,40 +276,40 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
             try {
                 $refSwooleMainEvents = new ReflectionClass($swooleMainEventsClass);
                 if(! $refSwooleMainEvents->implementsInterface(MainSwooleEventsInterface::class)){
-                    throw new Exception('Global file of MainSwooleEventsInterface is not compatible ' . $swooleMainEventsClass);
+                    throw new Exception('MainSwooleEventsInterface 的全局文件不兼容 ' . $swooleMainEventsClass);
                 }
                 unset($refSwooleMainEvents);
             } catch (Throwable $throwable){
                 throw new Exception($throwable->getMessage());
             }
         } else {
-            throw new Exception('Global event file is missing');
+            throw new Exception('缺少全局事件文件');
         }
 
         $class = new $swooleMainEventsClass();
 
-        // init swoole handle
+        // 初始化处理
         $class->initialize();
 
-        // Register main swoole events
+        // 注册 Swoole 事件
         $classFunctions = get_class_methods($class);
         foreach ($classFunctions as $event) {
             if ('on' != substr($event, 0, 2)) {
                 continue;
             }
 
-            $this->getServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$class, $event]);
+            $this->getSwooleServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$class, $event]);
         }
 
-        // init swoole event handle
+        // Swoole 处理
         $class->mainSwooleServerEventsCreate(
-            $this->getServer()->getEventsRegister(),
-            $this->getServer()->getServer()
+            $this->getSwooleServer()->getEventsRegister(),
+            $this->getSwooleServer()->getServer()
         );
     }
 
     /**
-     * This function is called back in the main thread of the master process (master) after startup
+     * 启动后在主进程（master）的主线程中调用此函数
      * @param swoole_server $server
      * @throws Exception
      */
@@ -503,30 +328,40 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
                     $sockType = 'sock_type:' . $listener['sock_type'];
             }
 
-            $this->getIO()->title(sprintf('Listen : %s://%s:%s', $sockType, $listener['host'], $listener['port']));
+            $this->getIO()->title('<ft-red-bold>' . sprintf('Listen : %s://%s:%s', $sockType, $listener['host'], $listener['port']) . '</ft-red-bold>');
         }
     }
 
     /**
-     * This event is triggered when the management process starts
+     * 当管理进程启动时触发此事件
      * @param swoole_server $server
      * @throws Exception
      */
     public function onManagerStart(swoole_server $server)
     {
-        SwooleHelper::setProcessRename($this->getServerName() . ' manager');
-        $this->getIO()->success(sprintf('Server Manager [%s] is started', $server->manager_pid));
+        SwooleHelper::setProcessRename($this->getServerConfigName() . ' manager');
+        $this->writelnBlock(sprintf('服务管理 PID [%s] 已经启动', $server->manager_pid));
     }
 
     /**
-     * This event occurs when the Worker process/Task process starts, and the objects created here can be used during the process life cycle
+     * 事件在 Worker 进程 / Task 进程启动时发生，这里创建的对象可以在进程生命周期内使用
      * @param swoole_server $server
      * @param               $workerId
      */
     public function onWorkerStart(swoole_server $server, $workerId)
     {
         $worker_name = $server->taskworker ? 'task' : 'worker';
-        SwooleHelper::setProcessRename($this->getServerName() . ' ' . $worker_name);
-        $this->getIO()->title(sprintf('Server %s [%s] is started [%s]', ucfirst($worker_name), $server->worker_pid, $workerId));
+        $tag = '%s';
+        switch ($worker_name) {
+            case 'task':
+                $tag = '<bf-yellow>%s</bf-yellow>';
+                break;
+            case 'worker':
+                $tag = '<bf-blue>%s</bf-blue>';
+                break;
+            default:
+        }
+        SwooleHelper::setProcessRename($this->getServerConfigName() . ' ' . $worker_name);
+        $this->getIO()->writeln(sprintf('服务 ' . $tag . ' <ft-blue-bold>[%s]</ft-blue-bold> 已经启动 [%s]', ucfirst($worker_name), $server->worker_pid, $workerId));
     }
 }

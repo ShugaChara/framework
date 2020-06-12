@@ -9,5 +9,5 @@
 // | Author: kaka梦很美 <1099013371@qq.com>
 // +----------------------------------------------------------------------
 
-// Check phar env
+// 检查 Phar 环境
 defined('IN_PHAR') or define('IN_PHAR', false);

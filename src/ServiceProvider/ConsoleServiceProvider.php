@@ -16,7 +16,7 @@ use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
 
 /**
- * Console service
+ * 控制台服务
  * Class ConsoleServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */

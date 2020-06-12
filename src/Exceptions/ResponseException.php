@@ -15,7 +15,7 @@ use Exception;
 use ShugaChara\Framework\Contracts\ThrowExceptionReturnInterface;
 
 /**
- * Used for interface response error
+ * 用于接口响应错误
  * Class ResponseException
  * @package ShugaChara\Framework\Exceptions
  */

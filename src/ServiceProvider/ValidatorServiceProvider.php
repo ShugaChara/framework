@@ -16,7 +16,7 @@ use ShugaChara\Container\Contracts\ServiceProviderInterface;
 use ShugaChara\Validation\Validator;
 
 /**
- * Data verification service
+ * 数据验证服务
  * Class ValidatorServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */

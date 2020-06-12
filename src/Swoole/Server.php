@@ -38,26 +38,26 @@ use swoole_websocket_server;
 class Server extends SwooleServer
 {
     /**
-     * connected file descriptor
+     * 连接文件描述符
      * @var int
      */
     protected $fd = 0;
 
     /**
-     * reactor thread ID of the connection
+     * 连接所在的 Reactor 线程 ID
      * @var int
      */
     protected $reactorId = 0;
 
     /**
-     * Register the default callback
+     * 注册默认回调
      * @param swoole_server $server
      * @param               $server_name
      */
     public function registerDefaultCallback(swoole_server $server, $server_name)
     {
         if (in_array($server_name, [static::SWOOLE_HTTP_SERVER, static::SWOOLE_WEBSOCKET_SERVER])) {
-            // Register connect event
+            // 注册连接事件
             $this->getEventsRegister()->addEvent(
                 EventsRegister::onConnect,
                 function (swoole_server $server, int $fd, int $reactorId) {
@@ -66,11 +66,11 @@ class Server extends SwooleServer
                 }
             );
 
-            // Register request event
+            // 注册请求事件
             $this->getEventsRegister()->addEvent(
                 EventsRegister::onRequest,
                 function (swoole_http_request $swooleRequest, swoole_http_response $swooleResponse) use ($server) {
-                    // Transfer Swoole request object
+                    // 转移 Swoole 请求对象
                     $request = SwooleServerRequest::createServerRequestFromSwoole($swooleRequest);
                     $response = fnc()->app()->handleRequest($request);
                     foreach ($response->getHeaders() as $key => $header) {
@@ -94,12 +94,12 @@ class Server extends SwooleServer
                 }
             );
 
-            // Register the default websocket onMessage event
+            // 注册默认的 websocket onMessage事件
             if ($server_name == static::SWOOLE_WEBSOCKET_SERVER) {
                 $this->getEventsRegister()->addEvent('message', function(swoole_websocket_server $server, $frame) {});
             }
 
-            // Register the default worker start event
+            // 注册默认的工作程序启动事件
             $this->getEventsRegister()->addEvent(
                 EventsRegister::onWorkerStart,
                 function (swoole_server $server, $workerId) use ($server_name) {
@@ -109,7 +109,7 @@ class Server extends SwooleServer
                         }
                     }
 
-                    // Establish Pool connection pool
+                    // 建立连接池
                     foreach (container()->getContainerServices() as $service) {
                         if ($service instanceof PoolInterface) {
                             $service->initPool();
@@ -118,7 +118,7 @@ class Server extends SwooleServer
                 }
             );
 
-            // Register the default worker exit event
+            // 注册默认的工作进程退出事件
             $this->getEventsRegister()->addEvent(
                 EventsRegister::onWorkerExit,
                 function () {
@@ -126,7 +126,7 @@ class Server extends SwooleServer
                 }
             );
 
-            // Register the default onTask event
+            // 注册默认的 onTask 事件
             $this->getEventsRegister()->addEvent(EventsRegister::onTask, function (swoole_server $serv, int $task_id, int $src_worker_id, $data) {
                 $this->taskDispatcher(new Task($serv, $task_id, $src_worker_id, $data));
             });
@@ -134,7 +134,7 @@ class Server extends SwooleServer
     }
 
     /**
-     * Set connected file descriptor
+     * 设置连接文件描述符
      * @param $fd
      */
     public function setFd($fd)
@@ -143,7 +143,7 @@ class Server extends SwooleServer
     }
 
     /**
-     * Get connected file descriptor
+     * 获取连接文件描述符
      * @return int
      */
     public function getFd(): int
@@ -152,7 +152,7 @@ class Server extends SwooleServer
     }
 
     /**
-     * Set reactor thread ID of the connection
+     * 设置连接所在的 Reactor 线程 ID
      * @param $fd
      */
     public function setReactorId($reactorId)
@@ -161,7 +161,7 @@ class Server extends SwooleServer
     }
 
     /**
-     * Get reactor thread ID of the connection
+     * 获取连接所在的 Reactor 线程 ID
      * @return int
      */
     public function getReactorId(): int
@@ -170,7 +170,7 @@ class Server extends SwooleServer
     }
 
     /**
-     * Loading process
+     * 加载进程
      */
     public function loadProcessor()
     {
@@ -185,7 +185,7 @@ class Server extends SwooleServer
     }
 
     /**
-     * Loading listener
+     * 加载监听
      */
     public function loadListener()
     {
@@ -197,16 +197,16 @@ class Server extends SwooleServer
                 $listener['sock_type']
             );
 
-            // Override the main server's settings
+            // 覆盖主服务器的设置
             if (isset($listener['setting'])) {
                 $port->set($listener['setting']);
             }
 
-            // Listen event registration
+            // 监听事件注册
             if (isset($listener['events']) && class_exists($listener['events'])) {
                 $eventsClass = new $listener['events']($port);
                 if ($eventsClass instanceof ListenersAbstract) {
-                    // Register listener events
+                    // 注册监听事件
                     $classFunctions = get_class_methods($eventsClass);
                     foreach ($classFunctions as $event) {
                         if ('on' != substr($event, 0, 2)) {
@@ -234,7 +234,7 @@ class Server extends SwooleServer
     }
 
     /**
-     * TaskDispatcher
+     * Task 任务分发器
      * @param Task $task
      */
     public function taskDispatcher(Task $task)
@@ -247,7 +247,7 @@ class Server extends SwooleServer
     }
 
     /**
-     * Get process pid path
+     * 获取进程 PID 目录
      * @return mixed|null
      */
     public function getProcessPidPath()
@@ -261,7 +261,7 @@ class Server extends SwooleServer
     }
 
     /**
-     * Get process pid file
+     * 获取进程 PID 文件
      * @param $process_name
      * @return string
      */
@@ -271,7 +271,7 @@ class Server extends SwooleServer
     }
 
     /**
-     * Service hot update/hot restart
+     * 服务 热更新/热重启
      */
     protected function swooleHotReload()
     {
@@ -285,8 +285,7 @@ class Server extends SwooleServer
             ]);
 
             $swooleListenRestart->restartSwooleServer(function () {
-                // 重启操作
-                fnc()->serverChannel()->reload();
+                fnc()->serverChannel()->reload();   // 重启操作
             });
 
             $this->getServer()->addProcess($swooleListenRestart->getProcess());

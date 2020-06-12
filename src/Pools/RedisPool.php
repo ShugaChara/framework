@@ -44,7 +44,7 @@ class RedisPool implements PoolInterface
     }
 
     /**
-     * Get connected
+     * 获取 Redis 连接
      * @param $name
      * @return mixed
      * @throws Exception

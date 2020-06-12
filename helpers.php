@@ -15,7 +15,7 @@ use ShugaChara\Framework\Helpers\FHelper;
 
 if (! function_exists('fnc')) {
     /**
-     * Get the FHelper method package
+     * 获取 FHelper 类方法包
      * @return FHelper
      */
     function fnc()
@@ -26,7 +26,7 @@ if (! function_exists('fnc')) {
 
 if (! function_exists('container')) {
     /**
-     * Get container service
+     * 获取容器服务
      * @return \ShugaChara\Container\Container
      */
     function container()
@@ -37,7 +37,7 @@ if (! function_exists('container')) {
 
 if (! function_exists('sgo')) {
     /**
-     * Swoole coroutine shortname
+     * Swoole 协程短名称
      * @param callable $func
      * @param mixed    ...$params
      */

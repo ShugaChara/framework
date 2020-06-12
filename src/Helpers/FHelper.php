@@ -26,8 +26,7 @@ class FHelper
     use Singleton;
 
     /**
-     * Check runtime extension conflict
-     *
+     * 检查运行时扩展冲突
      * @param string $minPhp
      * @param string $minSwoole
      */
@@ -62,7 +61,7 @@ class FHelper
     }
 
     /**
-     * Get basic file information
+     * 获取基本文件信息
      * @param $file_name
      * @return array|null
      */
@@ -79,7 +78,7 @@ class FHelper
     }
 
     /**
-     * Get the Application
+     * 获取 Application
      * @return \ShugaChara\Framework\Application
      */
     public function app()
@@ -88,7 +87,7 @@ class FHelper
     }
 
     /**
-     * Configuration service
+     * 获取配置服务
      * @return \ShugaChara\Config\FileConfig
      */
     public function c()
@@ -97,7 +96,7 @@ class FHelper
     }
 
     /**
-     * Logs service
+     * 获取日志服务
      * @param null $name    filename
      * @return \ShugaChara\Logs\Logger
      */
@@ -107,7 +106,7 @@ class FHelper
     }
 
     /**
-     * Console service
+     * 获取控制台服务
      * @return \ShugaChara\Console\Console
      */
     public function console()
@@ -116,8 +115,8 @@ class FHelper
     }
 
     /**
-     * Get database connection service object
-     * @param string $drive     Library driver name
+     * 获取数据库服务
+     * @param string $drive     驱动名称
      * @return \ShugaChara\Databases\DB|\ShugaChara\Databases\Capsule|\Illuminate\Database\MySqlConnection
      */
     public function db($drive = 'default')
@@ -126,8 +125,8 @@ class FHelper
     }
 
     /**
-     * Redis service
-     * @param string $drive     Library driver name
+     * 获取 Redis 服务
+     * @param string $drive     驱动名称
      * @return \Predis\Client
      */
     public function redis($drive = 'default')
@@ -136,7 +135,7 @@ class FHelper
     }
 
     /**
-     * Routing service
+     * 获取路由服务
      * @return \ShugaChara\Router\RouteCollection
      */
     public function router()
@@ -145,7 +144,7 @@ class FHelper
     }
 
     /**
-     * Routing distribution service
+     * 获取路由分发服务
      * @return \ShugaChara\Router\RouteDispatcher
      */
     public function routerDispatcher()
@@ -154,7 +153,7 @@ class FHelper
     }
 
     /**
-     * Http request service
+     * 获取 Http 请求服务
      * @return \ShugaChara\Framework\Http\Request
      */
     public function request()
@@ -163,7 +162,7 @@ class FHelper
     }
 
     /**
-     * Http response service
+     * 获取 Http 响应服务
      * @return \ShugaChara\Framework\Http\Response
      */
     public function response()
@@ -172,7 +171,7 @@ class FHelper
     }
 
     /**
-     * Data verification service
+     * 获取数据验证服务
      * @return \ShugaChara\Validation\Validator
      */
     public function validator()
@@ -181,7 +180,7 @@ class FHelper
     }
 
     /**
-     * Get server channel
+     * 获取 Swoole 服务通道
      * @return BaseServerCommandAbstract
      */
     public function serverChannel()
@@ -190,16 +189,16 @@ class FHelper
     }
 
     /**
-     * Get service object
+     * 获取 Swoole 服务对象
      * @return Server
      */
     public function server()
     {
-        return $this->serverChannel()->getServer();
+        return $this->serverChannel()->getSwooleServer();
     }
 
     /**
-     * Get swoole server
+     * 获取 swoole_server 对象
      * @return \swoole_server
      */
     public function swoole()

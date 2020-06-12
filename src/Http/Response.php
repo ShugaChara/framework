@@ -21,6 +21,12 @@ use ShugaChara\Core\Utils\Helper\ArrayHelper;
 use ShugaChara\Framework\Tools\StatusCode;
 use ShugaChara\Http\Response as HttpResponse;
 
+/*
+|--------------------------------------------------------------------------
+| shugachara 响应类
+|--------------------------------------------------------------------------
+ */
+
 /**
  * Class Response
  * @package ShugaChara\Framework\Http
@@ -28,7 +34,7 @@ use ShugaChara\Http\Response as HttpResponse;
 class Response extends HttpResponse
 {
     /**
-     * Api json format response
+     * Api Json 格式响应
      *
      * @param null  $data
      * @param int   $status

@@ -30,7 +30,7 @@ class HttpServerCommand extends BaseServerCommandAbstract
     /**
      * @var string
      */
-    protected static $description = 'Create a swoole http server';
+    protected static $description = '创建一个 Swoole Http 服务';
 
     /**
      * @param InputInterface  $input

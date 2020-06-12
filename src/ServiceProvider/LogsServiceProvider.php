@@ -18,7 +18,7 @@ use ShugaChara\Framework\Helpers\FHelper;
 use ShugaChara\Logs\Logger;
 
 /**
- * Logs service
+ * 日志服务
  * Class LogsServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */

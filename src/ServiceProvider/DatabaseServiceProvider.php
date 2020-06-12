@@ -16,7 +16,7 @@ use ShugaChara\Container\Contracts\ServiceProviderInterface;
 use ShugaChara\Framework\Pools\DatabasesPool;
 
 /**
- * Database service
+ * 数据库服务
  * Class DatabaseServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */

@@ -27,13 +27,13 @@ class DatabasesPool implements PoolInterface
     private $capsule;
 
     /**
-     * DB Configuration item
+     * 数据库配置项
      * @var array
      */
     protected $config = [];
 
     /**
-     * DB connection
+     * 数据库连接
      * @var array
      */
     protected $connections = [];
@@ -52,7 +52,7 @@ class DatabasesPool implements PoolInterface
     }
 
     /**
-     * Get connected
+     * 获取数据库连接
      * @param $name
      * @return mixed
      */

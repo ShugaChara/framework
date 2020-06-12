@@ -49,7 +49,7 @@ abstract class ControllerAbstract
     }
 
     /**
-     * Get Request object
+     * 获取请求对象
      * @return Request
      */
     final public function request(): Request
@@ -58,7 +58,7 @@ abstract class ControllerAbstract
     }
 
     /**
-     * Get Response object
+     * 获取响应对象
      * @return Response
      */
     final public function response(): Response
@@ -67,7 +67,7 @@ abstract class ControllerAbstract
     }
 
     /**
-     * Api Json format response
+     * Api Json 格式响应
      *
      * @param null  $data
      * @param int   $status
@@ -80,7 +80,7 @@ abstract class ControllerAbstract
     }
 
     /**
-     * data verification
+     * 数据验证
      * @return \Illuminate\Contracts\Validation\Factory|\Illuminate\Contracts\Validation\Validator|\Runner\Validator\Validator|\ShugaChara\Validation\Validator
      */
     final public function validator(): Validator
@@ -89,7 +89,7 @@ abstract class ControllerAbstract
     }
 
     /**
-     * The initialization data method is equivalent to the use of __construct. For the management of the framework, all rewriting of the constructor is prohibited, and this method is pseudo-constructed instead
+     * 初始化数据方法等效于__construct的使用。对于框架的管理，禁止所有重写构造函数，而此方法是伪构造的。
      */
     public function initialize() {}
 }

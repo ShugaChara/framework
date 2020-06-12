@@ -18,7 +18,7 @@ namespace ShugaChara\Framework\Contracts;
 interface PoolInterface
 {
     /**
-     * Initialize the connection pool
+     * 初始化连接池
      * @return mixed
      */
     public function initPool();

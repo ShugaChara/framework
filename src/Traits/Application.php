@@ -18,7 +18,7 @@ namespace ShugaChara\Framework\Traits;
 trait Application
 {
     /**
-     * Application name
+     * Application 名称
      * @return mixed|null
      */
     public function getName()
@@ -27,7 +27,7 @@ trait Application
     }
 
     /**
-     * Application version
+     * Application 版本
      * @return mixed|null
      */
     public function getVersion()
@@ -62,7 +62,7 @@ LOGO;
     }
 
     /**
-     * Get the application root directory
+     * 获取应用程序根目录
      * @return mixed
      */
     public function getRootDirectory()
@@ -71,7 +71,7 @@ LOGO;
     }
 
     /**
-     * Service container registration
+     * 服务容器注册
      * @param array $services
      */
     public function registerServiceProviders(array $services)
@@ -82,7 +82,7 @@ LOGO;
     }
 
     /**
-     * Whether the app is already running
+     * 应用程序是否已在运行
      * @return bool
      */
     protected function isExecute(): bool

@@ -18,7 +18,7 @@ use ShugaChara\Router\RouteCollection;
 use ShugaChara\Router\RouteDispatcher;
 
 /**
- * Routing service
+ * 路由服务
  * Class RouterServiceProvider
  * @package ShugaChara\Framework\ServiceProvider
  */
@@ -36,13 +36,13 @@ class RouterServiceProvider implements ServiceProviderInterface
 
         $routerDispatcher = new RouteDispatcher($router, fnc()->c()->get('middlewares'));
 
-        // Register route
+        // 注册路由
         $container->add('router', $router);
 
-        // Register route distributor
+        // 注册路由分发
         $container->add('router_dispatcher', $routerDispatcher);
 
-        // Load route
+        // 加载路由
         $router->group(['prefix' => '', 'middleware' => 'dispatch'], function () {
             foreach (glob(fnc()->c()->get('router.path') . '*' . fnc()->c()->get('router.ext')) as $filename) {
                 include $filename;

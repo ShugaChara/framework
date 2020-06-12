@@ -48,13 +48,13 @@ abstract class Application implements ApplicationInterface
     public static $application;
 
     /**
-     * Application root
+     * Application 根目录
      * @var string
      */
     protected $rootDirectory;
 
     /**
-     * Whether the application framework is running
+     * 应用程序框架是否正在运行
      * @var bool
      */
     protected $isExecute = false;
@@ -65,61 +65,61 @@ abstract class Application implements ApplicationInterface
      */
     final public function __construct($argv = [])
     {
-        // check runtime env
+        // 检查运行环境
         fnc()->checkRuntime();
 
-        // set root directory
+        // 设置应用根目录
         $this->setRootDirectory();
         if ($this->rootDirectory[strlen($this->rootDirectory) - 1] == '/') {
             $this->rootDirectory = rtrim($this->rootDirectory, '/');
         }
 
-        // set argv
+        // 设置 argv
         Alias::set('argv', $argv);
 
-        // load container
+        // 加载容器
         Alias::set('container', new Container());
 
-        // load static application
+        // 加载应用
         static::$application = $this;
 
-        // container add aplication
+        // 容器添加应用服务
         container()->add('application', static::$application);
 
-        // register c (Configuration Center)
+        // 注册配置中心
         container()->register(new ConfigServiceProvider());
 
-        // load initialize
+        // 加载初始化
         $this->handleInitialize();
     }
 
     /**
-     * Initialize the processor Application
+     * 初始化处理器应用程序
      */
     final protected function handleInitialize()
     {
-        // init application
+        // 初始化应用
         $this->initialize();
 
         if (! $this->getRootDirectory()) {
-            throw new Exception('Please configure the application root directory first.');
+            throw new Exception('请首先配置应用程序的根目录');
         }
 
-        // load service providers
+        // 注册服务
         $this->registerServiceProviders(fnc()->c()->get('service_providers'));
 
-        // set timezone
+        // 设置时区
         date_default_timezone_set(fnc()->c()->get('timezone', 'PRC'));
 
-        // register response
+        // 注册响应服务
         container()->add('response', new Response());
 
-        // register exception
+        // 注册异常处理
         $this->registerExceptionHandler();
     }
 
     /**
-     * Registration error handling
+     * 注册错误处理
      */
     protected function registerExceptionHandler()
     {
@@ -134,19 +134,19 @@ abstract class Application implements ApplicationInterface
     }
 
     /**
-     * Error handling
+     * 错误处理过程
      * @param $e
      * @return Response
      * @throws FatalThrowableErro
      */
     public function handleException($e)
     {
-        // Exception catch conversion
+        // 异常捕获转换
         if (!$e instanceof Exception) {
             $e = new ErrorException($e);
         }
 
-        // Throws an exception that does not create a request
+        // 抛出不创建请求的异常
         if (! container()->has('request')) {
             throw new Exception($e);
         }
@@ -177,7 +177,7 @@ abstract class Application implements ApplicationInterface
     }
 
     /**
-     * Request processing
+     * 请求处理
      * @param ServerRequestInterface $request
      * @return Response|\Symfony\Component\HttpFoundation\Response
      * @throws Exception
@@ -201,7 +201,7 @@ abstract class Application implements ApplicationInterface
     }
 
     /**
-     * Response processing
+     * 响应处理
      * @param $response
      * @return mixed
      */
@@ -211,13 +211,13 @@ abstract class Application implements ApplicationInterface
     }
 
     /**
-     * Set application root directory
+     * 设置应用程序根目录
      * @return mixed
      */
     abstract protected function setRootDirectory();
 
     /**
-     * Frame pre-operation
+     * 框架初始化操作
      * @return mixed
      */
     abstract public function initialize();

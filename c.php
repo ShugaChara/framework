@@ -22,35 +22,37 @@ use ShugaChara\Framework\Swoole\MainSwooleEvents;
 use ShugaChara\Framework\Swoole\TaskDispatcher;
 use ShugaChara\Framework\Console\Commands\ApplicationCommand;
 use ShugaChara\Framework\Console\Commands\HttpServerCommand;
+use ShugaChara\Framework\Console\Commands\ProcessorCommand;
+use ShugaChara\Framework\Console\Commands\RpcServerCommand;
 
 return [
-    // Application Name
+    // 应用名称
     'app_name'  =>  'framework',
 
-    // Application version
+    // 应用版本
     'app_version'   =>  'v1.0.0',
 
-    // Whether to debug mode
+    // 是否调试模式
     'is_debug'  =>  true,
 
-    // Error level
+    // 错误级别
     'error_reporting'   =>  E_ALL,
 
-    // Time zone
+    // 应用时区
     'timezone'  =>  'PRC',
 
-    // Interface status code
+    // 接口状态码
     'apicode'   =>  StatusCode::class,
 
-    // Controller namespace
+    // 控制器命名空间
     'controller_namespace'  =>  '\\App\\Http\\Controllers\\',
 
-    // Application middleware
+    // 应用中间件
     'middlewares'   =>  [
         'dispatch'      =>  DispatchMiddleware::class,
     ],
 
-    // Application services
+    // 应用服务
     'service_providers' =>  [
         LogsServiceProvider::class,
         ConsoleServiceProvider::class,
@@ -60,25 +62,25 @@ return [
         ValidatorServiceProvider::class,
     ],
 
-    // Routing configuration
+    // 路由配置
     'router'    =>  [
-        //  Directory path
+        //  目录文件存放位置
         'path'      =>  fnc()->app()->getRootDirectory() . '/router/',
-        //  Routing file suffix
+        //  路由文件前缀
         'ext'       =>  '.php',
     ],
 
-    // Log configuration
+    // 日志配置
     'logs'      =>  [
-        //  Directory path
+        //  目录文件存放位置
         'path'      =>  fnc()->app()->getRootDirectory() . '/runtime/logs/',
-        //  Maximum number of files
+        //  最大文件数量
         'maxFiles'  =>  30,
-        //  Log file suffix
+        //  日志文件前缀
         'ext'       =>  '.log',
     ],
 
-    // Command line script
+    // 命令行脚本
     'console'   =>  [
         'application' => [
             'name'  =>  ApplicationCommand::class
@@ -86,9 +88,15 @@ return [
         'httpserver' => [
             'name'  =>  HttpServerCommand::class
         ],
+        'processor'  =>  [
+            'name'  =>  ProcessorCommand::class
+        ],
+        'rpcserver' => [
+            'name'  =>  RpcServerCommand::class
+        ],
     ],
 
-    // Database configuration
+    // 数据库配置
     'databases' =>  [
         'default' => [
             'driver'    =>  'mysql',
@@ -102,7 +110,7 @@ return [
         ],
     ],
 
-    // Cache configuration
+    // 缓存配置
     'cache'     =>  [
         'redis'     =>      [
             'default'       =>      [
@@ -116,21 +124,21 @@ return [
         ]
     ],
 
-    // Swoole configuration
+    // Swoole 配置
     'swoole'    =>  [
-        // Main event monitoring class
+        // 主事件监控类
         'main_events'   =>  MainSwooleEvents::class,
-        // Hot update/restart configuration
+        // 服务 热更新/重启配置
         'hotreload'     =>  [
-            //  Startup state
+            //  启动状态
             'status'        =>  false,
-            //  Process name
+            //  进程名称
             'name'          =>  'HotReload',
-            //  Designated directory
+            //  指定目录
             'monitorDir'    =>  fnc()->app()->getRootDirectory(),
-            //  File extension
+            //  文件扩展名
             'monitorExt'    =>  ['php'],
-            //  Whether to open inotify
+            //  是否打开 inotify
             'disableInotify'=>  false,
         ],
         'task'  =>  [
@@ -163,6 +171,21 @@ return [
                 'backlog' => 128,
                 'open_cpu_affinity' => true,
                 'dispatch_mode' => 2
+            ]
+        ],
+        'rpc'  =>  [
+            'host' => '127.0.0.1',
+            'port' => 9012,
+            'setting' => [
+                'worker_num' => 8,
+                'task_worker_num' => 8,
+                'task_tmpdir' => fnc()->app()->getRootDirectory() . '/swoole/rpc/task',
+                'log_file' => fnc()->app()->getRootDirectory() . '/swoole/rpc.log',
+                'pid_file' => fnc()->app()->getRootDirectory() . '/swoole/rpc.pid',
+                'daemonize' => false,
+                'backlog' => 128,
+                'open_cpu_affinity' => true,
+                'dispatch_mode' => 2,
             ]
         ],
     ]

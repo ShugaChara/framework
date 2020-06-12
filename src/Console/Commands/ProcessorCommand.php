@@ -40,43 +40,43 @@ class ProcessorCommand extends Command implements StatusManagerInterface
     protected $server;
 
     /**
-     * String replacement placeholder
+     * 字符串替换占位符
      * @var string
      */
     private $placeholder = '#placeholder#';
 
     /**
-     * Get all registration processes
+     * 获取所有注册进程
      * @var array
      */
     protected $processes = [];
 
     /**
-     * Current process
+     * 当前进程
      * @var ProcessorAbstract
      */
     protected $process;
 
     /**
-     * Process name
+     * 进程名称
      * @var
      */
     protected $process_name;
 
     /**
-     * Process pid dir
+     * 进程PID目录
      * @var
      */
     protected $pid_path;
 
     /**
-     * Process pid file
+     * 进程PID文件
      * @var
      */
     protected $pid_file;
 
     /**
-     * Whether the daemon is running
+     * 守护程序是否正在运行
      * @var bool
      */
     protected $daemon = false;
@@ -96,11 +96,11 @@ class ProcessorCommand extends Command implements StatusManagerInterface
 
         $this
             ->setName(self::$name)
-            ->setDescription('Swoole Process Manager')
-            ->addArgument('process_name', InputArgument::OPTIONAL, 'Process name')
-            ->addArgument('status', InputArgument::OPTIONAL, 'Process service status')
-            ->addOption('daemon', '-d', InputOption::VALUE_NONE, 'Daemon')
-            ->addOption('list', '-l', InputOption::VALUE_NONE, 'View process list');
+            ->setDescription('Swoole 进程管理器')
+            ->addArgument('process_name', InputArgument::OPTIONAL, '进程名称')
+            ->addArgument('status', InputArgument::OPTIONAL, '进程服务状态')
+            ->addOption('daemon', '-d', InputOption::VALUE_NONE, '守护进程')
+            ->addOption('list', '-l', InputOption::VALUE_NONE, '显示进程列表');
     }
 
     /**
@@ -126,16 +126,16 @@ class ProcessorCommand extends Command implements StatusManagerInterface
 
             $this->processes = fnc()->c()->get('swoole.processor.fpm_list', []);
             if (! isset($this->processes[$this->process_name])) {
-                throw new RuntimeException(sprintf('Process %s cannot found', $this->process_name));
+                throw new RuntimeException(sprintf('%s 进程不存在', $this->process_name));
             }
             $processClassName = $this->processes[$this->process_name];
             if (! class_exists($processClassName)) {
-                throw new RuntimeException(sprintf('Process class "%s" is not found.', $this->process_name));
+                throw new RuntimeException(sprintf('%s 进程类不存在', $this->process_name));
             }
 
             $this->process = new $processClassName($this->process_name);
             if (! ($this->process instanceof ProcessorAbstract)) {
-                throw new RuntimeException('Process must be instance of \ShugaChara\Swoole\Manager\Processor');
+                throw new RuntimeException('进程必须是 \ShugaChara\Swoole\Manager\Processor 的实例');
             }
             if ($input->hasParameterOption(['--daemon', '-d'])) {
                 $this->process->getProcessor()->daemon();
@@ -146,7 +146,7 @@ class ProcessorCommand extends Command implements StatusManagerInterface
             return 1;
         }
 
-        throw new Exception($status . ' | the service status is undefined, please check the command via --help');
+        throw new Exception($status . ' 服务状态未定义，请通过 --help 检查命令');
     }
 
     /**
@@ -157,6 +157,11 @@ class ProcessorCommand extends Command implements StatusManagerInterface
         // TODO: Implement status() method.
 
         $info = $this->getProcessInfo($this->process_name);
+
+        $this->getTable()->setHeaders([
+            'NAME', 'CLASS', 'STATUS', 'PID'
+        ]);
+
         $rows[] = [
             $this->process_name,
             get_class($this->process),
@@ -164,12 +169,7 @@ class ProcessorCommand extends Command implements StatusManagerInterface
             $info[1]
         ];
 
-        $this->getIO()->table(
-            [
-                'NAME', 'CLASS', 'STATUS', 'PID'
-            ],
-            $rows
-        );
+        $this->getTable()->addRows($rows)->render();
     }
 
     /**
@@ -182,10 +182,10 @@ class ProcessorCommand extends Command implements StatusManagerInterface
 
         $pid = $this->process->getProcessor()->start();
         file_put_contents($this->pid_file, $pid);
-        $this->getIO()->success(sprintf('process <info>%s</info> PID: <info>%s</info>', $this->process_name, $pid));
-        $this->getIO()->success(sprintf('PID: <info>%s</info>', $this->pid_file));
+        $this->writelnBlock(sprintf('[SUCCESS] 进程 %s PID: %s', $this->process_name, $pid));
+        $this->writelnBlock(sprintf('[SUCCESS] PID: %s', $this->pid_file));
         $this->process->getProcessor()->wait(true, function ($ret) {
-            $this->getIO()->success(sprintf('process: %s. PID: %s exit. code: %s. signal: %s', $this->process_name, $ret['pid'], $ret['code'], $ret['signal']));
+            $this->writelnBlock(sprintf('进程: %s. PID: %s 已退出. code: %s. signal: %s', $this->process_name, $ret['pid'], $ret['code'], $ret['signal']));
         });
     }
 
@@ -198,7 +198,7 @@ class ProcessorCommand extends Command implements StatusManagerInterface
 
         $pid = (int) file_get_contents($this->pid_file);
         if ($this->process->getProcessor()->kill($pid, SIGTERM)) {
-            $this->getIO()->success(sprintf('process %s PID %s is killed', $this->process_name, $pid));
+            $this->writelnBlock(sprintf('进程 %s PID %s 已停止', $this->process_name, $pid));
         }
     }
 
@@ -208,6 +208,8 @@ class ProcessorCommand extends Command implements StatusManagerInterface
     public function reload()
     {
         // TODO: Implement reload() method.
+
+        $this->getIO()->writeln('<ft-red-bold>还没有该功能</ft-red-bold>');
     }
 
     /**
@@ -223,25 +225,30 @@ class ProcessorCommand extends Command implements StatusManagerInterface
     }
 
     /**
-     * View process list
+     * 显示进程列表
      */
     protected function showProcesses()
     {
         $rows = [];
-        foreach (fnc()->c()->get('swoole.processor.fpm_list', []) as $name => $processor) {
-            $rows[] = $this->getProcessInfo($name);
-        }
 
-        $this->getIO()->table(
+        $this->getTable()->setHeaders(
             [
                 'PROCESS', 'PID', 'STATUS', 'START AT', 'RUNTIME'
-            ],
-            $rows
+            ]
         );
+
+        foreach (fnc()->c()->get('swoole.processor.fpm_list', []) as $name => $processor) {
+            $rows[] = $this->getProcessInfo($name);
+            $rows[] = $this->getTableSeparator();
+        }
+
+        array_pop($rows);
+
+        $this->getTable()->addRows($rows)->render();
     }
 
     /**
-     * Get process details
+     * 获取进程详情
      * @param $process_name
      * @return array
      */
@@ -257,7 +264,7 @@ class ProcessorCommand extends Command implements StatusManagerInterface
         return [
             $process_name,
             $isRunning ? $pid : '',
-            $isRunning ? 'Running' : 'Stopped',
+            $isRunning ? '运行中' : '已停止',
             $isRunning ? date('Y-m-d H:i:s', filemtime($pid_file)) : '',
             $isRunning ? time() - filemtime($pid_file) : '',
         ];
