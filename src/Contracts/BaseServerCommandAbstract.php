@@ -12,12 +12,9 @@
 namespace ShugaChara\Framework\Contracts;
 
 use Exception;
-use ShugaChara\Core\Utils\Helper\PhpHelper;
+use ShugaChara\Framework\Swoole\Server;
 use ShugaChara\Framework\Traits\Swoole;
 use ShugaChara\Framework\Traits\SwooleCommand;
-use Throwable;
-use ReflectionClass;
-use swoole_process;
 use swoole_server;
 use ShugaChara\Framework\Console\Command;
 use ShugaChara\Swoole\SwooleHelper;
@@ -56,8 +53,9 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         // 注册服务器命令行通道
         container()->add('server_channel', $this);
 
-        // 设置服务名称
+        $this->setServer(new Server());
         $this->setServerName($server_name);
+        $this->setServerConfigName($server_name);
 
         $status = strtolower($input->getArgument('status')) ? : static::STATUS_NAME;
         $daemon = $input->hasParameterOption(['--daemon', '-d'], true) ? true : false;
@@ -102,7 +100,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         // TODO: Implement start() method.
 
         // 创建服务
-        $this->getSwooleServer()->createServer(
+        $this->getServer()->createServer(
             $this->getServerName(),
             $this->getServerConfig('port'),
             $this->getServerConfig('host', '0.0.0.0'),
@@ -110,8 +108,8 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         );
 
         // 注册默认的回调事件
-        $this->getSwooleServer()->registerDefaultCallback(
-            $this->getSwooleServer()->getServer(),
+        $this->getServer()->registerDefaultCallback(
+            $this->getServer()->getSwooleServer(),
             $this->getServerName()
         );
 
@@ -122,17 +120,19 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
                 continue;
             }
 
-            $this->getSwooleServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$this, $event]);
+            $this->getServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$this, $event]);
         }
 
         // 加载进程
-        $this->getSwooleServer()->loadProcessor();
+        $this->getServer()->loadProcessor();
 
         // 加载监听
-        $this->getSwooleServer()->loadListener();
+        $this->getServer()->loadListener();
 
         // 注册全局 Hook mainSwooleServerEventsCreate 事件
-        $this->handleMainSwooleServerEventsCreate();
+        $this->handleMainSwooleServerEventsCreate(
+            $this->getServer()
+        );
 
         // 进程 PID 文件
         $this->createSwooleSettingPidDir();
@@ -144,7 +144,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         $this->serverInfo();
 
         // 服务启动
-        $this->getSwooleServer()->start();
+        $this->getServer()->start();
     }
 
     /**
@@ -156,37 +156,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     {
         // TODO: Implement stop() method.
 
-        $pidFile = $this->getSwooleSettingPidFile();
-        if (file_exists($pidFile)) {
-            $pid = intval(file_get_contents($pidFile));
-            if (! swoole_process::kill($pid, 0)) {
-                throw new Exception("服务 PID : {$pid} 不存在 ");
-            }
-
-            swoole_process::kill($pid);
-
-            // Wait 5 seconds
-            $time = time();
-            while (true) {
-                usleep(1000);
-                if (! swoole_process::kill($pid, 0)) {
-                    if (is_file($pidFile)) {
-                        unlink($pidFile);
-                    }
-                    return $this->writelnBlock('服务停止时间 : ' . date('Y-m-d H:i:s'));
-                    break;
-                } else {
-                    if (time() - $time > 15) {
-                        throw new Exception('服务停止失败 , 异常：请尝试强制停止服务或kill进程');
-                        break;
-                    }
-                }
-            }
-
-            throw new Exception('服务停止失败');
-        }
-
-        throw new Exception('服务PID文件不存在，请检查它是否在守护程序模式下运行！');
+        $this->serverStop();
     }
 
     /**
@@ -198,19 +168,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     {
         // TODO: Implement reload() method.
 
-        $pidFile = $this->getSwooleSettingPidFile();
-        if (file_exists($pidFile)) {
-            PhpHelper::opCacheClear();
-            $pid = file_get_contents($pidFile);
-            if (! swoole_process::kill($pid, 0)) {
-                throw new Exception("服务 PID : {$pid} 不存在");
-            }
-            swoole_process::kill($pid, SIGUSR1);
-            $this->writelnBlock('服务 PID: ' . $pid . ' 正在向所有工作进程发送平滑加载通知服务, 于 ' . date('Y-m-d H:i:s') . ' 完成加载');
-            return ;
-        }
-
-        throw new Exception('服务PID文件不存在，请检查它是否在守护程序模式下运行！');
+        $this->serverReload();
     }
 
     /**
@@ -264,48 +222,6 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         $this->getIO()->table($headers, $rows);
 
         unset($table, $headers, $output);
-    }
-
-    /**
-     * 处理全局 mainSwooleServerEventsCreate 事件
-     */
-    protected function handleMainSwooleServerEventsCreate()
-    {
-        $swooleMainEventsClass = fnc()->c()->get('swoole.main_events');
-        if (class_exists($swooleMainEventsClass)) {
-            try {
-                $refSwooleMainEvents = new ReflectionClass($swooleMainEventsClass);
-                if(! $refSwooleMainEvents->implementsInterface(MainSwooleEventsInterface::class)){
-                    throw new Exception('MainSwooleEventsInterface 的全局文件不兼容 ' . $swooleMainEventsClass);
-                }
-                unset($refSwooleMainEvents);
-            } catch (Throwable $throwable){
-                throw new Exception($throwable->getMessage());
-            }
-        } else {
-            throw new Exception('缺少全局事件文件');
-        }
-
-        $class = new $swooleMainEventsClass();
-
-        // 初始化处理
-        $class->initialize();
-
-        // 注册 Swoole 事件
-        $classFunctions = get_class_methods($class);
-        foreach ($classFunctions as $event) {
-            if ('on' != substr($event, 0, 2)) {
-                continue;
-            }
-
-            $this->getSwooleServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$class, $event]);
-        }
-
-        // Swoole 处理
-        $class->mainSwooleServerEventsCreate(
-            $this->getSwooleServer()->getEventsRegister(),
-            $this->getSwooleServer()->getServer()
-        );
     }
 
     /**

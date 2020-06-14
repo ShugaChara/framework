@@ -13,6 +13,7 @@ namespace ShugaChara\Framework\Traits;
 
 use Exception;
 use ShugaChara\Core\Utils\Helper\ArrayHelper;
+use ShugaChara\Framework\Swoole\Rpc\RpcServer;
 use ShugaChara\Framework\Swoole\Server;
 
 /**
@@ -22,10 +23,9 @@ use ShugaChara\Framework\Swoole\Server;
 trait Swoole
 {
     /**
-     * Server 对象
-     * @var Server
+     * @var 服务
      */
-    protected $swooleServer;
+    protected $server;
 
     /**
      * Server 名称
@@ -46,16 +46,26 @@ trait Swoole
     protected $serverConfig;
 
     /**
-     * 获取 Swoole 服务管理对象
-     * @return Server
+     * 设置服务
+     * @param $server
      */
-    public function getSwooleServer(): Server
+    public function setServer($server)
     {
-        if (! $this->swooleServer instanceof Server) {
-            $this->swooleServer = new Server();
+        $this->server = $server;
+    }
+
+    /**
+     * 获取服务
+     * @return Server | RpcServer
+     * @throws Exception
+     */
+    public function getServer()
+    {
+        if (empty($this->server)) {
+            throw new Exception('请先设置服务');
         }
 
-        return $this->swooleServer;
+        return $this->server;
     }
 
     /**

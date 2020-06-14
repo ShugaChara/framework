@@ -127,9 +127,12 @@ class Server extends SwooleServer
             );
 
             // 注册默认的 onTask 事件
-            $this->getEventsRegister()->addEvent(EventsRegister::onTask, function (swoole_server $serv, int $task_id, int $src_worker_id, $data) {
-                $this->taskDispatcher(new Task($serv, $task_id, $src_worker_id, $data));
-            });
+            $this->getEventsRegister()->addEvent(
+                EventsRegister::onTask,
+                function (swoole_server $serv, int $task_id, int $src_worker_id, $data) {
+                    $this->taskDispatcher(new Task($serv, $task_id, $src_worker_id, $data));
+                }
+            );
         }
     }
 
@@ -176,7 +179,7 @@ class Server extends SwooleServer
     {
         $processes = fnc()->c()->get('swoole.processor.swoole_list', []);
         foreach ($processes as $process) {
-            $this->getServer()->addProcess(
+            $this->getSwooleServer()->addProcess(
                 (new $process($this->getName() . ' process'))->getProcess()
             );
         }
@@ -191,7 +194,7 @@ class Server extends SwooleServer
     {
         $listeners = fnc()->c()->get('swoole.listeners', []);
         foreach ($listeners as $listener) {
-            $port = $this->getServer()->addListener(
+            $port = $this->getSwooleServer()->addListener(
                 $listener['host'],
                 $listener['port'],
                 $listener['sock_type']
@@ -288,7 +291,7 @@ class Server extends SwooleServer
                 fnc()->serverChannel()->reload();   // 重启操作
             });
 
-            $this->getServer()->addProcess($swooleListenRestart->getProcess());
+            $this->getSwooleServer()->addProcess($swooleListenRestart->getProcess());
         }
     }
 }

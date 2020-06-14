@@ -14,8 +14,9 @@ namespace ShugaChara\Framework\Console\Commands;
 use Exception;
 use ShugaChara\Console\Command;
 use ShugaChara\Framework\Contracts\StatusManagerInterface;
+use ShugaChara\Framework\Swoole\Server;
 use ShugaChara\Framework\Traits\SwooleCommand;
-use ShugaChara\Swoole\Rpc\Server;
+use ShugaChara\Framework\Swoole\Rpc\RpcServer;
 use ShugaChara\Framework\Traits\Swoole;
 use ShugaChara\Swoole\SwooleHelper;
 use Symfony\Component\Console\Input\InputArgument;
@@ -42,11 +43,6 @@ class RpcServerCommand extends Command implements StatusManagerInterface
     protected static $description = '创建一个 RPC 服务器';
 
     /**
-     * @var Server
-     */
-    protected $rpcServer;
-
-    /**
      * 守护程序是否正在运行
      * @var bool
      */
@@ -70,6 +66,8 @@ class RpcServerCommand extends Command implements StatusManagerInterface
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->setServer(new RpcServer());
+        $this->setServerName(Server::SWOOLE_SERVER);
         $this->setServerConfigName('rpc');
 
         $status = strtolower($input->getArgument('status')) ? : static::STATUS_NAME;
@@ -106,11 +104,20 @@ class RpcServerCommand extends Command implements StatusManagerInterface
     {
         // TODO: Implement start() method.
 
-        $this->getRpcServer()->createServer(
+        $this->getServer()->createServer(
+            Server::SWOOLE_SERVER,
             $this->getServerConfig('port'),
             $this->getServerConfig('host', '0.0.0.0'),
             $this->getServerConfig('setting', [])
         );
+
+        // 注册默认回调事件
+        $this->getServer()->registerDefaultCallback(
+            $this->getServer()->getSwooleServer()
+        );
+
+        // 注册全局 Hook mainSwooleServerEventsCreate 事件
+        $this->handleMainSwooleServerEventsCreate();
 
         // 进程 PID 文件
         $this->createSwooleSettingPidDir();
@@ -121,7 +128,8 @@ class RpcServerCommand extends Command implements StatusManagerInterface
         // 打印服务信息
         $this->serverInfo();
 
-        $this->getRpcServer()->start();
+        // 服务启动
+        $this->getServer()->start();
     }
 
     /**
@@ -131,7 +139,7 @@ class RpcServerCommand extends Command implements StatusManagerInterface
     {
         // TODO: Implement stop() method.
 
-
+        $this->serverStop();
     }
 
     /**
@@ -141,6 +149,7 @@ class RpcServerCommand extends Command implements StatusManagerInterface
     {
         // TODO: Implement reload() method.
 
+        $this->serverReload();
     }
 
     /**
@@ -153,19 +162,6 @@ class RpcServerCommand extends Command implements StatusManagerInterface
         $this->stop();
 
         $this->start();
-    }
-
-    /**
-     * 获取 RPC 服务
-     * @return Server
-     */
-    public function getRpcServer(): Server
-    {
-        if (! $this->rpcServer instanceof Server) {
-            $this->rpcServer = new Server();
-        }
-
-        return $this->rpcServer;
     }
 }
 
