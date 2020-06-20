@@ -11,7 +11,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| shugachara Swoole Rpc Server
+| shugachara Rpc Server
 |--------------------------------------------------------------------------
  */
 
@@ -21,33 +21,31 @@ use ShugaChara\Framework\Contracts\PoolInterface;
 use ShugaChara\Framework\Swoole\Task;
 use ShugaChara\Swoole\EventsRegister;
 use ShugaChara\Swoole\Manager\Timer;
-use ShugaChara\Swoole\Rpc\Server;
-use ShugaChara\Swoole\SwooleHelper;
+use ShugaChara\Swoole\Rpc\Server as RpcServer;
 use swoole_server;
 
 /**
- * Class RpcServer
+ * Class Server
  * @package ShugaChara\Framework\Swoole\Rpc
  */
-class RpcServer extends Server
+class Server extends RpcServer
 {
     /**
      * 注册默认回调
      * @param swoole_server $server
-     * @param               $server_name
      */
     public function registerDefaultCallback(swoole_server $server)
     {
+        // 注册连接事件
+        $this->getEventsRegister()->addEvent(
+            EventsRegister::onConnect,
+            function (swoole_server $server, int $fd, int $reactorId) {}
+        );
+
         // 注册默认的工作程序启动事件
         $this->getEventsRegister()->addEvent(
             EventsRegister::onWorkerStart,
             function (swoole_server $server, $workerId) {
-                if(PHP_OS != 'Darwin'){
-                    if( ($workerId < fnc()->c()->get('swoole.rpc.setting.worker_num')) && $workerId >= 0){
-                        SwooleHelper::setProcessRename(("rpc.Worker.{$workerId}"));
-                    }
-                }
-
                 // 建立连接池
                 foreach (container()->getContainerServices() as $service) {
                     if ($service instanceof PoolInterface) {
@@ -65,11 +63,11 @@ class RpcServer extends Server
             }
         );
 
-        // 接收到数据时回调此函数，发生在 worker 进程中
+        // 注册默认的数据接收事件
         $this->getEventsRegister()->addEvent(
             EventsRegister::onReceive,
-            function (swoole_server $server, int $fd, int $reactorId, string $data) {
-                $this->rpcHandle(new DataBean($server, $fd, $reactorId, $data));
+            function (swoole_server $server, int $fd, int $reactor_id, $data) {
+                $this->rpcHandle(new DataBean($server, $fd, $reactor_id, $data, $this));
             }
         );
 
@@ -80,19 +78,6 @@ class RpcServer extends Server
                 $this->taskDispatcher(new Task($serv, $task_id, $src_worker_id, $data));
             }
         );
-    }
-
-    /**
-     * RPC 接口数据处理器
-     * @param DataBean $bean
-     */
-    public function rpcHandle(DataBean $bean)
-    {
-        $rpcHandleClass = fnc()->c()->get('swoole.rpc.handle_class');
-        $rpcHandleClassInstance = class_exists($rpcHandleClass) ? $rpcHandleClass::getInstance() : null;
-        if ($rpcHandleClassInstance) {
-            $rpcHandleClassInstance->new($bean);
-        }
     }
 
     /**
@@ -107,5 +92,17 @@ class RpcServer extends Server
             $taskDispatcherClassInstance->new($task);
         }
     }
-}
 
+    /**
+     * 接收数据处理器
+     * @param DataBean $bean
+     */
+    public function rpcHandle(DataBean $bean)
+    {
+        $taskDispatcherClass = fnc()->c()->get('swoole.rpc.handle_class');
+        $taskDispatcherClassInstance = class_exists($taskDispatcherClass) ? $taskDispatcherClass::getInstance() : null;
+        if ($taskDispatcherClassInstance) {
+            $taskDispatcherClassInstance->new($bean);
+        }
+    }
+}

@@ -13,7 +13,7 @@ namespace ShugaChara\Framework\Traits;
 
 use Exception;
 use ShugaChara\Core\Utils\Helper\ArrayHelper;
-use ShugaChara\Framework\Swoole\Rpc\RpcServer;
+use ShugaChara\Framework\Swoole\Rpc\Server as RpcServer;
 use ShugaChara\Framework\Swoole\Server;
 
 /**
@@ -160,7 +160,7 @@ trait Swoole
      */
     public function getMasterProcessName()
     {
-        return $this->getServerConfigName() . ' master';
+        return $this->getServerConfigName() . '.master';
     }
 
     /**

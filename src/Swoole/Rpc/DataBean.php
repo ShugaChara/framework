@@ -20,6 +20,11 @@ use swoole_server;
 class DataBean
 {
     /**
+     * @var Server
+     */
+    protected $rpc_server;
+
+    /**
      * @var swoole_server
      */
     protected $serv;
@@ -32,7 +37,7 @@ class DataBean
     /**
      * @var
      */
-    protected $reactorId;
+    protected $reactor_id;
 
     /**
      * @var
@@ -43,15 +48,17 @@ class DataBean
      * DataBean constructor.
      * @param swoole_server $serv
      * @param int           $fd
-     * @param int           $reactorId
+     * @param int           $reactor_id
      * @param               $data
+     * @param               $rpc_server
      */
-    public function __construct(swoole_server $serv, int $fd, int $reactorId, $data)
+    public function __construct(swoole_server $serv, int $fd, int $reactor_id, $data, $rpc_server)
     {
         $this->serv = $serv;
         $this->fd = $fd;
-        $this->reactorId = $reactorId;
+        $this->reactor_id = $reactor_id;
         $this->data = $data;
+        $this->rpc_server = $rpc_server;
     }
 
     /**
@@ -75,7 +82,7 @@ class DataBean
      */
     public function getReactorId()
     {
-        return $this->reactorId;
+        return $this->reactor_id;
     }
 
     /**
@@ -84,6 +91,15 @@ class DataBean
     public function getData()
     {
         return $this->data;
+    }
+
+    /**
+     * 获取 Rpc 服务
+     * @return Server
+     */
+    public function getRpcServer(): Server
+    {
+        return $this->rpc_server;
     }
 }
 

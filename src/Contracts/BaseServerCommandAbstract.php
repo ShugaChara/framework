@@ -114,14 +114,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         );
 
         // 注册当前类回调事件
-        $selfEvents = get_class_methods($this);
-        foreach ($selfEvents as $event) {
-            if ('on' != substr($event, 0, 2)) {
-                continue;
-            }
-
-            $this->getServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$this, $event]);
-        }
+        $this->getServer()->registerClassEvents($this, $this->getServer());
 
         // 加载进程
         $this->getServer()->loadProcessor();
@@ -130,9 +123,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
         $this->getServer()->loadListener();
 
         // 注册全局 Hook mainSwooleServerEventsCreate 事件
-        $this->handleMainSwooleServerEventsCreate(
-            $this->getServer()
-        );
+        $this->handleMainSwooleServerEventsCreate();
 
         // 进程 PID 文件
         $this->createSwooleSettingPidDir();
@@ -255,8 +246,8 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
      */
     public function onManagerStart(swoole_server $server)
     {
-        SwooleHelper::setProcessRename($this->getServerConfigName() . ' manager');
-        $this->writelnBlock(sprintf('服务管理 PID [%s] 已经启动', $server->manager_pid));
+        SwooleHelper::setProcessRename($this->getServerConfigName() . '.manager');
+        $this->writelnBlock(sprintf('%s 服务管理 PID [%s] 已经启动', $this->getServerConfigName(), $server->manager_pid));
     }
 
     /**
@@ -277,7 +268,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
                 break;
             default:
         }
-        SwooleHelper::setProcessRename($this->getServerConfigName() . ' ' . $worker_name);
-        $this->getIO()->writeln(sprintf('服务 ' . $tag . ' <ft-blue-bold>[%s]</ft-blue-bold> 已经启动 [%s]', ucfirst($worker_name), $server->worker_pid, $workerId));
+        SwooleHelper::setProcessRename($this->getServerConfigName() . '.' . $worker_name . '.' . $workerId);
+        $this->getIO()->writeln(sprintf('%s 服务 ' . $tag . ' <ft-blue-bold>[%s]</ft-blue-bold> 已经启动 [%s]', $this->getServerConfigName(), ucfirst($worker_name), $server->worker_pid, $workerId));
     }
 }

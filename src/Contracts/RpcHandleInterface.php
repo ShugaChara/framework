@@ -20,7 +20,7 @@ use ShugaChara\Framework\Swoole\Rpc\DataBean;
 interface RpcHandleInterface
 {
     /**
-     * new DataBean
+     * New DataBean
      * @param DataBean $bean
      * @return mixed
      */
@@ -30,5 +30,5 @@ interface RpcHandleInterface
      * Handle DataBean
      * @return mixed
      */
-    public function handle();
+    public function __hook();
 }

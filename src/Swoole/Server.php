@@ -102,13 +102,7 @@ class Server extends SwooleServer
             // 注册默认的工作程序启动事件
             $this->getEventsRegister()->addEvent(
                 EventsRegister::onWorkerStart,
-                function (swoole_server $server, $workerId) use ($server_name) {
-                    if(PHP_OS != 'Darwin'){
-                        if( ($workerId < fnc()->c()->get('swoole.' . $server_name . '.setting.worker_num')) && $workerId >= 0){
-                            SwooleHelper::setProcessRename(("{$server_name}.Worker.{$workerId}"));
-                        }
-                    }
-
+                function (swoole_server $server, $workerId) {
                     // 建立连接池
                     foreach (container()->getContainerServices() as $service) {
                         if ($service instanceof PoolInterface) {
@@ -178,9 +172,9 @@ class Server extends SwooleServer
     public function loadProcessor()
     {
         $processes = fnc()->c()->get('swoole.processor.swoole_list', []);
-        foreach ($processes as $process) {
+        foreach ($processes as $name => $process) {
             $this->getSwooleServer()->addProcess(
-                (new $process($this->getName() . ' process'))->getProcess()
+                (new $process($this->getName() . '.process.' . $name))->getProcess()
             );
         }
 
@@ -210,27 +204,9 @@ class Server extends SwooleServer
                 $eventsClass = new $listener['events']($port);
                 if ($eventsClass instanceof ListenersAbstract) {
                     // 注册监听事件
-                    $classFunctions = get_class_methods($eventsClass);
-                    foreach ($classFunctions as $event) {
-                        if ('on' != substr($event, 0, 2)) {
-                            continue;
-                        }
-
-                        $eventsClass->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$eventsClass, $event]);
-                    }
-
-                    $events = $eventsClass->getEventsRegister()->allEvent();
-                    foreach ($events as $event => $callback){
-                        $eventsClass->getEventsRegister()->on(
-                            $eventsClass->getServerPort(),
-                            $event,
-                            function (...$args) use ($callback) {
-                                foreach ($callback as $item) {
-                                    call_user_func($item, ...$args);
-                                }
-                            }
-                        );
-                    }
+                    $this->registerClassEvents($eventsClass, $eventsClass);
+                    // 注册到 Swoole on events
+                    $this->registerSwooleEvents($eventsClass, $eventsClass->getServerPort());
                 }
             }
         }

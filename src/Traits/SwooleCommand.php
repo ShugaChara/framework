@@ -154,14 +154,7 @@ trait SwooleCommand
         $class->initialize();
 
         // 注册 Swoole 事件
-        $classFunctions = get_class_methods($class);
-        foreach ($classFunctions as $event) {
-            if ('on' != substr($event, 0, 2)) {
-                continue;
-            }
-
-            $this->getServer()->getEventsRegister()->addEvent(lcfirst(substr($event, 2)), [$class, $event]);
-        }
+        $this->getServer()->registerClassEvents($class, $this->getServer());
 
         // Swoole 处理
         $class->mainSwooleServerEventsCreate(
