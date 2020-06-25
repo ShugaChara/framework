@@ -38,18 +38,6 @@ use swoole_websocket_server;
 class Server extends SwooleServer
 {
     /**
-     * 连接文件描述符
-     * @var int
-     */
-    protected $fd = 0;
-
-    /**
-     * 连接所在的 Reactor 线程 ID
-     * @var int
-     */
-    protected $reactorId = 0;
-
-    /**
      * 注册默认回调
      * @param swoole_server $server
      * @param               $server_name
@@ -60,10 +48,7 @@ class Server extends SwooleServer
             // 注册连接事件
             $this->getEventsRegister()->addEvent(
                 EventsRegister::onConnect,
-                function (swoole_server $server, int $fd, int $reactorId) {
-                    $this->setFd($fd);
-                    $this->setReactorId($reactorId);
-                }
+                function (swoole_server $server, int $fd, int $reactorId) {}
             );
 
             // 注册请求事件
@@ -128,42 +113,6 @@ class Server extends SwooleServer
                 }
             );
         }
-    }
-
-    /**
-     * 设置连接文件描述符
-     * @param $fd
-     */
-    public function setFd($fd)
-    {
-        $this->fd = $fd;
-    }
-
-    /**
-     * 获取连接文件描述符
-     * @return int
-     */
-    public function getFd(): int
-    {
-        return $this->fd;
-    }
-
-    /**
-     * 设置连接所在的 Reactor 线程 ID
-     * @param $fd
-     */
-    public function setReactorId($reactorId)
-    {
-        $this->reactorId = $reactorId;
-    }
-
-    /**
-     * 获取连接所在的 Reactor 线程 ID
-     * @return int
-     */
-    public function getReactorId(): int
-    {
-        return $this->reactorId;
     }
 
     /**

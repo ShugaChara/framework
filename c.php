@@ -23,6 +23,7 @@ use ShugaChara\Framework\Swoole\TaskDispatcher;
 use ShugaChara\Framework\Swoole\Rpc\RpcHandle;
 use ShugaChara\Framework\Console\Commands\ApplicationCommand;
 use ShugaChara\Framework\Console\Commands\HttpServerCommand;
+use ShugaChara\Framework\Console\Commands\WebSocketServerCommand;
 use ShugaChara\Framework\Console\Commands\ProcessorCommand;
 use ShugaChara\Framework\Console\Commands\RpcServerCommand;
 
@@ -86,13 +87,16 @@ return [
         'application' => [
             'name'  =>  ApplicationCommand::class
         ],
-        'httpserver' => [
-            'name'  =>  HttpServerCommand::class
-        ],
         'processor'  =>  [
             'name'  =>  ProcessorCommand::class
         ],
-        'rpcserver' => [
+        'http_server' => [
+            'name'  =>  HttpServerCommand::class
+        ],
+        'websocket_server' => [
+            'name'  =>  WebSocketServerCommand::class
+        ],
+        'rpc_server' => [
             'name'  =>  RpcServerCommand::class
         ],
     ],
@@ -171,14 +175,29 @@ return [
                 'daemonize' => false,
                 'backlog' => 128,
                 'open_cpu_affinity' => true,
-                'dispatch_mode' => 2
+                'dispatch_mode' => 3
+            ]
+        ],
+        'websocket'  =>  [
+            'host' => '127.0.0.1',
+            'port' => 9012,
+            'setting' => [
+                'worker_num' => 8,
+                'task_worker_num' => 8,
+                'task_tmpdir' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_WEBSOCKET_SERVER . '/' . Server::SWOOLE_WEBSOCKET_SERVER . '/task',
+                'log_file' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_WEBSOCKET_SERVER . '/' . Server::SWOOLE_WEBSOCKET_SERVER . '.log',
+                'pid_file' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_WEBSOCKET_SERVER . '/' . Server::SWOOLE_WEBSOCKET_SERVER . '.pid',
+                'daemonize' => false,
+                'backlog' => 128,
+                'open_cpu_affinity' => true,
+                'dispatch_mode' => 3
             ]
         ],
         'rpc'  =>  [
             'handle_class' => RpcHandle::class,
             'services' => [],
             'host' => '127.0.0.1',
-            'port' => 9012,
+            'port' => 9022,
             'setting' => [
                 'worker_num' => 8,
                 'task_worker_num' => 8,
@@ -188,7 +207,7 @@ return [
                 'daemonize' => false,
                 'backlog' => 128,
                 'open_cpu_affinity' => true,
-                'dispatch_mode' => 2,
+                'dispatch_mode' => 3,
             ]
         ],
     ]
