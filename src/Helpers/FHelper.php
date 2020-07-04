@@ -194,7 +194,7 @@ class FHelper
      */
     public function server()
     {
-        return $this->serverChannel()->getSwooleServer();
+        return $this->serverChannel()->getServer();
     }
 
     /**
@@ -203,6 +203,6 @@ class FHelper
      */
     public function swoole()
     {
-        return $this->server()->getServer();
+        return $this->server()->getSwooleServer();
     }
 }

@@ -24,7 +24,6 @@ use ShugaChara\Http\SwooleServerRequest;
 use ShugaChara\Swoole\EventsRegister;
 use ShugaChara\Swoole\Manager\Timer;
 use ShugaChara\Swoole\Server as SwooleServer;
-use ShugaChara\Swoole\SwooleHelper;
 use ShugaChara\Swoole\Tools\SwooleListenRestart;
 use swoole_http_request;
 use swoole_http_response;
@@ -79,9 +78,17 @@ class Server extends SwooleServer
                 }
             );
 
-            // 注册默认的 websocket onMessage事件
+            // 注册默认的 Websocket onMessage 事件
             if ($server_name == static::SWOOLE_WEBSOCKET_SERVER) {
-                $this->getEventsRegister()->addEvent('message', function(swoole_websocket_server $server, $frame) {});
+                $this->getEventsRegister()->addEvent(
+                    EventsRegister::onOpen,
+                    function (swoole_websocket_server $server, swoole_http_request $request) {}
+                );
+
+                $this->getEventsRegister()->addEvent(
+                    EventsRegister::onMessage,
+                    function(swoole_websocket_server $server, $frame) {}
+                );
             }
 
             // 注册默认的工作程序启动事件
