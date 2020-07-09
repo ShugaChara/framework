@@ -1,7 +1,7 @@
 {
   "name": "shugachara/framework",
   "type": "library",
-  "description": "基于 Swoole 扩展开发的一套高性能 WebApi 框架 (兼容php-fpm)",
+  "description": "基于 Swoole 扩展开发的一套高性能 WebApi 框架 (支持 php-fpm / swoole 模式)",
   "keywords" : [
     "swoole",
     "framework",
@@ -34,7 +34,7 @@
     "shugachara/redis": "^1.0",
     "shugachara/validation": "^1.0",
     "shugachara/migrations": "^1.0",
-    "shugachara/swoole": "dev-master"
+    "shugachara/swoole": "^1.0"
   },
   "conflict": {
     "ext-xhprof": "*"

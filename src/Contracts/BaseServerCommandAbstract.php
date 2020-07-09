@@ -177,45 +177,6 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
     }
 
     /**
-     * 获取服务运行状态
-     * @return bool
-     */
-    protected function getServerStatus()
-    {
-        $pidFile = $this->getSwooleSettingPidFile();
-        if (file_exists($pidFile)) {
-            // 向进程发送信号，成功表示它处于运行状态
-            return posix_kill(intval(file_get_contents($pidFile)), 0);
-        }
-
-        if ($is_running = SwooleHelper::processIsRunning($this->getMasterProcessName())) {
-            $is_running = SwooleHelper::portIsRunning($this->getServerConfig('port'));
-        }
-
-        return $is_running;
-    }
-
-    /**
-     * 获取Swoole服务状态信息
-     */
-    protected function getSwooleServerStatusInfo()
-    {
-        exec("ps axu | grep '{$this->getServerConfigName()}' | grep -v grep", $output);
-
-        // 进程列表
-        $rows = SwooleHelper::getAllProcess($this->getServerConfigName());
-
-        $headers = ['USER', 'PID', 'RSS', 'STAT', 'START', 'COMMAND'];
-        foreach ($rows as $key => $value) {
-            $rows[$key] = array_combine($headers, $value);
-        }
-
-        $this->getIO()->table($headers, $rows);
-
-        unset($table, $headers, $output);
-    }
-
-    /**
      * 启动后在主进程（master）的主线程中调用此函数
      * @param swoole_server $server
      * @throws Exception

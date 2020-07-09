@@ -15,6 +15,7 @@ use Exception;
 use ReflectionClass;
 use ShugaChara\Core\Utils\Helper\PhpHelper;
 use ShugaChara\Framework\Contracts\MainSwooleEventsInterface;
+use ShugaChara\Swoole\SwooleHelper;
 use swoole_process;
 use Throwable;
 
@@ -161,5 +162,25 @@ trait SwooleCommand
             $this->getServer()->getEventsRegister(),
             $this->getServer()->getSwooleServer()
         );
+    }
+
+    /**
+     * 获取Swoole服务状态信息
+     */
+    protected function getSwooleServerStatusInfo()
+    {
+        exec("ps axu | grep '{$this->getServerConfigName()}' | grep -v grep", $output);
+
+        // 进程列表
+        $rows = SwooleHelper::getAllProcess($this->getServerConfigName());
+
+        $headers = ['USER', 'PID', 'RSS', 'STAT', 'START', 'COMMAND'];
+        foreach ($rows as $key => $value) {
+            $rows[$key] = array_combine($headers, $value);
+        }
+
+        $this->getIO()->table($headers, $rows);
+
+        unset($table, $headers, $output);
     }
 }

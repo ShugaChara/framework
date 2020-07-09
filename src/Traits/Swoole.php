@@ -15,6 +15,7 @@ use Exception;
 use ShugaChara\Core\Utils\Helper\ArrayHelper;
 use ShugaChara\Framework\Swoole\Rpc\Server as RpcServer;
 use ShugaChara\Framework\Swoole\Server;
+use ShugaChara\Swoole\SwooleHelper;
 
 /**
  * Trait Swoole
@@ -180,5 +181,24 @@ trait Swoole
         if (! file_exists($dir = dirname($this->getSwooleSettingPidFile()))) {
             mkdir($dir, 0755, true);
         }
+    }
+
+    /**
+     * 获取服务运行状态
+     * @return bool
+     */
+    protected function getServerStatus()
+    {
+        $pidFile = $this->getSwooleSettingPidFile();
+        if (file_exists($pidFile)) {
+            // 向进程发送信号，成功表示它处于运行状态
+            return posix_kill(intval(file_get_contents($pidFile)), 0);
+        }
+
+        if ($is_running = SwooleHelper::processIsRunning($this->getMasterProcessName())) {
+            $is_running = SwooleHelper::portIsRunning($this->getServerConfig('port'));
+        }
+
+        return $is_running;
     }
 }

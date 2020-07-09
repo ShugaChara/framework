@@ -94,7 +94,14 @@ class RpcServerCommand extends Command implements StatusManagerInterface
     {
         // TODO: Implement status() method.
 
+        if (! $this->getServerStatus()) {
+            throw new Exception($this->getServerConfigName() . ' 服务未启动');
+        }
 
+        // 获取服务状态详情
+        $this->getSwooleServerStatusInfo();
+
+        return $this->writelnBlock($this->getServerConfigName() . ' 服务已启动');
     }
 
     /**

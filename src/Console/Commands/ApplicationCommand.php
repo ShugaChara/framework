@@ -29,7 +29,7 @@ class ApplicationCommand extends Command
     /**
      * @var string
      */
-    protected static $description = 'Get application information';
+    protected static $description = '获取应用信息';
 
     /**
      * Console configure
