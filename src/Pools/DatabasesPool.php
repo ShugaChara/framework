@@ -63,13 +63,13 @@ class DatabasesPool implements PoolInterface
                 throw new LogicException(sprintf('No set %s database', $name));
             }
 
-            $this->connections[$name] = $this->capsule->addConnection($this->config[$name], $name);
+            $connection = $this->capsule->addConnection($this->config[$name], $name);
+            $getCapsule = $connection->getCapsule();
+            $getCapsule->setConnection($name);
+            $this->connections[$name] = $getCapsule;
         }
 
-        $getCapsule = ($this->connections[$name])->getCapsule();
-        $getCapsule->setConnection($name);
-
-        return $getCapsule;
+        return $this->connections[$name];
     }
 
     /**
