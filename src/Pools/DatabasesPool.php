@@ -65,8 +65,7 @@ class DatabasesPool implements PoolInterface
 
             $connection = $this->capsule->addConnection($this->config[$name], $name);
             $getCapsule = $connection->getCapsule();
-            $getCapsule->setConnection($name);
-            $this->connections[$name] = $getCapsule;
+            $this->connections[$name] = $getCapsule->_connection($name);
         }
 
         return $this->connections[$name];
