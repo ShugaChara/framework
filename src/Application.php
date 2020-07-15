@@ -18,12 +18,12 @@
 namespace ShugaChara\Framework;
 
 use Exception;
+use ShugaChara\Framework\Helpers\FHelper;
 use Throwable;
 use ErrorException;
 use Psr\Http\Message\ServerRequestInterface;
 use ShugaChara\Http\Exceptions\HttpException;
 use ShugaChara\Container\Container;
-use ShugaChara\Framework\Components\Alias;
 use ShugaChara\Framework\Contracts\ApplicationInterface;
 use ShugaChara\Framework\Exceptions\DebugLogsException;
 use ShugaChara\Framework\Exceptions\ResponseException;
@@ -66,7 +66,7 @@ abstract class Application implements ApplicationInterface
     final public function __construct($argv = [])
     {
         // 检查运行环境
-        fnc()->checkRuntime();
+        FHelper::checkRuntime();
 
         // 设置应用根目录
         $this->setRootDirectory();
@@ -74,17 +74,17 @@ abstract class Application implements ApplicationInterface
             $this->rootDirectory = rtrim($this->rootDirectory, '/');
         }
 
-        // 设置 argv
-        Alias::set('argv', $argv);
-
         // 加载容器
-        Alias::set('container', new Container());
+        alias()->set('container', new Container());
+
+        // 设置 argv
+        alias()->set('argv', $argv);
 
         // 加载应用
         static::$application = $this;
 
         // 容器添加应用服务
-        container()->add('application', static::$application);
+        container()->add('app', static::$application);
 
         // 注册配置中心
         container()->register(new ConfigServiceProvider());
@@ -106,10 +106,10 @@ abstract class Application implements ApplicationInterface
         }
 
         // 注册服务
-        $this->registerServiceProviders(fnc()->c()->get('service_providers'));
+        $this->registerServiceProviders(conf()->get('service_providers'));
 
         // 设置时区
-        date_default_timezone_set(fnc()->c()->get('timezone', 'PRC'));
+        date_default_timezone_set(conf()->get('timezone', 'PRC'));
 
         // 注册响应服务
         container()->add('response', new Response());
@@ -123,7 +123,7 @@ abstract class Application implements ApplicationInterface
      */
     protected function registerExceptionHandler()
     {
-        $level = fnc()->c()->get('error_reporting');
+        $level = conf()->get('error_reporting');
         error_reporting($level);
 
         set_exception_handler([$this, 'handleException']);
@@ -160,7 +160,7 @@ abstract class Application implements ApplicationInterface
             ];
         }
 
-        fnc()->logs()->error($e->getMessage(), $trace);
+        logs()->error($e->getMessage(), $trace);
 
         $status = ($e instanceof HttpException) ? $e->getStatusCode() : $e->getCode();
 
@@ -168,7 +168,7 @@ abstract class Application implements ApplicationInterface
             $status = Response::HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        $resposne = fnc()->response()->api(ResponseException::getReturn($e), $status);
+        $resposne = response()->api(ResponseException::getReturn($e), $status);
         if (! $this->isExecute()) {
             return $this->handleResponse($resposne);
         }
@@ -187,8 +187,8 @@ abstract class Application implements ApplicationInterface
         try {
             container()->add('request', $request);
 
-            if ((! (($response = fnc()->routerDispatcher()->dispatch($request)) instanceof Response))) {
-                return fnc()->response()->json($response);
+            if ((! (($response = router_dispatcher()->dispatch($request)) instanceof Response))) {
+                return response()->json($response);
             }
 
             return $response;
@@ -232,8 +232,8 @@ abstract class Application implements ApplicationInterface
         $this->isExecute = true;
 
         // swoole server
-        if (Alias::get('argv')) {
-            fnc()->console()->run();
+        if (alias()->get('argv')) {
+            console()->run();
         }
 
         // php-fpm

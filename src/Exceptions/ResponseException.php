@@ -29,7 +29,7 @@ class ResponseException implements ThrowExceptionReturnInterface
     {
         // TODO: Implement getReturn() method.
 
-        return (fnc()->c()->get('is_debug') == 'true') ?
+        return (conf()->get('is_debug') == 'true') ?
             DebugLogsException::getReturn($exception)
             : null;
     }

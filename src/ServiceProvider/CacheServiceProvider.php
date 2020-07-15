@@ -31,7 +31,7 @@ class CacheServiceProvider implements ServiceProviderInterface
         // TODO: Implement register() method.
 
         // Redis Cache
-        if ($redis = fnc()->c()->get('cache.redis')) {
+        if ($redis = conf()->get('cache.redis')) {
             $container->add('redis', new RedisPool($redis));
         }
     }

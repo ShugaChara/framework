@@ -11,6 +11,7 @@
 
 namespace ShugaChara\Framework\Components;
 
+use ShugaChara\Core\Traits\Singleton;
 use ShugaChara\Core\Utils\Helper\ArrayHelper;
 use ShugaChara\Framework\Contracts\AliasInterface;
 
@@ -20,6 +21,8 @@ use ShugaChara\Framework\Contracts\AliasInterface;
  */
 class Alias implements AliasInterface
 {
+    use Singleton;
+
     /**
      * 别名前缀
      */
@@ -28,61 +31,61 @@ class Alias implements AliasInterface
     /**
      * @var array
      */
-    protected static $alias = [];
+    protected $alias = [];
 
     /**
      * @param string $alias
      * @param string $value
      * @return mixed|void
      */
-    public static function set(string $alias, $value = '')
+    public function set(string $alias, $value = '')
     {
         // TODO: Implement set() method.
 
-        static::$alias[static::alias($alias)] = $value;
+        $this->alias[$this->alias($alias)] = $value;
     }
 
     /**
      * @param string $alias
      * @return mixed|void
      */
-    public static function has(string $alias): bool
+    public function has(string $alias): bool
     {
         // TODO: Implement has() method.
 
-        return isset(static::$alias[static::alias($alias)]) ? true : false;
+        return isset($this->alias[$this->alias($alias)]) ? true : false;
     }
 
     /**
      * @param string $alias
      * @return mixed
      */
-    public static function get(string $alias)
+    public function get(string $alias)
     {
         // TODO: Implement get() method.
 
-        return ArrayHelper::get(static::$alias, static::alias($alias), null);
+        return ArrayHelper::get($this->alias, static::alias($alias), null);
     }
 
     /**
      * @param string $alias
      * @return mixed|void
      */
-    public static function del(string $alias)
+    public function del(string $alias)
     {
         // TODO: Implement del() method.
 
-        unset(static::$alias[static::alias($alias)]);
+        unset($this->alias[$this->alias($alias)]);
     }
 
     /**
      * @return array
      */
-    public static function all(): array
+    public function all(): array
     {
         // TODO: Implement all() method.
 
-        return static::$alias;
+        return $this->alias;
     }
 
     /**
@@ -90,7 +93,7 @@ class Alias implements AliasInterface
      * @param string $alias
      * @return string
      */
-    protected static function alias(string $alias)
+    protected function alias(string $alias)
     {
         $alias = strtolower($alias);
 

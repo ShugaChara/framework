@@ -13,7 +13,6 @@ namespace ShugaChara\Framework\ServiceProvider;
 
 use ShugaChara\Container\Container;
 use ShugaChara\Container\Contracts\ServiceProviderInterface;
-use ShugaChara\Framework\Components\Alias;
 use ShugaChara\Framework\Pools\DatabasesPool;
 
 /**
@@ -31,11 +30,11 @@ class DatabaseServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        if ($databases = fnc()->c()->get('databases')) {
+        if ($databases = conf()->get('databases')) {
             $container->add('databases', new DatabasesPool($databases));
 
             // php-fpm 模式
-            if (! Alias::get('argv')) {
+            if (! alias()->get('argv')) {
                 $container->get('databases')->initPool();
             }
         }

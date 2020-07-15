@@ -183,7 +183,7 @@ abstract class BaseServerCommandAbstract extends Command implements StatusManage
      */
     public function onStart(swoole_server $server)
     {
-        $listeners = fnc()->c()->get('swoole.listeners', []);
+        $listeners = conf()->get('swoole.listeners', []);
         foreach ($listeners as $listener) {
             switch ($listener['sock_type']) {
                 case SWOOLE_SOCK_UDP:

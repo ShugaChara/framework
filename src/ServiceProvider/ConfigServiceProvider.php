@@ -31,17 +31,17 @@ class ConfigServiceProvider implements ServiceProviderInterface
         // TODO: Implement register() method.
 
         // 配置服务注册到容器
-        $container->add('c', new FileConfig());
+        $container->add('conf', new FileConfig());
 
         // 加载基本配置
         foreach (
             [
-                dirname(dirname(__DIR__)) . '/c.php'
+                dirname(dirname(__DIR__)) . '/conf.php'
             ]
             as
             $file
         ) {
-            $container->get('c')->loadFile($file);
+            $container->get('conf')->loadFile($file);
         }
     }
 }

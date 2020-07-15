@@ -124,7 +124,7 @@ class ProcessorCommand extends Command implements StatusManagerInterface
                 return 1;
             }
 
-            $this->processes = fnc()->c()->get('swoole.processor.fpm_list', []);
+            $this->processes = conf()->get('swoole.processor.fpm_list', []);
             if (! isset($this->processes[$this->process_name])) {
                 throw new RuntimeException(sprintf('%s 进程不存在', $this->process_name));
             }
@@ -237,7 +237,7 @@ class ProcessorCommand extends Command implements StatusManagerInterface
             ]
         );
 
-        foreach (fnc()->c()->get('swoole.processor.fpm_list', []) as $name => $processor) {
+        foreach (conf()->get('swoole.processor.fpm_list', []) as $name => $processor) {
             $rows[] = $this->getProcessInfo($name);
             $rows[] = $this->getTableSeparator();
         }

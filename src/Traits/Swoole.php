@@ -126,7 +126,7 @@ trait Swoole
     public function getServerConfig($key = null, $default = null)
     {
         if (! $this->serverConfig) {
-            if (! ($serverConfig = fnc()->c()->get('swoole.' . $this->getServerConfigName(), []))) {
+            if (! ($serverConfig = conf()->get('swoole.' . $this->getServerConfigName(), []))) {
                 throw new Exception('请完成 Swoole 配置以启动服务');
             }
 
@@ -142,7 +142,7 @@ trait Swoole
      */
     protected function setDaemonize(bool $value)
     {
-        fnc()->c()->set('swoole.' . $this->getServerConfigName() . '.setting.daemonize', $value);
+        conf()->set('swoole.' . $this->getServerConfigName() . '.setting.daemonize', $value);
     }
 
     /**
@@ -170,7 +170,7 @@ trait Swoole
      */
     protected function getSwooleSettingPidFile()
     {
-        return $this->getServerConfig('setting.pid_file', fnc()->app()->getRootDirectory() . '/tmp/' . str_replace(' ', '-', $this->getServerConfigName()) . '.pid');
+        return $this->getServerConfig('setting.pid_file', app()->getRootDirectory() . '/tmp/' . str_replace(' ', '-', $this->getServerConfigName()) . '.pid');
     }
 
     /**

@@ -86,7 +86,7 @@ class Server extends RpcServer
      */
     public function taskDispatcher(Task $task)
     {
-        $taskDispatcherClass = fnc()->c()->get('swoole.task.dispatcher_class');
+        $taskDispatcherClass = conf()->get('swoole.task.dispatcher_class');
         $taskDispatcherClassInstance = class_exists($taskDispatcherClass) ? $taskDispatcherClass::getInstance() : null;
         if ($taskDispatcherClassInstance) {
             $taskDispatcherClassInstance->new($task);
@@ -99,7 +99,7 @@ class Server extends RpcServer
      */
     public function rpcHandle(DataBean $bean)
     {
-        $taskDispatcherClass = fnc()->c()->get('swoole.rpc.handle_class');
+        $taskDispatcherClass = conf()->get('swoole.rpc.handle_class');
         $taskDispatcherClassInstance = class_exists($taskDispatcherClass) ? $taskDispatcherClass::getInstance() : null;
         if ($taskDispatcherClassInstance) {
             $taskDispatcherClassInstance->new($bean);

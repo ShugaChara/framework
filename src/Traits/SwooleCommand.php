@@ -41,8 +41,8 @@ trait SwooleCommand
             $swooleGetLocalIp .= 'ip@' . $eth . $val . ', ';
         }
 
-        if ($appLogo = fnc()->app()->getLogo()) {
-            $this->getIO()->text('<ft-yellow-bold>' . fnc()->app()->getLogo() . '</ft-yellow-bold>');
+        if ($appLogo = app()->getLogo()) {
+            $this->getIO()->text('<ft-yellow-bold>' . app()->getLogo() . '</ft-yellow-bold>');
         }
 
         $this->getIO()->write(sprintf('<ft-blue-bold>%s</ft-blue-bold> <ft-cyan-bold>%s</ft-cyan-bold>', '主服务名称', $this->getServerName()) . PHP_EOL . PHP_EOL);
@@ -52,8 +52,8 @@ trait SwooleCommand
 
         $this->getIO()->write(sprintf('<ft-blue-bold>%s</ft-blue-bold> <ft-cyan-bold>%s</ft-cyan-bold>', '正在运行的服务用户', $this->getServerConfig('setting.user', get_current_user())) . PHP_EOL . PHP_EOL);
         $this->getIO()->write(sprintf('<ft-blue-bold>%s</ft-blue-bold> <ft-cyan-bold>%s</ft-cyan-bold>', '服务守护程序状态', $this->isDaemonize($this->getServerName()) ? 'YES' : 'NO') . PHP_EOL . PHP_EOL);
-        $this->getIO()->write(sprintf('<ft-blue-bold>%s</ft-blue-bold> <ft-cyan-bold>%s</ft-cyan-bold>', '框架运行名称', fnc()->app()->getName()) . PHP_EOL . PHP_EOL);
-        $this->getIO()->write(sprintf('<ft-blue-bold>%s</ft-blue-bold> <ft-cyan-bold>%s</ft-cyan-bold>', '框架运行版本', fnc()->app()->getVersion()) . PHP_EOL . PHP_EOL);
+        $this->getIO()->write(sprintf('<ft-blue-bold>%s</ft-blue-bold> <ft-cyan-bold>%s</ft-cyan-bold>', '框架运行名称', app()->getName()) . PHP_EOL . PHP_EOL);
+        $this->getIO()->write(sprintf('<ft-blue-bold>%s</ft-blue-bold> <ft-cyan-bold>%s</ft-cyan-bold>', '框架运行版本', app()->getVersion()) . PHP_EOL . PHP_EOL);
         $this->getIO()->write(sprintf('<ft-blue-bold>%s</ft-blue-bold> <ft-cyan-bold>%s</ft-cyan-bold>', 'PHP 运行版本', phpversion()) . PHP_EOL . PHP_EOL);
         $this->getIO()->write(sprintf('<ft-blue-bold>%s</ft-blue-bold> <ft-cyan-bold>%s</ft-cyan-bold>', 'Swoole 服务运行版本', SWOOLE_VERSION) . PHP_EOL . PHP_EOL);
 
@@ -134,7 +134,7 @@ trait SwooleCommand
      */
     protected function handleMainSwooleServerEventsCreate()
     {
-        $swooleMainEventsClass = fnc()->c()->get('swoole.main_events');
+        $swooleMainEventsClass = conf()->get('swoole.main_events');
         if (class_exists($swooleMainEventsClass)) {
             try {
                 $refSwooleMainEvents = new ReflectionClass($swooleMainEventsClass);

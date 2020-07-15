@@ -56,7 +56,7 @@ class Server extends SwooleServer
                 function (swoole_http_request $swooleRequest, swoole_http_response $swooleResponse) use ($server) {
                     // 转移 Swoole 请求对象
                     $request = SwooleServerRequest::createServerRequestFromSwoole($swooleRequest);
-                    $response = fnc()->app()->handleRequest($request);
+                    $response = app()->handleRequest($request);
                     foreach ($response->getHeaders() as $key => $header) {
                         $swooleResponse->header($key, $response->getHeaderLine($key));
                     }
@@ -127,7 +127,7 @@ class Server extends SwooleServer
      */
     public function loadProcessor()
     {
-        $processes = fnc()->c()->get('swoole.processor.swoole_list', []);
+        $processes = conf()->get('swoole.processor.swoole_list', []);
         foreach ($processes as $name => $process) {
             $this->getSwooleServer()->addProcess(
                 (new $process($this->getName() . '.process.' . $name))->getProcess()
@@ -142,7 +142,7 @@ class Server extends SwooleServer
      */
     public function loadListener()
     {
-        $listeners = fnc()->c()->get('swoole.listeners', []);
+        $listeners = conf()->get('swoole.listeners', []);
         foreach ($listeners as $listener) {
             $port = $this->getSwooleServer()->addListener(
                 $listener['host'],
@@ -174,7 +174,7 @@ class Server extends SwooleServer
      */
     public function taskDispatcher(Task $task)
     {
-        $taskDispatcherClass = fnc()->c()->get('swoole.task.dispatcher_class');
+        $taskDispatcherClass = conf()->get('swoole.task.dispatcher_class');
         $taskDispatcherClassInstance = class_exists($taskDispatcherClass) ? $taskDispatcherClass::getInstance() : null;
         if ($taskDispatcherClassInstance) {
             $taskDispatcherClassInstance->new($task);
@@ -187,7 +187,7 @@ class Server extends SwooleServer
      */
     public function getProcessPidPath()
     {
-        $pid_path = fnc()->c()->get('swoole.processor.pid_path');
+        $pid_path = conf()->get('swoole.processor.pid_path');
         if (! file_exists($pid_path)) {
             mkdir($pid_path, 0755, true);
         }
@@ -210,17 +210,17 @@ class Server extends SwooleServer
      */
     protected function swooleHotReload()
     {
-        $hotreload = fnc()->c()->get('swoole.hotreload');
+        $hotreload = conf()->get('swoole.hotreload');
         if (ArrayHelper::get($hotreload, 'status', false)) {
             $swooleListenRestart = new SwooleListenRestart(ArrayHelper::get($hotreload, 'name', 'HotReload'));
             $swooleListenRestart->setConfig([
-                'monitorDir'     =>    ArrayHelper::get($hotreload, 'monitorDir', fnc()->app()->getRootDirectory()),
+                'monitorDir'     =>    ArrayHelper::get($hotreload, 'monitorDir', app()->getRootDirectory()),
                 'monitorExt'     =>    ArrayHelper::get($hotreload, 'monitorExt', ['php']),
                 'disableInotify' =>    ArrayHelper::get($hotreload, 'disableInotify', false),
             ]);
 
             $swooleListenRestart->restartSwooleServer(function () {
-                fnc()->serverChannel()->reload();   // 重启操作
+                server_channel()->reload();   // 重启操作
             });
 
             $this->getSwooleServer()->addProcess($swooleListenRestart->getProcess());

@@ -67,7 +67,7 @@ return [
     // 路由配置
     'router'    =>  [
         //  目录文件存放位置
-        'path'      =>  fnc()->app()->getRootDirectory() . '/router/',
+        'path'      =>  app()->getRootDirectory() . '/router/',
         //  路由文件前缀
         'ext'       =>  '.php',
     ],
@@ -75,7 +75,7 @@ return [
     // 日志配置
     'logs'      =>  [
         //  目录文件存放位置
-        'path'      =>  fnc()->app()->getRootDirectory() . '/runtime/logs/',
+        'path'      =>  app()->getRootDirectory() . '/runtime/logs/',
         //  最大文件数量
         'maxFiles'  =>  30,
         //  日志文件前缀
@@ -140,7 +140,7 @@ return [
             //  进程名称
             'name'          =>  'HotReload',
             //  指定目录
-            'monitorDir'    =>  fnc()->app()->getRootDirectory(),
+            'monitorDir'    =>  app()->getRootDirectory(),
             //  文件扩展名
             'monitorExt'    =>  ['php'],
             //  是否打开 inotify
@@ -150,7 +150,7 @@ return [
             'dispatcher_class'  =>  TaskDispatcher::class
         ],
         'processor' =>  [
-            'pid_path'  =>  fnc()->app()->getRootDirectory() . '/processes',
+            'pid_path'  =>  app()->getRootDirectory() . '/processes',
             'swoole_list' => [],
             'fpm_list'    => []
         ],
@@ -169,9 +169,9 @@ return [
             'setting' => [
                 'worker_num' => 8,
                 'task_worker_num' => 8,
-                'task_tmpdir' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/' . Server::SWOOLE_HTTP_SERVER . '/task',
-                'log_file' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/' . Server::SWOOLE_HTTP_SERVER . '.log',
-                'pid_file' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/' . Server::SWOOLE_HTTP_SERVER . '.pid',
+                'task_tmpdir' => app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/' . Server::SWOOLE_HTTP_SERVER . '/task',
+                'log_file' => app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/' . Server::SWOOLE_HTTP_SERVER . '.log',
+                'pid_file' => app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_HTTP_SERVER . '/' . Server::SWOOLE_HTTP_SERVER . '.pid',
                 'daemonize' => false,
                 'backlog' => 128,
                 'open_cpu_affinity' => true,
@@ -184,9 +184,9 @@ return [
             'setting' => [
                 'worker_num' => 8,
                 'task_worker_num' => 8,
-                'task_tmpdir' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_WEBSOCKET_SERVER . '/' . Server::SWOOLE_WEBSOCKET_SERVER . '/task',
-                'log_file' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_WEBSOCKET_SERVER . '/' . Server::SWOOLE_WEBSOCKET_SERVER . '.log',
-                'pid_file' => fnc()->app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_WEBSOCKET_SERVER . '/' . Server::SWOOLE_WEBSOCKET_SERVER . '.pid',
+                'task_tmpdir' => app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_WEBSOCKET_SERVER . '/' . Server::SWOOLE_WEBSOCKET_SERVER . '/task',
+                'log_file' => app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_WEBSOCKET_SERVER . '/' . Server::SWOOLE_WEBSOCKET_SERVER . '.log',
+                'pid_file' => app()->getRootDirectory() . '/swoole/' . Server::SWOOLE_WEBSOCKET_SERVER . '/' . Server::SWOOLE_WEBSOCKET_SERVER . '.pid',
                 'daemonize' => false,
                 'backlog' => 128,
                 'open_cpu_affinity' => true,
@@ -201,9 +201,9 @@ return [
             'setting' => [
                 'worker_num' => 8,
                 'task_worker_num' => 8,
-                'task_tmpdir' => fnc()->app()->getRootDirectory() . '/swoole/rpc/task',
-                'log_file' => fnc()->app()->getRootDirectory() . '/swoole/rpc.log',
-                'pid_file' => fnc()->app()->getRootDirectory() . '/swoole/rpc.pid',
+                'task_tmpdir' => app()->getRootDirectory() . '/swoole/rpc/task',
+                'log_file' => app()->getRootDirectory() . '/swoole/rpc.log',
+                'pid_file' => app()->getRootDirectory() . '/swoole/rpc.pid',
                 'daemonize' => false,
                 'backlog' => 128,
                 'open_cpu_affinity' => true,

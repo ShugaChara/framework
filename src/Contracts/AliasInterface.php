@@ -23,32 +23,32 @@ interface AliasInterface
      * @param string $value     别名对应值
      * @return mixed
      */
-    public static function set(string $alias, $value = '');
+    public function set(string $alias, $value = '');
 
     /**
      * 别名是否存在
      * @param string $alias
      * @return bool
      */
-    public static function has(string $alias): bool;
+    public function has(string $alias): bool;
 
     /**
      * 获取别名
      * @param string $alias
      * @return mixed
      */
-    public static function get(string $alias);
+    public function get(string $alias);
 
     /**
      * 删除别名
      * @param string $alias
      * @return mixed
      */
-    public static function del(string $alias);
+    public function del(string $alias);
 
     /**
      * 获取所有别名
      * @return array
      */
-    public static function all(): array;
+    public function all(): array;
 }
