@@ -23,7 +23,7 @@ trait Application
      */
     public function getName()
     {
-        return conf()->get('app_name', '');
+        return config()->get('app_name', '');
     }
 
     /**
@@ -32,7 +32,7 @@ trait Application
      */
     public function getVersion()
     {
-        return conf()->get('app_version', 'v1.0.0');
+        return config()->get('app_version', 'v1.0.0');
     }
 
     /**

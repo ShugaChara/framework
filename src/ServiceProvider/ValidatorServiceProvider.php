@@ -27,8 +27,8 @@ class ValidatorServiceProvider implements ServiceProviderInterface
         // TODO: Implement register() method.
 
         $container->add('validator', Validator::getInstance()->boot(
-            conf()->get('validator.lang_path'),
-            conf()->get('validator.lang')
+            config()->get('validator.lang_path'),
+            config()->get('validator.lang')
         ));
     }
 }

@@ -134,7 +134,7 @@ trait SwooleCommand
      */
     protected function handleMainSwooleServerEventsCreate()
     {
-        $swooleMainEventsClass = conf()->get('swoole.main_events');
+        $swooleMainEventsClass = config()->get('swoole.main_events');
         if (class_exists($swooleMainEventsClass)) {
             try {
                 $refSwooleMainEvents = new ReflectionClass($swooleMainEventsClass);

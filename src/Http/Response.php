@@ -48,7 +48,7 @@ class Response extends HttpResponse
         $startResponseTime = ArrayHelper::get(request()->getServerParams(), 'REQUEST_TIME_FLOAT', 0) ? : ArrayHelper::get($_SERVER, 'REQUEST_TIME_FLOAT', 0);
         $responseTime = microtime(true) - $startResponseTime;
 
-        $StatusCode = conf()->get('apicode') ? : StatusCode::class;
+        $StatusCode = config()->get('apicode') ? : StatusCode::class;
         list($httpCode, $message) = $StatusCode::getInstance()->getCodeMessage($status);
 
         return $this->json(

@@ -57,14 +57,14 @@ if (! function_exists('app')) {
     }
 }
 
-if (! function_exists('conf')) {
+if (! function_exists('config')) {
     /**
      * 获取配置服务
      * @return \ShugaChara\Config\FileConfig
      */
-    function conf()
+    function config()
     {
-        return container()->get('conf');
+        return container()->get('config');
     }
 }
 
@@ -76,7 +76,7 @@ if (! function_exists('logs')) {
      */
     function logs($name = null)
     {
-        return container()->get('logs')(($name ?? conf()->get('app_name')));
+        return container()->get('logs')(($name ?? config()->get('app_name')));
     }
 }
 

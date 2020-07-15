@@ -41,8 +41,8 @@ class LogsServiceProvider implements ServiceProviderInterface
             return function ($key, $level = Logger::DEBUG) {
                 if (! isset($this->logs[$key])) {
                     $logHandler = new RotatingFileHandler(
-                        conf()->get('logs.path') . $key . conf()->get('logs.ext'),
-                        conf()->get('logs.maxFiles'),
+                        config()->get('logs.path') . $key . config()->get('logs.ext'),
+                        config()->get('logs.maxFiles'),
                         $level
                     );
                     $this->logs[$key] = new Logger($key, [$logHandler]);

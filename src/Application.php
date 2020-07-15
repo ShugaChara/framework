@@ -106,10 +106,10 @@ abstract class Application implements ApplicationInterface
         }
 
         // 注册服务
-        $this->registerServiceProviders(conf()->get('service_providers'));
+        $this->registerServiceProviders(config()->get('service_providers'));
 
         // 设置时区
-        date_default_timezone_set(conf()->get('timezone', 'PRC'));
+        date_default_timezone_set(config()->get('timezone', 'PRC'));
 
         // 注册响应服务
         container()->add('response', new Response());
@@ -123,7 +123,7 @@ abstract class Application implements ApplicationInterface
      */
     protected function registerExceptionHandler()
     {
-        $level = conf()->get('error_reporting');
+        $level = config()->get('error_reporting');
         error_reporting($level);
 
         set_exception_handler([$this, 'handleException']);

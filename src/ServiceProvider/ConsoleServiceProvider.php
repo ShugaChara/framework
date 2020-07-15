@@ -32,7 +32,7 @@ class ConsoleServiceProvider implements ServiceProviderInterface
 
         $consoleApplication = new Console();
 
-        if ($commands = conf()->get('console')) {
+        if ($commands = coconfignf()->get('console')) {
             foreach ($commands as $key => $command) {
                 $consoleApplication->add(new $command['name']($key));
             }

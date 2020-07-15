@@ -30,7 +30,7 @@ class DatabaseServiceProvider implements ServiceProviderInterface
     {
         // TODO: Implement register() method.
 
-        if ($databases = conf()->get('databases')) {
+        if ($databases = config()->get('databases')) {
             $container->add('databases', new DatabasesPool($databases));
 
             // php-fpm 模式

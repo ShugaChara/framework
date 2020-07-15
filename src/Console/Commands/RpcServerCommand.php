@@ -140,7 +140,7 @@ class RpcServerCommand extends Command implements StatusManagerInterface
         $this->serverInfo();
 
         // 添加服务
-        foreach (conf()->get('swoole.rpc.services', []) as $service) {
+        foreach (config()->get('swoole.rpc.services', []) as $service) {
             if ($serviceName = $this->getServer()->addService($service)) {
                 $this->getIO()->writeln(sprintf('%s 服务 已注册 - <ft-magenta-bold>%s</ft-magenta-bold> 对外服务能力', $this->getServerConfigName(), $serviceName) . PHP_EOL);
             }
@@ -189,7 +189,7 @@ class RpcServerCommand extends Command implements StatusManagerInterface
      */
     public function onStart(swoole_server $server)
     {
-        $listeners = conf()->get('swoole.listeners', []);
+        $listeners = config()->get('swoole.listeners', []);
         foreach ($listeners as $listener) {
             switch ($listener['sock_type']) {
                 case SWOOLE_SOCK_UDP:

@@ -126,7 +126,7 @@ trait Swoole
     public function getServerConfig($key = null, $default = null)
     {
         if (! $this->serverConfig) {
-            if (! ($serverConfig = conf()->get('swoole.' . $this->getServerConfigName(), []))) {
+            if (! ($serverConfig = config()->get('swoole.' . $this->getServerConfigName(), []))) {
                 throw new Exception('请完成 Swoole 配置以启动服务');
             }
 
@@ -142,7 +142,7 @@ trait Swoole
      */
     protected function setDaemonize(bool $value)
     {
-        conf()->set('swoole.' . $this->getServerConfigName() . '.setting.daemonize', $value);
+        config()->set('swoole.' . $this->getServerConfigName() . '.setting.daemonize', $value);
     }
 
     /**
